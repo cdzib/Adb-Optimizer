@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tv_launcher_title">Launcher de TV</string>
+    <string name="tv_launcher_intro">Elige un launcher ya instalado y compatible. Esto solo cambia la pantalla de inicio; no elimina apps ni garantiza que la TV funcione más rápido. Puedes volver a seleccionar el launcher actual.</string>
+    <string name="tv_launcher_empty">No se encontraron actividades de inicio compatibles en esta TV.</string>
+    <string name="tv_launcher_in_use">En uso</string>
+    <string name="tv_launcher_available">Instalado y disponible</string>
+    <string name="tv_launcher_current">Actual</string>
+    <string name="tv_launcher_use">Usar</string>
+    <string name="tv_launcher_refresh_list">Actualizar lista</string>
+    <string name="tv_launcher_change_title">Cambiar launcher</string>
+    <string name="tv_launcher_change_body">¿Quieres establecer %1$s como pantalla de inicio? El comportamiento depende del fabricante y de la versión de Android.</string>
+    <string name="tv_launcher_set">Establecer</string>
+    <string name="tv_launcher_error_load">No se pudieron consultar los launchers de la TV.</string>
+    <string name="tv_launcher_error_change">No se pudo cambiar el launcher de la TV.</string>
+</resources>

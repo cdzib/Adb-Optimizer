@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_back">Volver</string>
+    <string name="action_retry">Reintentar</string>
+    <string name="action_refresh">Actualizar</string>
+    <string name="action_close">Cerrar</string>
+    <string name="action_update">Actualizar</string>
+</resources>

@@ -1,0 +1,27 @@
+<resources>
+    <string name="devices_connecting">Conectando…</string>
+    <string name="devices_reconnecting">Reconectando…</string>
+    <string name="devices_connection_progress">Estableciendo conexión con el equipo. Esto puede tardar unos segundos.</string>
+    <string name="devices_connection_cancel">Cancelar intento</string>
+    <string name="known_device_actions">Acciones de %1$s</string>
+    <string name="known_device_phone">Teléfono o tablet</string>
+    <string name="known_device_tv">Android TV / TV Box</string>
+    <string name="known_device_unknown">Dispositivo Android</string>
+    <string name="known_device_type">Tipo de equipo</string>
+    <string name="known_device_model">Modelo</string>
+    <string name="known_device_manufacturer">Fabricante</string>
+    <string name="known_device_address">Dirección IP</string>
+    <string name="known_device_port">Puerto de conexión</string>
+    <string name="known_device_transport">Conexión</string>
+    <string name="known_device_tls">ADB seguro · TLS</string>
+    <string name="known_device_classic">ADB clásico</string>
+    <string name="known_device_android">Android</string>
+    <string name="known_device_sdk">Versión SDK</string>
+    <string name="known_device_abi">Arquitectura</string>
+    <string name="known_device_details">DETALLES DEL DISPOSITIVO</string>
+    <string name="known_device_saved">Vinculado anteriormente</string>
+    <string name="known_device_use">Usar este dispositivo</string>
+    <string name="known_device_disconnect">Desconectar</string>
+    <string name="known_device_missing_details">Los detalles adicionales se actualizarán cuando vuelvas a conectar este equipo.</string>
+    <string name="known_device_forget_info">Olvidar elimina el equipo del historial, pero no revoca la autorización ADB.</string>
+</resources>

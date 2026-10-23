@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_active_destination">DESTINO ACTIVO</string>
+    <string name="nav_home">Inicio</string>
+    <string name="nav_destination">Destino</string>
+    <string name="nav_settings">Ajustes</string>
+    <string name="app_error_launcher_tv_only">La configuración de launcher solo está disponible para TVs conectadas.</string>
+</resources>

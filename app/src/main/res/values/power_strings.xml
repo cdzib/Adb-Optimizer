@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="power_title">Opciones de energía</string>
+    <string name="power_reboot">Reiniciar</string>
+    <string name="power_shutdown">Apagar</string>
+    <string name="power_recovery">Reiniciar en recovery</string>
+    <string name="power_device">Dispositivo: %1$s</string>
+    <string name="power_confirm_body">%1$s\n%2$s\nLa conexión finalizará cuando el dispositivo ejecute la acción.</string>
+    <string name="power_cancel">Cancelar</string>
+    <string name="power_shizuku_required">Autoriza Shizuku para usar las opciones de energía en este teléfono.</string>
+    <string name="power_sending">Enviando solicitud…</string>
+    <string name="power_request_sent">Solicitud enviada a %1$s. Comprueba el estado en el dispositivo.</string>
+    <string name="power_request_unconfirmed">No se pudo confirmar la solicitud en %1$s. Comprueba su estado antes de volver a intentarlo. %2$s</string>
+</resources>

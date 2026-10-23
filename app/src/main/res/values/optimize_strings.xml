@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="optimize_intro">Revisa los cambios disponibles y previsualízalos antes de aplicarlos.</string>
+    <string name="optimize_selected_count">%1$d de %2$d disponibles</string>
+    <string name="optimize_risk_advanced_title">Ajustes avanzados</string>
+    <string name="optimize_risk_moderate_title">Ajustes moderados</string>
+    <string name="optimize_risk_warning_intro">Vas a aplicar cambios que pueden alterar el dispositivo:</string>
+    <string name="optimize_risk_warning_item">• %1$s</string>
+    <string name="optimize_risk_advanced_body">Los ajustes avanzados pueden cambiar la resolución, la densidad o el refresco de pantalla. Verifica que puedes revertirlos por ADB antes de continuar.</string>
+    <string name="optimize_risk_moderate_body">Estos ajustes pueden afectar notificaciones, sincronización o el comportamiento en segundo plano.</string>
+    <string name="optimize_apply_confirm">Entiendo, aplicar</string>
+    <string name="optimize_reason_profile">No incluida en este perfil</string>
+    <string name="optimize_reason_min_sdk">Requiere Android más reciente</string>
+    <string name="optimize_reason_max_sdk">Requiere Android más antiguo</string>
+    <string name="optimize_reason_tv_only">Solo para TV</string>
+    <string name="optimize_reason_phone_only">Solo para celular</string>
+    <string name="optimize_reason_manufacturer">Solo para ciertos fabricantes</string>
+    <string name="optimize_error_remote_no_device">Conecta un dispositivo para seleccionar el destino remoto.</string>
+    <string name="optimize_error_device_read">No se pudo leer el dispositivo.</string>
+    <string name="optimize_error_shizuku">Inicia Shizuku y concede permiso para ejecutar optimizaciones locales.</string>
+</resources>

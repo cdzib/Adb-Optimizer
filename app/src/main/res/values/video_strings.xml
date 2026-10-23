@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="video_device_placeholder">Video del dispositivo</string>
+    <string name="video_device_description">Video del dispositivo remoto</string>
+    <string name="video_status_connecting">Conectando…</string>
+    <string name="video_status_preparing">Preparando imagen…</string>
+    <string name="video_status_live">En vivo</string>
+    <string name="video_status_closed">Espejo cerrado</string>
+    <string name="video_status_disconnected">Desconectado</string>
+    <string name="video_control_denied">El dispositivo deniega INJECT_EVENTS. Control táctil desactivado; el video sigue disponible.</string>
+    <string name="video_control_unknown">No se pudo comprobar el permiso de control. Prueba un toque o las teclas del mando.</string>
+    <string name="video_control_tv">TV: permiso de inyección concedido. Los toques sobre el video dependen del modelo y la app.</string>
+    <string name="video_control_touch">Toca o desliza sobre el video para controlar el teléfono conectado.</string>
+    <string name="video_control_checking">Comprobando permisos de control…</string>
+    <string name="video_error_send_control">No se pudo enviar el control.</string>
+    <string name="video_error_saturated">Control saturado. Vuelve a abrir el espejo.</string>
+    <string name="video_error_show">No se pudo mostrar el espejo.</string>
+</resources>

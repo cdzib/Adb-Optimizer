@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_section_appearance">Apariencia</string>
+    <string name="settings_theme_label">Tema de la aplicación</string>
+    <string name="settings_theme_system">Seguir el sistema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Oscuro</string>
+    <string name="settings_section_apps">Aplicaciones</string>
+    <string name="settings_show_system_apps">Mostrar apps del sistema</string>
+    <string name="settings_show_system_apps_description">Incluye las apps de sistema al abrir el administrador de apps.</string>
+    <string name="settings_section_connection">Conexión y dispositivo</string>
+    <string name="settings_auto_reconnect">Reconectar al abrir la app</string>
+    <string name="settings_auto_reconnect_description">Intenta recuperar la última sesión ADB al iniciar el proceso.</string>
+    <string name="settings_keep_screen_on">Mantener pantalla encendida</string>
+    <string name="settings_keep_screen_on_description">Evita que la pantalla se apague mientras usas la app.</string>
+    <string name="settings_auto_refresh_metrics">Actualizar métricas automáticamente</string>
+    <string name="settings_auto_refresh_metrics_description">Refresca las métricas de Inicio con la frecuencia que elijas.</string>
+    <string name="settings_refresh_frequency">Frecuencia de actualización</string>
+    <string name="settings_seconds">%1$d segundos</string>
+    <string name="settings_refresh_frequency_hint">Inicio se actualizará cada %1$d segundos.</string>
+    <string name="settings_section_dpc">Aprovisionamiento DPC</string>
+    <string name="settings_dpc_description">Instala y configura un DPC (Device Owner o Profile Owner) en el dispositivo remoto.</string>
+    <string name="settings_open_dpc">Abrir aprovisionamiento DPC</string>
+    <string name="settings_wireless_debug_required">La depuración inalámbrica debe estar activa en el dispositivo remoto.</string>
+</resources>

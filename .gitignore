@@ -1,0 +1,35 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Kotlin
+.kotlin/
+
+# Local configuration (SDK path, etc.)
+local.properties
+
+# OS
+.DS_Store
+
+# Build outputs
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Logs and profiles
+*.log
+*.hprof
+
+# Signing material
+*.jks
+*.keystore
+keystore.properties

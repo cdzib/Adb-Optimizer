@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="install_back_to_apps">Volver a Apps</string>
+    <string name="install_title">Instalar aplicaciones</string>
+    <string name="install_choose_apk">Elegir APK desde Archivos</string>
+    <string name="install_intro">Selecciona las aplicaciones instaladas en este teléfono que quieres instalar en el dispositivo remoto.</string>
+    <string name="install_shizuku_hint">Para explorar las apps de este teléfono, activa Shizuku desde Inicio. También puedes elegir un APK desde Archivos.</string>
+    <string name="install_no_user_apps">No hay apps de usuario disponibles en este teléfono.</string>
+    <string name="install_app_detail">%1$s · %2$s%3$s</string>
+    <string name="install_app_split"> · APK dividido</string>
+    <string name="install_selected">Instalar %1$d seleccionadas</string>
+    <string name="install_error_no_host_apps">No hay apps de usuario instaladas en este teléfono.</string>
+</resources>

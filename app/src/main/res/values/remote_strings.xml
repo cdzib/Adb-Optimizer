@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="remote_title">Espejo del dispositivo</string>
+    <string name="remote_no_device">Sin dispositivo conectado</string>
+    <string name="remote_up">Arriba</string>
+    <string name="remote_down">Abajo</string>
+    <string name="remote_left">Izquierda</string>
+    <string name="remote_right">Derecha</string>
+    <string name="remote_ok">OK</string>
+    <string name="remote_back">Atrás</string>
+    <string name="remote_home">Inicio</string>
+    <string name="remote_menu">Menú</string>
+    <string name="remote_volume_down">Bajar volumen</string>
+    <string name="remote_volume_up">Subir volumen</string>
+    <string name="remote_play_pause">Reproducir o pausar</string>
+    <string name="remote_error_send_key">No se pudo enviar la tecla.</string>
+</resources>

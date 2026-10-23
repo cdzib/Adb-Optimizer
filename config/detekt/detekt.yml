@@ -1,0 +1,73 @@
+config:
+  validation: false
+  warningsAsErrors: false
+
+naming:
+  active: true
+  ClassNaming:
+    active: true
+  FunctionNaming:
+    active: true
+    ignoreAnnotated:
+      - Composable
+      - Test
+  VariableNaming:
+    active: true
+  PackageNaming:
+    active: true
+
+style:
+  active: true
+  UnusedImports:
+    active: true
+  UnusedPrivateMember:
+    active: true
+    ignoreAnnotated:
+      - Preview
+  UnusedPrivateProperty:
+    active: true
+  ReturnCount:
+    active: true
+    max: 8
+  MagicNumber:
+    active: false
+  MaxLineLength:
+    active: false
+  ForbiddenComment:
+    active: false
+  # Compose usa imports on-demand (ver .editorconfig); ktlint no los bloquea.
+  WildcardImport:
+    active: false
+
+potential-bugs:
+  active: true
+  UnsafeCallOnNullableType:
+    active: true
+  UnreachableCode:
+    active: true
+  LateinitUsage:
+    active: false
+
+complexity:
+  active: true
+  LongMethod:
+    active: true
+    threshold: 160
+    ignoreAnnotated:
+      - Composable
+  LongParameterList:
+    active: true
+    functionThreshold: 12
+    constructorThreshold: 12
+    ignoreDefaultParameters: true
+    ignoreAnnotated:
+      - Composable
+  TooManyFunctions:
+    active: false
+
+exceptions:
+  active: true
+  TooGenericExceptionCaught:
+    active: false
+  SwallowedException:
+    active: true
