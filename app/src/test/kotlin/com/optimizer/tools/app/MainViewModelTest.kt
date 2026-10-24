@@ -69,7 +69,7 @@ class MainViewModelTest {
         }
 
     @Test
-    fun `adding a device while requested switches to remote home`() =
+    fun `adding a device while requested returns to device center`() =
         runViewModelTest {
             val environment = FakeMainEnvironment()
             val viewModel = MainViewModel(environment)
@@ -84,7 +84,7 @@ class MainViewModelTest {
             runCurrent()
 
             assertEquals(phone, viewModel.state.value.connected)
-            assertEquals(listOf(Screen.ADD_DEVICE, Screen.HOME), navigation)
+            assertEquals(listOf(Screen.ADD_DEVICE, Screen.CONNECT), navigation)
             assertEquals(AppTarget.REMOTE, viewModel.state.value.activeTarget)
         }
 

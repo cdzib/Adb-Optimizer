@@ -49,7 +49,7 @@ class MainViewModel(
                     if (remoteConnectRequested) {
                         remoteConnectRequested = false
                         _state.update { it.copy(activeTarget = AppTarget.REMOTE) }
-                        navigateTo(Screen.HOME)
+                        navigateTo(Screen.CONNECT)
                     }
                 } else if (active == null && previousActive != null) {
                     previousActive = null
@@ -115,14 +115,11 @@ class MainViewModel(
         navigateTo(Screen.ADD_DEVICE)
     }
 
-    /**
-     * Tras una conexion iniciada por el usuario se vuelve al panel principal con el
-     * equipo remoto ya seleccionado, para que el cambio sea visible de inmediato.
-     */
+    /** Tras conectar desde la pantalla de alta, vuelve al centro de dispositivos. */
     fun onDeviceConnected() {
         remoteConnectRequested = false
         _state.update { it.copy(activeTarget = AppTarget.REMOTE) }
-        navigateTo(Screen.HOME)
+        navigateTo(Screen.CONNECT)
     }
 
     fun openTvLauncher() {
