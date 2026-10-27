@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="760" viewBox="0 0 960 760" role="img" aria-labelledby="title desc">
+<title id="title">Icono Adaptativo de ADB Optimizer (Claro y Oscuro)</title>
+<desc id="desc\">Versión final optimizada con margen correcto (más pequeño y centrado) y cambio automático entre tema claro y oscuro.</desc>
+<defs>
+ <g id="mark">
+  <path fill-rule="evenodd" d="M6 1h12a3 3 0 0 1 3 3v16a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V4a3 3 0 0 1 3-3Zm0 2a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1Z"/>
+  <path d="m13 5-6 7h4l-1 5 7-8h-4ZM10 19h4v1h-4Z"/>
+ </g>
+</defs>
+<rect width="960" height="760" fill="#f4f7fa"/>
+<text x="56" y="54" font-family="Arial,sans-serif" font-size="13" fill="#15803d" font-weight="700" letter-spacing="2">ADB OPTIMIZER / ICONO ADAPTATIVO</text>
+<text x="56" y="106" font-family="Arial,sans-serif" font-size="32" fill="#0f172a" font-weight="700">Tamaño optimizado y cambio dinámico por tema.</text>
+
+<!-- Light Theme Icon -->
+<rect x="56" y="152" width="392" height="380" rx="24" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="88" y="192" font-family="Arial,sans-serif" font-size="16" fill="#475569">TEMA CLARO (DAY)</text>
+<rect x="152" y="224" width="200" height="200" rx="48" fill="#ffffff" stroke="#e2e8f0" stroke-width="4"/>
+<use href="#mark" transform="translate(192 264) scale(5)" fill="#0B0F14"/>
+<text x="252" y="474" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" fill="#0f172a" font-weight="700">Fondo blanco · Ícono oscuro</text>
+
+<!-- Dark Theme Icon -->
+<rect x="512" y="152" width="392" height="380" rx="24" fill="#0b0f14"/>
+<text x="544" y="192" font-family="Arial,sans-serif" font-size="16" fill="#94a3b8">TEMA OSCURO (NIGHT)</text>
+<rect x="608" y="224" width="200" height="200" rx="48" fill="#0B0F14"/>
+<use href="#mark" transform="translate(648 264) scale(5)" fill="#4ADE80"/>
+<text x="708" y="474" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" fill="#f8fafc" font-weight="700">Fondo oscuro · Ícono verde neón</text>
+
+<text x="56" y="586" font-family="Arial,sans-serif" font-size="16" fill="#52657a">El sistema cambia automáticamente de icono al alternar el modo del dispositivo.</text>
+<text x="56" y="626" font-family="Arial,sans-serif" font-size="14" fill="#64748b">✔ Margen y proporción ajustados (evita que el símbolo se vea demasiado grande dentro del círculo del launcher).</text>
+</svg>
