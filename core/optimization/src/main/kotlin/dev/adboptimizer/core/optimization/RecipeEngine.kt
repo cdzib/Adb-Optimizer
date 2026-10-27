@@ -12,6 +12,7 @@ import dev.adboptimizer.core.model.Profile
 import dev.adboptimizer.core.model.Recipe
 import dev.adboptimizer.core.model.RecipeRun
 import dev.adboptimizer.core.model.RecipeStep
+import dev.adboptimizer.core.model.RecipeStepType
 import dev.adboptimizer.core.model.RunStatus
 import dev.adboptimizer.core.model.StepResult
 import dev.adboptimizer.core.model.StepStatus
@@ -214,12 +215,14 @@ class RecipeEngine(
         step: RecipeStep,
         dryRun: Boolean,
     ): StepResult {
-        if (step.type == dev.adboptimizer.core.model.RecipeStepType.INSTALL_SYSTEM_APK) {
+        if (step.type == RecipeStepType.INSTALL_SYSTEM_APK) {
             return StepResult(
                 index = index,
                 run = step.run,
                 status = StepStatus.UNSUPPORTED,
-                error = "La instalación en /system requiere adb root/remount desde un host. dadb ejecuta como uid 2000; Android solo permite pm install y elegir Home.",
+                error =
+                    "La instalación en /system requiere adb root/remount desde un host. " +
+                        "dadb ejecuta como uid 2000; Android solo permite pm install y elegir Home.",
             )
         }
         val startedAt = System.nanoTime()

@@ -2,6 +2,9 @@ package dev.adboptimizer.core.optimization
 
 import dev.adboptimizer.core.model.ActionCatalog
 import dev.adboptimizer.core.model.Catalog
+import dev.adboptimizer.core.model.Recipe
+import dev.adboptimizer.core.model.RecipeStep
+import dev.adboptimizer.core.model.RecipeStepType
 
 object CatalogValidator {
     fun validate(
@@ -32,21 +35,7 @@ object CatalogValidator {
                 if (undoCommand != null && !undoCommand.contains("{{prev}}") && step.undoIfUnset != null) {
                     problems += "${recipe.id}[$index]: undoIfUnset sin plantilla {{prev}}"
                 }
-                if (step.type == dev.adboptimizer.core.model.RecipeStepType.INSTALL_SYSTEM_APK) {
-                    if (!recipe.requiresRoot) problems += "${recipe.id}[$index]: installSystemApk requiere root"
-                    if (step.apkPath.isNullOrBlank()) problems += "${recipe.id}[$index]: apkPath vacio"
-                    val targetPath = step.targetPath
-                    if (targetPath == null || !targetPath.startsWith("/system/") || targetPath.contains("..")) {
-                        problems += "${recipe.id}[$index]: targetPath debe estar bajo /system"
-                    }
-                    if (step.mode?.matches(Regex("[0-7]{3,4}")) != true) problems += "${recipe.id}[$index]: mode invalido"
-                    if (step.owner?.matches(Regex("[0-9]+:[0-9]+")) != true) problems += "${recipe.id}[$index]: owner invalido"
-                    if (step.selinuxContext.isNullOrBlank()) problems += "${recipe.id}[$index]: selinuxContext vacio"
-                    val disablePackages = step.disablePackages
-                    if (disablePackages.isNullOrEmpty() || disablePackages.any { !it.matches(Regex("[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)+")) }) {
-                        problems += "${recipe.id}[$index]: disablePackages invalido"
-                    }
-                }
+                if (step.type == RecipeStepType.INSTALL_SYSTEM_APK) problems += systemApkProblems(recipe, index, step)
             }
         }
 
@@ -65,4 +54,33 @@ object CatalogValidator {
 
         return problems
     }
+
+    private fun systemApkProblems(
+        recipe: Recipe,
+        index: Int,
+        step: RecipeStep,
+    ): List<String> {
+        val problems = mutableListOf<String>()
+        val prefix = "${recipe.id}[$index]"
+        if (!recipe.requiresRoot) problems += "$prefix: installSystemApk requiere root"
+        if (step.apkPath.isNullOrBlank()) problems += "$prefix: apkPath vacio"
+
+        val targetPath = step.targetPath
+        if (targetPath == null || !targetPath.startsWith("/system/") || targetPath.contains("..")) {
+            problems += "$prefix: targetPath debe estar bajo /system"
+        }
+        if (step.mode?.matches(SYSTEM_APK_MODE) != true) problems += "$prefix: mode invalido"
+        if (step.owner?.matches(SYSTEM_APK_OWNER) != true) problems += "$prefix: owner invalido"
+        if (step.selinuxContext.isNullOrBlank()) problems += "$prefix: selinuxContext vacio"
+
+        val packages = step.disablePackages
+        if (packages.isNullOrEmpty() || packages.any { !PACKAGE_NAME.matches(it) }) {
+            problems += "$prefix: disablePackages invalido"
+        }
+        return problems
+    }
+
+    private val SYSTEM_APK_MODE = Regex("[0-7]{3,4}")
+    private val SYSTEM_APK_OWNER = Regex("[0-9]+:[0-9]+")
+    private val PACKAGE_NAME = Regex("[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)+")
 }
