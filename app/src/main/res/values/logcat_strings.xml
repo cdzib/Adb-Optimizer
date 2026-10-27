@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="logcat_title">Registro del sistema</string>
-    <string name="logcat_back">Volver</string>
+    <string name="logcat_subtitle">%1$d líneas · %2$d visibles</string>
     <string name="logcat_refresh">Actualizar</string>
-    <string name="logcat_search">Buscar en etiqueta o mensaje</string>
+    <string name="logcat_search">Buscar etiqueta o mensaje</string>
     <string name="logcat_level_all">Todo</string>
     <string name="logcat_level_debug">D</string>
     <string name="logcat_level_info">I</string>
     <string name="logcat_level_warn">W</string>
     <string name="logcat_level_error">E</string>
-    <string name="logcat_empty">El registro está vacío con este filtro.</string>
+    <string name="logcat_empty_title">Nada que mostrar</string>
+    <string name="logcat_empty_description">Ajusta el nivel mínimo o la búsqueda para ver más líneas.</string>
+    <string name="logcat_no_device_title">Sin dispositivo</string>
     <string name="logcat_no_device">Conecta un dispositivo para leer su registro.</string>
-    <string name="logcat_error_read">No se pudo leer el registro del dispositivo.</string>
+    <string name="logcat_error_title">No se pudo leer el registro</string>
 </resources>

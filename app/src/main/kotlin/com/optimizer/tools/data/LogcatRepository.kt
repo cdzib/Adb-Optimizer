@@ -9,7 +9,7 @@ class LogcatRepository(
     private val shell: AdbShell,
 ) {
     suspend fun read(limit: Int): List<LogcatEntry> {
-        val result = shell.exec("logcat -d -v brief -t $limit", 20_000)
+        val result = shell.exec("logcat -d -v threadtime -t $limit", 20_000)
         if (result.exitCode != 0 && result.output.isBlank()) {
             throw IllegalStateException("El dispositivo no devolvio el registro.")
         }

@@ -8,27 +8,38 @@ class LogcatParserTest {
     private val raw =
         """
         --------- beginning of main
-        I/ActivityManager( 1042): Start proc com.example.player
-        W/PackageManager( 1042): Package no debuggable
-        E/AndroidRuntime( 2210): FATAL EXCEPTION: main
-        lineas sueltas que no son del log
+        01-02 03:04:05.678  1042  1042 I ActivityManager: Start proc com.example.player
+        01-02 03:04:06.001  1042  1100 W PackageManager: Package no debuggable
+        01-02 03:04:07.250  2210  2210 E AndroidRuntime: FATAL EXCEPTION: main
+        	at com.example.player.MainActivity.onCreate(MainActivity.kt:42)
         """.trimIndent()
 
     @Test
-    fun `separa nivel, etiqueta, pid y mensaje`() {
+    fun `separa hora, pid, tid, nivel, etiqueta y mensaje`() {
         val entries = LogcatParser.parse(raw)
 
         assertEquals(3, entries.size)
-        assertEquals('I', entries[0].level)
-        assertEquals("ActivityManager", entries[0].tag)
-        assertEquals("1042", entries[0].pid)
-        assertEquals("Start proc com.example.player", entries[0].message)
-        assertTrue(entries[2].line.startsWith("E/AndroidRuntime"))
+        val first = entries[0]
+        assertEquals("01-02 03:04:05.678", first.time)
+        assertEquals("1042", first.pid)
+        assertEquals("1042", first.tid)
+        assertEquals('I', first.level)
+        assertEquals("ActivityManager", first.tag)
+        assertEquals("Start proc com.example.player", first.message)
     }
 
     @Test
-    fun `descarta lo que no tiene formato de logcat`() {
-        val entries = LogcatParser.parse("basura\n\n  \nD/Ok(1): vale")
+    fun `anexa las lineas de continuacion al mensaje anterior`() {
+        val entries = LogcatParser.parse(raw)
+
+        assertTrue(entries[2].message.contains("FATAL EXCEPTION"))
+        assertTrue(entries[2].message.contains("MainActivity.onCreate"))
+        assertEquals(3, entries.size)
+    }
+
+    @Test
+    fun `descarta lo que no tiene formato de threadtime`() {
+        val entries = LogcatParser.parse("basura\n01-02 03:04:05.678  1  2 D Ok : vale")
 
         assertEquals(1, entries.size)
         assertEquals("vale", entries.single().message)
@@ -40,7 +51,7 @@ class LogcatParserTest {
 
         assertEquals(listOf('W', 'E'), LogcatParser.filter(entries, 'W', "").map { it.level })
         assertEquals(1, LogcatParser.filter(entries, 'V', "runtime").size)
-        assertEquals(1, LogcatParser.filter(entries, 'V', "PLAYER").size)
+        assertEquals(1, LogcatParser.filter(entries, 'V', "Start proc").size)
         assertTrue(LogcatParser.filter(entries, 'V', "inexistente").isEmpty())
     }
 

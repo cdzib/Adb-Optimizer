@@ -50,7 +50,7 @@ class LogcatViewModel(
                 }
             } catch (error: Exception) {
                 _state.update {
-                    it.copy(loading = false, error = error.message?.asUiText() ?: uiText(R.string.logcat_error_read))
+                    it.copy(loading = false, error = error.message?.asUiText() ?: uiText(R.string.logcat_error_title))
                 }
             }
         }

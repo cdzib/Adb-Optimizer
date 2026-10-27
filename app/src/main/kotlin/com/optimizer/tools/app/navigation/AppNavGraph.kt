@@ -328,6 +328,7 @@ internal fun AppNavGraph(
                 onNamespace = settingsDbViewModel::setNamespace,
                 onQuery = settingsDbViewModel::setQuery,
                 onSave = settingsDbViewModel::save,
+                onRetry = settingsDbViewModel::reload,
             )
         }
 

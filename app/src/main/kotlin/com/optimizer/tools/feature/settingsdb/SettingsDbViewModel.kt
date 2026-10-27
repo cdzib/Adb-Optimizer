@@ -35,13 +35,13 @@ class SettingsDbViewModel(
 
     fun onEnter() {
         _state.update { it.copy(connected = environment.activeDevice() != null) }
-        if (environment.activeDevice() != null) load(_state.value.namespace)
+        if (environment.activeDevice() != null) reload()
     }
 
     fun setNamespace(namespace: String) {
         if (namespace == _state.value.namespace) return
         _state.update { it.copy(namespace = namespace, query = "", message = null) }
-        load(namespace)
+        reload()
     }
 
     fun setQuery(query: String) {
@@ -77,7 +77,8 @@ class SettingsDbViewModel(
         }
     }
 
-    private fun load(namespace: String) {
+    fun reload() {
+        val namespace = _state.value.namespace
         viewModelScope.launch {
             _state.update { it.copy(loading = true, error = null) }
             try {
