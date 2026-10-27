@@ -31,6 +31,7 @@ object CatalogValidator {
                 if (step.timeoutMs <= 0) problems += "${recipe.id}[$index]: timeout invalido"
                 if (step.run.isBlank()) problems += "${recipe.id}[$index]: comando vacio"
                 if (step.verify.run.isBlank()) problems += "${recipe.id}[$index]: verificacion vacia"
+                if (!step.verify.hasExpectation) problems += "${recipe.id}[$index]: verificacion sin expectativa"
                 val undoCommand = step.undo
                 if (undoCommand != null && !undoCommand.contains("{{prev}}") && step.undoIfUnset != null) {
                     problems += "${recipe.id}[$index]: undoIfUnset sin plantilla {{prev}}"

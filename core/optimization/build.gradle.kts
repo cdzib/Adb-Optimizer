@@ -34,7 +34,9 @@ dependencies {
     api(project(":core:model"))
     api(project(":core:shell"))
 
+    implementation(libs.kotlinx.coroutines.core)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }
 
 detekt {

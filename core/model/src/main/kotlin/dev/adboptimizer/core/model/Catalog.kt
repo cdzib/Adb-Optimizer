@@ -68,7 +68,11 @@ data class VerifySpec(
     val contains: String? = null,
     val matches: String? = null,
     val expectEmptyOrExitCode: Int? = null,
-)
+) {
+    /** Una verificacion sin expectativa no prueba nada, asi que el catalogo la rechaza. */
+    val hasExpectation: Boolean
+        get() = expected != null || contains != null || matches != null || expectEmptyOrExitCode != null
+}
 
 @Serializable
 enum class RecipeStepType {
@@ -191,6 +195,8 @@ data class JournalStep(
     val previousValue: String? = null,
     val output: String = "",
     val reversible: Boolean = false,
+    /** Comando con el que se lee el estado; permite comprobar que el undo realmente lo restauro. */
+    val verifyRun: String? = null,
 )
 
 @Serializable

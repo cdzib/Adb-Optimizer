@@ -19,12 +19,31 @@ import dev.adboptimizer.core.model.StepStatus
 import dev.adboptimizer.core.model.VerifySpec
 import dev.adboptimizer.core.shell.AdbShell
 import dev.adboptimizer.core.shell.ShellResult
+import kotlinx.coroutines.delay
 import java.time.Instant
+
+/**
+ * Cuantas veces se vuelve a leer el estado antes de dar un paso por fallido.
+ *
+ * `settings put`, `wm size` y `resolve-activity` no siempre reflejan el cambio en la misma
+ * lectura; sin reintento un dispositivo lento convierte un cambio correcto en un fallo.
+ */
+data class RetryPolicy(
+    val attempts: Int = 3,
+    val delayMs: Long = 200,
+) {
+    init {
+        require(attempts >= 1) { "attempts debe ser al menos 1" }
+        require(delayMs >= 0) { "delayMs no puede ser negativo" }
+    }
+}
 
 class RecipeEngine(
     private val shell: AdbShell,
     private val journal: ChangeJournalStore,
     private val now: () -> Long = System::currentTimeMillis,
+    private val retry: RetryPolicy = RetryPolicy(),
+    private val pause: suspend (Long) -> Unit = { delay(it) },
 ) {
     fun plan(
         recipes: List<Recipe>,
@@ -68,6 +87,7 @@ class RecipeEngine(
                         previousValue = result.previousValue,
                         output = result.output,
                         reversible = undo != null,
+                        verifyRun = step.verify.run,
                     )
             }
         }
@@ -154,6 +174,7 @@ class RecipeEngine(
                                 previousValue = result.previousValue,
                                 output = result.output,
                                 reversible = step.undo != null,
+                                verifyRun = step.verify.run,
                             ),
                         ),
                 ),
@@ -184,11 +205,13 @@ class RecipeEngine(
             results +=
                 try {
                     val response = shell.exec(undo, 20_000)
+                    val restoreProblem = restoreProblem(step)
                     StepResult(
                         index = step.index,
                         run = undo,
-                        status = StepStatus.OK,
+                        status = if (restoreProblem == null) StepStatus.OK else StepStatus.FAILED,
                         output = response.output,
+                        error = restoreProblem,
                         durationMs = (System.nanoTime() - startedAt) / 1_000_000,
                     )
                 } catch (error: Exception) {
@@ -241,7 +264,7 @@ class RecipeEngine(
 
         return try {
             val response = shell.exec(step.run, step.timeoutMs)
-            val verification = verify(step.verify)
+            val verification = verifyWithRetry(step.verify)
             StepResult(
                 index = index,
                 run = step.run,
@@ -263,12 +286,45 @@ class RecipeEngine(
         }
     }
 
-    private suspend fun readValue(command: String): String? =
+    private suspend fun readValue(command: String): String? = readState(command).getOrNull()
+
+    /** Lee el estado y no confunde un fallo de lectura con "sin valor". */
+    private suspend fun readState(command: String): Result<String?> =
         runCatching {
             val value = shell.exec(command, 10_000).stdout.trim()
             // `settings get` devuelve literal "null" cuando el ajuste no existe.
             value.ifBlank { null }?.takeUnless { it == "null" }
-        }.getOrNull()
+        }
+
+    /**
+     * Comprueba que el undo dejo el estado en el valor previo. Devuelve el motivo cuando no
+     * coincide, o `null` cuando no hay nada que comprobar o si la restauracion fue correcta.
+     */
+    private suspend fun restoreProblem(step: JournalStep): String? {
+        val verifyRun = step.verifyRun ?: return null
+        val state = readState(verifyRun)
+        val failure = state.exceptionOrNull()
+        if (failure != null) return "No se pudo leer el estado al revertir: ${failure.message ?: "fallo de lectura"}"
+
+        val restored = state.getOrNull()
+        if (restored == step.previousValue) return null
+        return "El undo no restauro el valor: se esperaba \"${step.previousValue ?: "sin valor"}\" y quedo \"${restored ?: "sin valor"}\""
+    }
+
+    /**
+     * Verifica y, si el dispositivo todavia no refleja el cambio, vuelve a leer hasta agotar
+     * [retry]. Un valor que nunca cambia termina en fallo, nunca en un falso OK.
+     */
+    private suspend fun verifyWithRetry(spec: VerifySpec): Verification {
+        var verification = verify(spec)
+        var attempt = 1
+        while (!verification.ok && attempt < retry.attempts) {
+            pause(retry.delayMs)
+            attempt++
+            verification = verify(spec)
+        }
+        return verification
+    }
 
     private suspend fun verify(spec: VerifySpec): Verification {
         val result: ShellResult =
@@ -310,7 +366,7 @@ class RecipeEngine(
             }
 
             else -> {
-                Verification(true, "")
+                Verification(false, "la verificacion no declara expectativa (equals, contains, matches o expectEmptyOrExitCode)")
             }
         }
     }
