@@ -39,4 +39,11 @@
     <string name="settings_db_no_device">Conecta un dispositivo para editar sus ajustes.</string>
     <string name="settings_db_error_title">No se pudo leer la tabla</string>
     <string name="settings_db_error">No se pudo leer o escribir el ajuste.</string>
+    <string name="settings_db_undone">Cambio deshecho.</string>
+    <string name="settings_db_undo_failed">No se pudo deshacer el cambio.</string>
+    <string name="settings_db_history">Historial de cambios</string>
+    <string name="settings_db_history_title">Cambios recientes</string>
+    <string name="settings_db_history_empty">Todavía no hay cambios guardados.</string>
+    <string name="settings_db_history_undo">Deshacer</string>
+    <string name="settings_db_history_values">%1$s → %2$s</string>
 </resources>

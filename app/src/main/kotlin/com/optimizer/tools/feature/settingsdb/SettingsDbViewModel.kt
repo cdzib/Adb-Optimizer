@@ -8,6 +8,7 @@ import com.optimizer.tools.core.ui.UiText
 import com.optimizer.tools.core.ui.asUiText
 import com.optimizer.tools.core.ui.uiText
 import com.optimizer.tools.data.SettingEntry
+import com.optimizer.tools.data.SettingsChange
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,6 +29,8 @@ data class SettingsDbState(
     val quick: QuickSettings = QuickSettings(),
     val quickLoading: Boolean = false,
     val savingPreset: Boolean = false,
+    val history: List<SettingsChange> = emptyList(),
+    val undoing: String? = null,
 )
 
 class SettingsDbViewModel(
@@ -41,6 +44,7 @@ class SettingsDbViewModel(
         if (environment.activeDevice() != null) {
             reload()
             refreshQuick()
+            refreshHistory()
         }
     }
 
@@ -48,6 +52,32 @@ class SettingsDbViewModel(
         if (namespace == _state.value.namespace) return
         _state.update { it.copy(namespace = namespace, query = "", message = null) }
         reload()
+    }
+
+    fun refreshHistory() {
+        _state.update { it.copy(history = runCatching { environment.history() }.getOrDefault(emptyList())) }
+    }
+
+    /** Deshace un cambio del historial y recarga la tabla para reflejarlo. */
+    fun undoChange(id: String) {
+        if (_state.value.undoing != null) return
+        viewModelScope.launch {
+            _state.update { it.copy(undoing = id, error = null, message = null) }
+            try {
+                if (environment.undo(id)) {
+                    _state.update { it.copy(undoing = null, message = uiText(R.string.settings_db_undone)) }
+                    reload()
+                } else {
+                    _state.update { it.copy(undoing = null, error = uiText(R.string.settings_db_undo_failed)) }
+                }
+            } catch (error: Exception) {
+                _state.update {
+                    it.copy(undoing = null, error = error.message?.asUiText() ?: uiText(R.string.settings_db_error))
+                }
+            } finally {
+                _state.update { current -> current.copy(history = runCatching { environment.history() }.getOrDefault(current.history)) }
+            }
+        }
     }
 
     fun refreshQuick() {
@@ -119,6 +149,7 @@ class SettingsDbViewModel(
                             entries = entries,
                             visible = filter(entries, state.query),
                             message = uiText(R.string.settings_db_saved),
+                            history = runCatching { environment.history() }.getOrDefault(state.history),
                         )
                     }
                 } else {

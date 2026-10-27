@@ -76,6 +76,15 @@ class AppInspectorParserTest {
     }
 
     @Test
+    fun `lee el sha256 que imprime sha256sum`() {
+        val output = "CF2B3EE849C59E3F043858ADE8A19C7EDC39527EA6F6EE9E0C0E45AF618F660F  /product/app/base.apk\n"
+
+        assertEquals("cf2b3ee849c59e3f043858ade8a19c7edc39527ea6f6ee9e0c0e45af618f660f", AppInspectorParser.sha256(output))
+        assertNull(AppInspectorParser.sha256("sha256sum: no such file"))
+        assertNull(AppInspectorParser.sha256(null))
+    }
+
+    @Test
     fun `lee la version y el hash de firma`() {
         assertEquals("v3 · 71c782a3", AppInspectorParser.signature(dump))
         assertNull(AppInspectorParser.signature("sin firmas"))

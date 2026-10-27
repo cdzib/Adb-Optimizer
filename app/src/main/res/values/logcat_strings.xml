@@ -2,6 +2,9 @@
 <resources>
     <string name="logcat_title">Registro del sistema</string>
     <string name="logcat_subtitle">%1$d líneas · %2$d visibles</string>
+    <string name="logcat_live_subtitle">EN VIVO · %1$d líneas · %2$d visibles</string>
+    <string name="logcat_live_start">Leer en vivo</string>
+    <string name="logcat_live_stop">Pausar lectura en vivo</string>
     <string name="logcat_refresh">Actualizar</string>
     <string name="logcat_search">Buscar etiqueta o mensaje</string>
     <string name="logcat_level_all">Todo</string>

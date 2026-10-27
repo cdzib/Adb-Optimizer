@@ -6,5 +6,8 @@ import dev.adboptimizer.core.model.DeviceInfo
 interface LogcatEnvironment {
     fun activeDevice(): DeviceInfo?
 
-    suspend fun read(limit: Int): List<LogcatEntry>
+    suspend fun read(
+        limit: Int,
+        since: String? = null,
+    ): List<LogcatEntry>
 }

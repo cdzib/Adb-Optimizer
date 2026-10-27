@@ -39,7 +39,8 @@ class SettingsDbRepositoryTest {
             val repository = SettingsDbRepository(shell, pause = {})
 
             assertFalse(repository.save("global", "demo", "1", attempts = 2))
-            assertEquals(2, shell.history.count { it.startsWith("settings get") })
+            // Una lectura previa al cambio mas los dos intentos de confirmacion.
+            assertEquals(3, shell.history.count { it.startsWith("settings get") })
         }
 
     @Test
@@ -56,6 +57,45 @@ class SettingsDbRepositoryTest {
         runTest {
             SettingsDbRepository(FakeShell(), pause = {}).save("personal", "demo", "1")
         }
+
+    @Test
+    fun `registra el cambio y lo deshace volviendo al valor previo`() =
+        runTest {
+            val shell = StatefulShell()
+            val store = InMemorySettingsHistoryStore()
+            val repository = SettingsDbRepository(shell, store, pause = {})
+
+            assertTrue(repository.save("global", "demo", "1"))
+            val change = store.list().single()
+            assertEquals("0", change.previousValue)
+
+            assertTrue(repository.undo(change))
+            assertTrue(store.list().isEmpty())
+            assertEquals("0", repository.list("global").first { it.key == "demo" }.value)
+        }
+
+    private class StatefulShell : AdbShell {
+        private val values = mutableMapOf("demo" to "0")
+
+        override suspend fun exec(
+            command: String,
+            timeoutMs: Long,
+        ): ShellResult {
+            val put = Regex("""^settings put global '([^']+)' '([^']*)'$""").find(command)
+            if (put != null) {
+                values[put.groupValues[1]] = put.groupValues[2]
+                return ShellResult(0, "", "", 1)
+            }
+            val get = Regex("""^settings get global '([^']+)'$""").find(command)
+            if (get != null) {
+                return ShellResult(0, values[get.groupValues[1]] ?: "null", "", 1)
+            }
+            if (command == "settings list global") {
+                return ShellResult(0, values.entries.joinToString("\n") { "${it.key}=${it.value}" }, "", 1)
+            }
+            return ShellResult(0, "", "", 1)
+        }
+    }
 
     private class FakeShell(
         private val reads: List<String> = emptyList(),

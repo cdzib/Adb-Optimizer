@@ -12,6 +12,8 @@ internal class AppContainerLogcatEnvironment(
 ) : LogcatEnvironment {
     override fun activeDevice(): DeviceInfo? = container.device
 
-    override suspend fun read(limit: Int): List<LogcatEntry> =
-        container.logcat?.read(limit) ?: throw IOException("No hay un dispositivo remoto conectado.")
+    override suspend fun read(
+        limit: Int,
+        since: String?,
+    ): List<LogcatEntry> = container.logcat?.read(limit, since) ?: throw IOException("No hay un dispositivo remoto conectado.")
 }

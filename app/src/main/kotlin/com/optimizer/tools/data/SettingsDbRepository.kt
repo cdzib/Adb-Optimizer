@@ -41,7 +41,9 @@ object SettingsDbParser {
 /** Lectura y escritura de las tablas global, secure y system con confirmacion por read-back. */
 class SettingsDbRepository(
     private val shell: AdbShell,
+    private val history: SettingsHistoryStore? = null,
     private val pause: suspend (Long) -> Unit = { delay(it) },
+    private val now: () -> Long = System::currentTimeMillis,
 ) {
     suspend fun list(namespace: String): List<SettingEntry> {
         require(AdbCommandRules.isSettingsNamespace(namespace)) { "Tabla desconocida." }
@@ -90,6 +92,7 @@ class SettingsDbRepository(
                 "La clave o el valor no son validos."
             }
         val get = requireNotNull(AdbCommandRules.settingsGetCommand(namespace, key)) { "La clave no es valida." }
+        val previous = readOrNull(get)?.trim()?.let { if (it == "null") "" else it } ?: ""
         val result = shell.exec(put, 20_000)
         if (result.exitCode != 0) {
             throw IllegalStateException(result.output.ifBlank { "El dispositivo rechazo el cambio." })
@@ -97,7 +100,10 @@ class SettingsDbRepository(
         repeat(ATTEMPTS) { attempt ->
             if (attempt > 0) pause(PAUSE_MS)
             val printed = readOrNull(get) ?: return@repeat
-            if (SettingsDbParser.readBackMatches(printed, value)) return true
+            if (SettingsDbParser.readBackMatches(printed, value)) {
+                recordChange(namespace, key, previous, value)
+                return true
+            }
         }
         return false
     }
@@ -113,6 +119,7 @@ class SettingsDbRepository(
         key: String,
         value: String,
         attempts: Int = 3,
+        record: Boolean = true,
     ): Boolean {
         val put =
             requireNotNull(AdbCommandRules.settingsPutCommand(namespace, key, value)) {
@@ -123,6 +130,7 @@ class SettingsDbRepository(
                 "La clave no es valida."
             }
 
+        val previous = readOrNull(get)?.trim()?.let { if (it == "null") "" else it } ?: ""
         val result = shell.exec(put, 20_000)
         if (result.exitCode != 0) {
             throw IllegalStateException(result.output.ifBlank { "El dispositivo rechazo el cambio." })
@@ -131,9 +139,46 @@ class SettingsDbRepository(
         repeat(attempts.coerceAtLeast(1)) { attempt ->
             if (attempt > 0) pause(150)
             val printed = runCatching { shell.exec(get, 10_000).stdout }.getOrNull() ?: return@repeat
-            if (SettingsDbParser.readBackMatches(printed, value)) return true
+            if (SettingsDbParser.readBackMatches(printed, value)) {
+                if (record) recordChange(namespace, key, previous, value)
+                return true
+            }
         }
         return false
+    }
+
+    /** Cambios aplicados, del mas reciente al mas antiguo. */
+    fun history(): List<SettingsChange> = history?.list().orEmpty()
+
+    /** Vuelve al valor previo y quita la entrada del historial solo si el cambio se confirma. */
+    suspend fun undo(change: SettingsChange): Boolean {
+        val restored = save(change.namespace, change.key, change.previousValue, record = false)
+        if (restored) history?.remove(change.id)
+        return restored
+    }
+
+    private fun recordChange(
+        namespace: String,
+        key: String,
+        previous: String,
+        value: String,
+    ) {
+        history?.append(
+            SettingsChange(
+                id =
+                    java.util.UUID
+                        .randomUUID()
+                        .toString(),
+                namespace = namespace,
+                key = key,
+                previousValue = previous,
+                newValue = value,
+                appliedAt =
+                    java.time.Instant
+                        .ofEpochMilli(now())
+                        .toString(),
+            ),
+        )
     }
 
     private companion object {

@@ -25,6 +25,8 @@ data class AppInspection(
     val appOps: List<AppOp> = emptyList(),
     val components: List<AppComponent> = emptyList(),
     val signature: String? = null,
+    /** SHA-256 del APK base, leido con sha256sum en el dispositivo. */
+    val apkSha256: String? = null,
 )
 
 /**
@@ -111,6 +113,12 @@ object AppInspectorParser {
         return found.distinctBy { it.name }.take(MAX_ITEMS)
     }
 
+    /** Primera linea de `sha256sum <apk>`: 64 hex en minusculas. */
+    fun sha256(raw: String?): String? {
+        val match = SHA256_LINE.find(raw.orEmpty()) ?: return null
+        return match.groupValues[1].lowercase()
+    }
+
     /** `version:3 · 71c782a3`: el hash corto de firma que imprime el volcado, no un SHA-256. */
     fun signature(dump: String): String? {
         val match = SIGNATURE.find(dump) ?: return null
@@ -120,6 +128,7 @@ object AppInspectorParser {
     }
 
     private val PERMISSION = Regex("""[A-Za-z][A-Za-z0-9_.]*""")
+    private val SHA256_LINE = Regex("""^\s*([0-9a-fA-F]{64})\s""", RegexOption.MULTILINE)
 
     private enum class Section { NONE, REQUESTED, GRANTED }
 }

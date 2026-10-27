@@ -1,5 +1,6 @@
 package com.optimizer.tools.feature.inspector
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -115,11 +116,25 @@ private fun InspectorContent(state: InspectorState) {
         }
 
         InspectorTab.SIGNATURE -> {
-            val signature = inspection.signature
-            if (signature == null) {
+            if (inspection.signature == null && inspection.apkSha256 == null) {
                 InspectorMessage(stringResource(R.string.inspector_empty))
             } else {
-                InspectorMessage(stringResource(R.string.inspector_signature_note, signature))
+                Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    inspection.apkSha256?.let { sha ->
+                        SignatureBlock(
+                            title = stringResource(R.string.inspector_sha256_title),
+                            value = sha,
+                            note = stringResource(R.string.inspector_sha256_note),
+                        )
+                    }
+                    inspection.signature?.let { signature ->
+                        SignatureBlock(
+                            title = stringResource(R.string.inspector_signature_hash_title),
+                            value = signature,
+                            note = stringResource(R.string.inspector_signature_note),
+                        )
+                    }
+                }
             }
         }
     }
@@ -161,6 +176,23 @@ private fun ItemRow(
 }
 
 @Composable
+private fun SignatureBlock(
+    title: String,
+    value: String,
+    note: String,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            value,
+            style = MaterialTheme.typography.bodySmall,
+            fontFamily = FontFamily.Monospace,
+        )
+        Text(note, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
 private fun InspectorMessage(text: String) {
     Text(
         text,
@@ -193,6 +225,7 @@ private val sample =
         appOps = listOf(AppOp("RUN_IN_BACKGROUND", "ignore")),
         components = listOf(AppComponent(ComponentKind.ACTIVITY, "com.example.player.MainActivity")),
         signature = "v3 · 71c782a3",
+        apkSha256 = "cf2b3ee849c59e3f043858ade8a19c7edc39527ea6f6ee9e0c0e45af618f660f",
     )
 
 @Preview(name = "Inspector permisos")

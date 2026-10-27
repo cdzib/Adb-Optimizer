@@ -46,6 +46,30 @@ class LogcatParserTest {
     }
 
     @Test
+    fun `anexa lecturas en vivo sin duplicar la ultima linea`() {
+        val existing = LogcatParser.parse("01-02 03:04:05.678  1  2 D A : uno")
+        val incoming =
+            LogcatParser.parse(
+                "01-02 03:04:05.678  1  2 D A : uno\n01-02 03:04:06.000  1  2 D A : dos",
+            )
+
+        val merged = LogcatParser.append(existing, incoming, max = 10)
+
+        assertEquals(2, merged.size)
+        assertEquals("dos", merged.last().message)
+    }
+
+    @Test
+    fun `recorta el historial al maximo configurado`() {
+        val existing = LogcatParser.parse("01-02 03:04:05.678  1  2 D A : uno")
+        val incoming = LogcatParser.parse("01-02 03:04:06.000  1  2 D A : dos")
+
+        val merged = LogcatParser.append(existing, incoming, max = 1)
+
+        assertEquals(listOf("dos"), merged.map { it.message })
+    }
+
+    @Test
     fun `filtra por nivel minimo y por texto`() {
         val entries = LogcatParser.parse(raw)
 

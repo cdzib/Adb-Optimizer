@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,6 +33,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.WarningAmber
@@ -43,6 +45,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -73,6 +76,7 @@ import com.optimizer.tools.core.ui.ToolSearchField
 import com.optimizer.tools.core.ui.ToolTopBar
 import com.optimizer.tools.core.ui.resolve
 import com.optimizer.tools.data.SettingEntry
+import com.optimizer.tools.data.SettingsChange
 import kotlin.math.roundToInt
 
 private val namespaces = listOf("global", "secure", "system")
@@ -95,14 +99,24 @@ internal fun SettingsDbScreen(
     onScreenTimeout: (Int) -> Unit,
     onBrightness: (Int) -> Unit,
     onBatterySaver: (Boolean) -> Unit,
+    onUndo: (String) -> Unit,
 ) {
     var editing by remember { mutableStateOf<SettingEntry?>(null) }
+    var showHistory by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize()) {
         ToolTopBar(
             title = stringResource(R.string.settings_db_title),
             subtitle = stringResource(R.string.settings_db_subtitle, state.visible.size),
             onBack = onBack,
-        )
+        ) {
+            IconButton(onClick = { showHistory = true }, modifier = Modifier.size(48.dp)) {
+                Icon(
+                    Icons.Filled.History,
+                    contentDescription = stringResource(R.string.settings_db_history),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
         QuickSettingsCard(
             state = state,
             onNightMode = onNightMode,
@@ -129,6 +143,15 @@ internal fun SettingsDbScreen(
         Box(Modifier.weight(1f)) {
             SettingsDbContent(state, onEdit = { editing = it }, onRetry = onRetry)
         }
+    }
+
+    if (showHistory) {
+        HistoryDialog(
+            history = state.history,
+            undoing = state.undoing,
+            onUndo = onUndo,
+            onDismiss = { showHistory = false },
+        )
     }
 
     val entry = editing
@@ -374,6 +397,7 @@ private fun PreviewShell(state: SettingsDbState) {
         onScreenTimeout = {},
         onBrightness = {},
         onBatterySaver = {},
+        onUndo = {},
     )
 }
 
@@ -574,3 +598,61 @@ private fun timeoutLabel(milliseconds: Int): Int =
         300_000 -> R.string.settings_db_timeout_5m
         else -> R.string.settings_db_timeout_10m
     }
+
+@Composable
+private fun HistoryDialog(
+    history: List<SettingsChange>,
+    undoing: String?,
+    onUndo: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_db_history_title)) },
+        text = {
+            if (history.isEmpty()) {
+                Text(
+                    stringResource(R.string.settings_db_history_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                LazyColumn(Modifier.heightIn(max = 360.dp)) {
+                    items(history, key = { it.id }) { change ->
+                        Row(
+                            Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text(change.key, style = MaterialTheme.typography.bodyMedium, fontFamily = FontFamily.Monospace)
+                                Text(
+                                    stringResource(
+                                        R.string.settings_db_history_values,
+                                        change.previousValue.ifEmpty { "—" },
+                                        change.newValue.ifEmpty { "—" },
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                            TextButton(onClick = { onUndo(change.id) }, enabled = undoing == null) {
+                                if (undoing == change.id) {
+                                    CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                                } else {
+                                    Text(stringResource(R.string.settings_db_history_undo))
+                                }
+                            }
+                        }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_close)) }
+        },
+        shape = RoundedCornerShape(24.dp),
+    )
+}

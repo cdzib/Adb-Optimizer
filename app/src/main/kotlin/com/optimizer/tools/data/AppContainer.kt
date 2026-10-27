@@ -271,8 +271,12 @@ class AppContainer(
     val logcat: LogcatRepository?
         get() = sessionStore.activeShell()?.let { LogcatRepository(it) }
 
+    val settingsHistory: SettingsHistoryStore by lazy {
+        FileSettingsHistoryStore(File(context.filesDir, "settings-history.json"))
+    }
+
     val settingsDb: SettingsDbRepository?
-        get() = sessionStore.activeShell()?.let { SettingsDbRepository(it) }
+        get() = sessionStore.activeShell()?.let { SettingsDbRepository(it, settingsHistory) }
 
     val appInspector: AppInspectorRepository?
         get() = sessionStore.activeShell()?.let { AppInspectorRepository(it) }

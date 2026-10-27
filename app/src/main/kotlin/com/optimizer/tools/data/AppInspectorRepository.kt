@@ -22,6 +22,21 @@ class AppInspectorRepository(
             appOps = AppInspectorParser.appOps(ops),
             components = AppInspectorParser.components(dump.stdout, packageName),
             signature = AppInspectorParser.signature(dump.stdout),
+            apkSha256 = apkSha256(packageName),
         )
+    }
+
+    /** SHA-256 del APK base: `pm path` para localizarlo y `sha256sum` para resumirlo. */
+    private suspend fun apkSha256(packageName: String): String? {
+        val path =
+            runCatching { shell.exec("pm path ${ShellQuote.of(packageName)}", 10_000).stdout }
+                .getOrDefault("")
+                .lineSequence()
+                .mapNotNull { it.trim().removePrefix("package:").takeIf(String::isNotBlank) }
+                .firstOrNull() ?: return null
+        val digest =
+            runCatching { shell.exec("sha256sum ${ShellQuote.of(path)}", 30_000).stdout }
+                .getOrDefault("")
+        return AppInspectorParser.sha256(digest)
     }
 }

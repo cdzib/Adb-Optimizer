@@ -13,7 +13,10 @@
     <string name="inspector_service">Service</string>
     <string name="inspector_receiver">Receiver</string>
     <string name="inspector_provider">Provider</string>
-    <string name="inspector_signature_note">Hash de firma: %1$s\nEs el valor corto que imprime el volcado del sistema, no un SHA-256 del APK.</string>
+    <string name="inspector_sha256_title">SHA-256 del APK base</string>
+    <string name="inspector_sha256_note">Calculado con sha256sum sobre el archivo instalado.</string>
+    <string name="inspector_signature_hash_title">Hash de firma del sistema</string>
+    <string name="inspector_signature_note">Es el valor corto que imprime el volcado del sistema, no un SHA-256 del APK.</string>
     <string name="inspector_empty">Sin datos para esta pestaña.</string>
     <string name="inspector_no_device">Conecta un dispositivo para inspeccionar sus apps.</string>
     <string name="inspector_error">No se pudo leer el detalle de la app.</string>

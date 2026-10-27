@@ -55,6 +55,22 @@ object LogcatParser {
         return entries
     }
 
+    /**
+     * Anexa lecturas incrementales. `logcat -T <hora>` incluye la ultima linea ya vista, asi que
+     * se descarta el primer duplicado y se conservan solo las [max] mas recientes.
+     */
+    fun append(
+        existing: List<LogcatEntry>,
+        incoming: List<LogcatEntry>,
+        max: Int = 2000,
+    ): List<LogcatEntry> {
+        if (incoming.isEmpty()) return existing
+        val duplicate = existing.lastOrNull() != null && incoming.first() == existing.last()
+        val fresh = if (duplicate) incoming.drop(1) else incoming
+        if (fresh.isEmpty()) return existing
+        return (existing + fresh).takeLast(max)
+    }
+
     /** Conserva desde [minLevel] hacia arriba y lo que contenga [query] en etiqueta o mensaje. */
     fun filter(
         entries: List<LogcatEntry>,

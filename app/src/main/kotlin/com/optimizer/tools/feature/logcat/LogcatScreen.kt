@@ -22,7 +22,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.WarningAmber
@@ -61,13 +63,26 @@ internal fun LogcatScreen(
     onRefresh: () -> Unit,
     onQuery: (String) -> Unit,
     onLevel: (Char) -> Unit,
+    onToggleLive: () -> Unit,
 ) {
     Column(Modifier.fillMaxSize()) {
         ToolTopBar(
             title = stringResource(R.string.logcat_title),
-            subtitle = stringResource(R.string.logcat_subtitle, state.entries.size, state.visible.size),
+            subtitle =
+                if (state.live) {
+                    stringResource(R.string.logcat_live_subtitle, state.entries.size, state.visible.size)
+                } else {
+                    stringResource(R.string.logcat_subtitle, state.entries.size, state.visible.size)
+                },
             onBack = onBack,
         ) {
+            IconButton(onClick = onToggleLive, enabled = state.connected, modifier = Modifier.size(48.dp)) {
+                Icon(
+                    if (state.live) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    contentDescription = stringResource(if (state.live) R.string.logcat_live_stop else R.string.logcat_live_start),
+                    tint = if (state.live) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             IconButton(onClick = onRefresh, enabled = !state.loading, modifier = Modifier.size(48.dp)) {
                 if (state.loading) {
                     CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
@@ -279,6 +294,7 @@ private fun LogcatContentPreview() {
         onRefresh = {},
         onQuery = {},
         onLevel = {},
+        onToggleLive = {},
     )
 }
 
@@ -291,6 +307,7 @@ private fun LogcatLoadingPreview() {
         onRefresh = {},
         onQuery = {},
         onLevel = {},
+        onToggleLive = {},
     )
 }
 
@@ -303,6 +320,7 @@ private fun LogcatEmptyPreview() {
         onRefresh = {},
         onQuery = {},
         onLevel = {},
+        onToggleLive = {},
     )
 }
 
@@ -315,5 +333,6 @@ private fun LogcatDisconnectedPreview() {
         onRefresh = {},
         onQuery = {},
         onLevel = {},
+        onToggleLive = {},
     )
 }

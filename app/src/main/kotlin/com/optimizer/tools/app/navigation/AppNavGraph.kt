@@ -319,6 +319,7 @@ internal fun AppNavGraph(
                 onRefresh = logcatViewModel::refresh,
                 onQuery = logcatViewModel::setQuery,
                 onLevel = logcatViewModel::setLevel,
+                onToggleLive = logcatViewModel::toggleLive,
             )
         }
 
@@ -337,6 +338,7 @@ internal fun AppNavGraph(
                 onScreenTimeout = settingsDbViewModel::setScreenTimeout,
                 onBrightness = settingsDbViewModel::setBrightness,
                 onBatterySaver = settingsDbViewModel::setBatterySaver,
+                onUndo = settingsDbViewModel::undoChange,
             )
         }
 

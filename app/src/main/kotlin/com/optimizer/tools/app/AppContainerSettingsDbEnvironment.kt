@@ -2,6 +2,7 @@ package com.optimizer.tools.app
 
 import com.optimizer.tools.data.AppContainer
 import com.optimizer.tools.data.SettingEntry
+import com.optimizer.tools.data.SettingsChange
 import com.optimizer.tools.feature.settingsdb.NightMode
 import com.optimizer.tools.feature.settingsdb.QuickSettings
 import com.optimizer.tools.feature.settingsdb.SettingsDbEnvironment
@@ -26,6 +27,14 @@ internal class AppContainerSettingsDbEnvironment(
     override suspend fun setBrightness(value: Int): Boolean = requireRepository().setBrightness(value)
 
     override suspend fun setBatterySaver(enabled: Boolean): Boolean = requireRepository().setBatterySaver(enabled)
+
+    override fun history(): List<SettingsChange> = container.settingsDb?.history().orEmpty()
+
+    override suspend fun undo(changeId: String): Boolean {
+        val repository = requireRepository()
+        val change = repository.history().firstOrNull { it.id == changeId } ?: return false
+        return repository.undo(change)
+    }
 
     private fun requireRepository(): com.optimizer.tools.data.SettingsDbRepository =
         container.settingsDb ?: throw IOException("No hay un dispositivo remoto conectado.")
