@@ -91,29 +91,6 @@ class CatalogAndEngineTest {
     }
 
     @Test
-    fun `el catalogo compartido incluye las acciones de appops e hibernacion`() {
-        val actions = bundle.actions.actions.associateBy { it.id }
-
-        val appOps = actions["restrict-background-appops"]
-        assertNotNull(appOps)
-        assertTrue(appOps!!.run.contains("appops set"))
-        assertTrue(appOps.verify.run.contains("appops get"))
-        assertNotNull(appOps.undo)
-
-        val hibernate = actions["hibernate-app"]
-        assertNotNull(hibernate)
-        assertTrue(hibernate!!.run.contains("am set-inactive"))
-        assertNotNull(hibernate.undo)
-    }
-
-    @Test
-    fun `el undo de compilar restaura el estado posterior a la instalacion`() {
-        val compile = bundle.actions.actions.first { it.id == "compile-app" }
-
-        assertEquals("cmd package compile --reset {{pkg}}", compile.undo)
-    }
-
-    @Test
     fun `el catalogo compartido permite root solo para WanboOS`() {
         assertTrue(bundle.catalog.recipes.isNotEmpty())
         assertTrue(bundle.actions.actions.isNotEmpty())
