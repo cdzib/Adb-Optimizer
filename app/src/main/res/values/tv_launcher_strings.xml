@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="tv_launcher_title">Launcher de TV</string>
-    <string name="tv_launcher_intro">Elige un launcher ya instalado y compatible. Esto solo cambia la pantalla de inicio; no elimina apps ni garantiza que la TV funcione más rápido. Puedes volver a seleccionar el launcher actual.</string>
+    <string name="tv_launcher_intro">Para Android TV y Google TV: instala el APK con el instalador normal y elige aquí un launcher compatible como Home. Algunos fabricantes bloquean cambiar la pantalla de inicio. dadb corre como uid 2000: puede instalar APKs y cambiar Home si el sistema lo permite, pero no puede ejecutar adb root ni escribir en /system.</string>
     <string name="tv_launcher_empty">No se encontraron actividades de inicio compatibles en esta TV.</string>
     <string name="tv_launcher_in_use">En uso</string>
     <string name="tv_launcher_available">Instalado y disponible</string>
