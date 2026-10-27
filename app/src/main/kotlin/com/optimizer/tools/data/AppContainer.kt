@@ -271,6 +271,9 @@ class AppContainer(
     val logcat: LogcatRepository?
         get() = sessionStore.activeShell()?.let { LogcatRepository(it) }
 
+    val settingsDb: SettingsDbRepository?
+        get() = sessionStore.activeShell()?.let { SettingsDbRepository(it) }
+
     val apkDownloader: ApkDownloader by lazy { ApkDownloader(context) }
 
     val installHostAppsUseCase: InstallHostAppsUseCase by lazy {

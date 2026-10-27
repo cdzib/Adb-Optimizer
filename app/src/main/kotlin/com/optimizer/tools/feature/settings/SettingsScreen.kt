@@ -49,6 +49,7 @@ internal fun SettingsScreen(
     remoteRole: Boolean,
     onOpenDpc: () -> Unit,
     onOpenLogcat: () -> Unit,
+    onOpenSettingsDb: () -> Unit,
 ) {
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp),
@@ -116,6 +117,10 @@ internal fun SettingsScreen(
                 onClick = onOpenLogcat,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
             ) { Text(stringResource(R.string.settings_open_logcat)) }
+            OutlinedButton(
+                onClick = onOpenSettingsDb,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+            ) { Text(stringResource(R.string.settings_open_settings_db)) }
         }
 
         if (remoteRole) {

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_db_title">Ajustes del sistema</string>
+    <string name="settings_db_back">Volver</string>
+    <string name="settings_db_search">Buscar clave</string>
+    <string name="settings_db_namespace_global">Global</string>
+    <string name="settings_db_namespace_secure">Seguro</string>
+    <string name="settings_db_namespace_system">Sistema</string>
+    <string name="settings_db_value">Valor</string>
+    <string name="settings_db_save">Guardar</string>
+    <string name="settings_db_cancel">Cancelar</string>
+    <string name="settings_db_saved">Valor guardado y confirmado.</string>
+    <string name="settings_db_not_saved">El dispositivo no confirmó el valor; puede estar protegido por el fabricante.</string>
+    <string name="settings_db_empty">No hay claves que coincidan.</string>
+    <string name="settings_db_no_device">Conecta un dispositivo para editar sus ajustes.</string>
+    <string name="settings_db_error">No se pudo leer o escribir el ajuste.</string>
+</resources>

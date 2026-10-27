@@ -24,6 +24,7 @@ import com.optimizer.tools.app.AppContainerMainEnvironment
 import com.optimizer.tools.app.AppContainerMirrorEnvironment
 import com.optimizer.tools.app.AppContainerOptimizeEnvironment
 import com.optimizer.tools.app.AppContainerRemoteControlEnvironment
+import com.optimizer.tools.app.AppContainerSettingsDbEnvironment
 import com.optimizer.tools.app.AppContainerSettingsEnvironment
 import com.optimizer.tools.app.AppContainerShizukuEnvironment
 import com.optimizer.tools.app.AppContainerTvLauncherEnvironment
@@ -42,6 +43,7 @@ import com.optimizer.tools.feature.mirror.MirrorViewModel
 import com.optimizer.tools.feature.optimize.OptimizeViewModel
 import com.optimizer.tools.feature.remote.RemoteControlViewModel
 import com.optimizer.tools.feature.settings.SettingsViewModel
+import com.optimizer.tools.feature.settingsdb.SettingsDbViewModel
 import com.optimizer.tools.feature.shizuku.ShizukuViewModel
 import com.optimizer.tools.feature.tvlauncher.TvLauncherViewModel
 import rikka.shizuku.Shizuku
@@ -97,6 +99,9 @@ class MainActivity : ComponentActivity() {
     private val logcatViewModel: LogcatViewModel by viewModels {
         LogcatViewModel.factory(AppContainerLogcatEnvironment(container))
     }
+    private val settingsDbViewModel: SettingsDbViewModel by viewModels {
+        SettingsDbViewModel.factory(AppContainerSettingsDbEnvironment(container))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -129,6 +134,7 @@ class MainActivity : ComponentActivity() {
                     remoteControlViewModel = remoteControlViewModel,
                     mirrorViewModel = mirrorViewModel,
                     logcatViewModel = logcatViewModel,
+                    settingsDbViewModel = settingsDbViewModel,
                     dictionary = container.dictionary,
                 )
             }

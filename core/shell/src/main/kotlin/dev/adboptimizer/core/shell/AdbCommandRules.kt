@@ -173,6 +173,47 @@ object AdbCommandRules {
         return "am set-standby-bucket $packageName $bucket"
     }
 
+    /** Las tres tablas de `settings` que Android expone por shell. */
+    val SETTINGS_NAMESPACES = listOf("global", "secure", "system")
+
+    /** Una de las tres tablas que acepta `settings`. */
+    fun isSettingsNamespace(namespace: String): Boolean = namespace in SETTINGS_NAMESPACES
+
+    private const val MAX_SETTING_KEY = 256
+    private const val MAX_SETTING_VALUE = 20_000
+
+    /**
+     * Una clave de `settings` utilizable: sin NUL, sin saltos de linea, sin guion inicial
+     * (que `settings` leeria como opcion) y con un tamano razonable.
+     */
+    fun isSettingsKey(key: String): Boolean =
+        key.isNotEmpty() &&
+            key.length <= MAX_SETTING_KEY &&
+            !key.startsWith("-") &&
+            key.none { it == '\u0000' || it == '\n' || it == '\r' }
+
+    /** Un valor que cabe en una peticion de adb sin romper el marco de 64 KiB. */
+    fun isSettingsValue(value: String): Boolean = value.length <= MAX_SETTING_VALUE && !value.contains('\u0000')
+
+    /** `settings get <tabla> <clave>`, con la clave citada, o `null` si algo no es valido. */
+    fun settingsGetCommand(
+        namespace: String,
+        key: String,
+    ): String? {
+        if (!isSettingsNamespace(namespace) || !isSettingsKey(key)) return null
+        return "settings get $namespace ${ShellQuote.of(key)}"
+    }
+
+    /** `settings put <tabla> <clave> <valor>`, o `null` si algo no es valido. */
+    fun settingsPutCommand(
+        namespace: String,
+        key: String,
+        value: String,
+    ): String? {
+        if (!isSettingsNamespace(namespace) || !isSettingsKey(key) || !isSettingsValue(value)) return null
+        return "settings put $namespace ${ShellQuote.of(key)} ${ShellQuote.of(value)}"
+    }
+
     /** El bucket que imprimio el dispositivo, en numero o en nombre, o `null` si no es reconocible. */
     fun parseStandbyBucket(output: String?): String? {
         val text = output?.trim()?.lowercase().orEmpty()

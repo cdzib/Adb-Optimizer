@@ -175,6 +175,34 @@ class AdbCommandRulesTest {
         assertFalse(AdbCommandRules.isAppOpMode("allow ; reboot"))
     }
 
+    // --- Ajustes (settings) ---
+
+    @Test
+    fun `construye settings get y put solo con tabla y clave validas`() {
+        assertEquals("settings get secure 'android_id'", AdbCommandRules.settingsGetCommand("secure", "android_id"))
+        assertEquals(
+            "settings put global 'demo_key' 'un valor con espacios'",
+            AdbCommandRules.settingsPutCommand("global", "demo_key", "un valor con espacios"),
+        )
+        assertNull(AdbCommandRules.settingsGetCommand("personal", "android_id"))
+        assertNull(AdbCommandRules.settingsGetCommand("secure", "-rm"))
+        assertNull(AdbCommandRules.settingsGetCommand("secure", ""))
+        assertNull(AdbCommandRules.settingsPutCommand("global", "demo_key", "a\u0000b"))
+    }
+
+    @Test
+    fun `el valor del ajuste se cita y llega intacto`() {
+        val command = AdbCommandRules.settingsPutCommand("secure", "demo", "it's")
+
+        assertEquals("settings put secure 'demo' 'it'\\''s'", command)
+    }
+
+    @Test
+    fun `una clave con salto de linea no se acepta`() {
+        assertNull(AdbCommandRules.settingsGetCommand("global", "a\nb"))
+        assertFalse(AdbCommandRules.isSettingsKey("a\rb"))
+    }
+
     // --- Standby bucket ---
 
     @Test

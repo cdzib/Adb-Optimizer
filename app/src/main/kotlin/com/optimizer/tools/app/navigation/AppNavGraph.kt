@@ -41,6 +41,8 @@ import com.optimizer.tools.feature.remote.RemoteControlScreen
 import com.optimizer.tools.feature.remote.RemoteControlViewModel
 import com.optimizer.tools.feature.settings.SettingsScreen
 import com.optimizer.tools.feature.settings.SettingsViewModel
+import com.optimizer.tools.feature.settingsdb.SettingsDbScreen
+import com.optimizer.tools.feature.settingsdb.SettingsDbViewModel
 import com.optimizer.tools.feature.shizuku.ShizukuViewModel
 import com.optimizer.tools.feature.tvlauncher.TvLauncherScreen
 import com.optimizer.tools.feature.tvlauncher.TvLauncherViewModel
@@ -64,6 +66,7 @@ internal fun AppNavGraph(
     remoteControlViewModel: RemoteControlViewModel,
     mirrorViewModel: MirrorViewModel,
     logcatViewModel: LogcatViewModel,
+    settingsDbViewModel: SettingsDbViewModel,
 ) {
     val connectionState by connectionViewModel.state.collectAsStateWithLifecycle()
     val dashboardState by dashboardViewModel.state.collectAsStateWithLifecycle()
@@ -76,6 +79,7 @@ internal fun AppNavGraph(
     val remoteControlState by remoteControlViewModel.state.collectAsStateWithLifecycle()
     val mirrorState by mirrorViewModel.state.collectAsStateWithLifecycle()
     val logcatState by logcatViewModel.state.collectAsStateWithLifecycle()
+    val settingsDbState by settingsDbViewModel.state.collectAsStateWithLifecycle()
     NavHost(
         navController = navController,
         startDestination = HomeRoute,
@@ -309,6 +313,19 @@ internal fun AppNavGraph(
             )
         }
 
+        composable<SettingsDbRoute> {
+            LaunchedEffect(Unit) { settingsDbViewModel.onEnter() }
+            SettingsDbScreen(
+                state = settingsDbState,
+                onBack = {
+                    if (!navController.popBackStack()) viewModel.goHome()
+                },
+                onNamespace = settingsDbViewModel::setNamespace,
+                onQuery = settingsDbViewModel::setQuery,
+                onSave = settingsDbViewModel::save,
+            )
+        }
+
         composable<RemoteControlRoute> {
             LaunchedEffect(Unit) { remoteControlViewModel.onEnter() }
             DisposableEffect(Unit) {
@@ -363,6 +380,7 @@ internal fun AppNavGraph(
                 remoteRole = state.activeTarget == AppTarget.REMOTE,
                 onOpenDpc = viewModel::openDpc,
                 onOpenLogcat = { navController.navigate(LogcatRoute) },
+                onOpenSettingsDb = { navController.navigate(SettingsDbRoute) },
             )
         }
 

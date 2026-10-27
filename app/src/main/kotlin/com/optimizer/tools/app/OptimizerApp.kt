@@ -73,6 +73,7 @@ import com.optimizer.tools.feature.optimize.OptimizeEvent
 import com.optimizer.tools.feature.optimize.OptimizeViewModel
 import com.optimizer.tools.feature.remote.RemoteControlViewModel
 import com.optimizer.tools.feature.settings.SettingsViewModel
+import com.optimizer.tools.feature.settingsdb.SettingsDbViewModel
 import com.optimizer.tools.feature.shizuku.ShizukuViewModel
 import com.optimizer.tools.feature.tvlauncher.TvLauncherViewModel
 
@@ -91,6 +92,7 @@ fun OptimizerApp(
     remoteControlViewModel: RemoteControlViewModel,
     mirrorViewModel: MirrorViewModel,
     logcatViewModel: LogcatViewModel,
+    settingsDbViewModel: SettingsDbViewModel,
     dictionary: Map<String, String>,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -246,6 +248,7 @@ fun OptimizerApp(
                 remoteControlViewModel = remoteControlViewModel,
                 mirrorViewModel = mirrorViewModel,
                 logcatViewModel = logcatViewModel,
+                settingsDbViewModel = settingsDbViewModel,
             )
         }
     }

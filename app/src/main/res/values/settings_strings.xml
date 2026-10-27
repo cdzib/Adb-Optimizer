@@ -24,4 +24,5 @@
     <string name="settings_wireless_debug_required">La depuración inalámbrica debe estar activa en el dispositivo remoto.</string>
     <string name="settings_section_tools">Herramientas</string>
     <string name="settings_open_logcat">Registro del sistema</string>
+    <string name="settings_open_settings_db">Ajustes del sistema</string>
 </resources>
