@@ -40,12 +40,12 @@ internal class AppContainerDpcEnvironment(
     override suspend fun installFiles(
         files: List<File>,
         onProgress: (String) -> Unit,
-    ): List<RemoteApkInstallOutcome> = container.installApkFiles(files, onProgress)
+    ): List<RemoteApkInstallOutcome> = container.installApkFiles(files, onProgress = onProgress)
 
     override suspend fun installApks(
         uris: List<Uri>,
         onProgress: (String) -> Unit,
-    ): List<RemoteApkInstallOutcome> = container.installApks(uris, onProgress)
+    ): List<RemoteApkInstallOutcome> = container.installApks(uris, onProgress = onProgress)
 
     override suspend fun download(
         url: String,

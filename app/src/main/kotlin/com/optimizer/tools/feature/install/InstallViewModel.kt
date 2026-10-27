@@ -8,6 +8,7 @@ import com.optimizer.tools.R
 import com.optimizer.tools.core.ui.UiText
 import com.optimizer.tools.core.ui.asUiText
 import com.optimizer.tools.core.ui.uiText
+import com.optimizer.tools.domain.apk.InstallOptions
 import com.optimizer.tools.domain.model.ShizukuLocalStatus
 import dev.adboptimizer.core.adb.RemoteApkInstallOutcome
 import dev.adboptimizer.core.model.ManagedApp
@@ -28,6 +29,7 @@ data class InstallState(
     val hostApps: List<ManagedApp> = emptyList(),
     val hostAppsLoading: Boolean = false,
     val hostAppsError: UiText? = null,
+    val options: InstallOptions = InstallOptions(),
 )
 
 sealed interface InstallEvent {
@@ -94,7 +96,12 @@ class InstallViewModel(
 
     fun installApks(uris: List<Uri>) {
         if (uris.isEmpty()) return
-        begin { onProgress -> environment.installApks(uris, onProgress) }
+        val options = _state.value.options
+        begin { onProgress -> environment.installApks(uris, options, onProgress) }
+    }
+
+    fun setInstallOptions(options: InstallOptions) {
+        _state.update { it.copy(options = options) }
     }
 
     fun installHostApps(packageNames: List<String>) {

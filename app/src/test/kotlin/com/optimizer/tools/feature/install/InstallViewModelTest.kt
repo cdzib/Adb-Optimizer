@@ -4,6 +4,7 @@ import android.net.Uri
 import com.optimizer.tools.R
 import com.optimizer.tools.core.ui.asUiText
 import com.optimizer.tools.core.ui.uiText
+import com.optimizer.tools.domain.apk.InstallOptions
 import com.optimizer.tools.domain.model.ShizukuLocalStatus
 import com.optimizer.tools.testutil.runViewModelTest
 import dev.adboptimizer.core.adb.RemoteApkInstallOutcome
@@ -149,6 +150,7 @@ private class FakeInstallEnvironment(
 
     override suspend fun installApks(
         uris: List<Uri>,
+        options: InstallOptions,
         onProgress: (String) -> Unit,
     ): List<RemoteApkInstallOutcome> = emptyList()
 

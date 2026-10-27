@@ -49,6 +49,7 @@ import com.optimizer.tools.R
 import com.optimizer.tools.core.ui.AppIcon
 import com.optimizer.tools.core.ui.formatBytes
 import com.optimizer.tools.core.ui.resolve
+import com.optimizer.tools.domain.apk.InstallOptions
 import com.optimizer.tools.domain.model.ShizukuLocalStatus
 import dev.adboptimizer.core.model.ManagedApp
 
@@ -59,6 +60,7 @@ internal fun HostAppsInstallScreen(
     onBack: () -> Unit,
     onInstall: (List<String>) -> Unit,
     onInstallApks: (List<Uri>) -> Unit,
+    onOptions: (InstallOptions) -> Unit,
 ) {
     var selectedPackages by remember { mutableStateOf(emptySet<String>()) }
     val apkPicker =
@@ -87,6 +89,11 @@ internal fun HostAppsInstallScreen(
             Spacer(Modifier.width(8.dp))
             Text(stringResource(R.string.install_choose_apk))
         }
+        InstallOptionsRow(
+            options = state.options,
+            enabled = !state.running,
+            onOptions = onOptions,
+        )
         if (state.progress != null || state.message != null) {
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -196,5 +203,42 @@ internal fun HostAppsInstallScreen(
                 Text(stringResource(R.string.install_selected, selectedPackages.size))
             }
         }
+    }
+}
+
+/** Opciones de `pm install`. Solo se aplican al instalar APKs elegidos desde Archivos. */
+@Composable
+internal fun InstallOptionsRow(
+    options: InstallOptions,
+    enabled: Boolean,
+    onOptions: (InstallOptions) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(stringResource(R.string.install_options_title), style = MaterialTheme.typography.labelLarge)
+        InstallOption(stringResource(R.string.install_option_grant), options.grantPermissions, enabled) {
+            onOptions(options.copy(grantPermissions = it))
+        }
+        InstallOption(stringResource(R.string.install_option_downgrade), options.allowDowngrade, enabled) {
+            onOptions(options.copy(allowDowngrade = it))
+        }
+        InstallOption(stringResource(R.string.install_option_test), options.allowTest, enabled) {
+            onOptions(options.copy(allowTest = it))
+        }
+    }
+}
+
+@Composable
+private fun InstallOption(
+    label: String,
+    checked: Boolean,
+    enabled: Boolean,
+    onChange: (Boolean) -> Unit,
+) {
+    Row(
+        Modifier.fillMaxWidth().clickable(enabled = enabled) { onChange(!checked) },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(checked = checked, onCheckedChange = if (enabled) onChange else null)
+        Text(label, style = MaterialTheme.typography.bodyMedium)
     }
 }

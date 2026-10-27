@@ -49,6 +49,8 @@ data class RemoteApkInstallGroup(
     val packageName: String,
     val files: List<File>,
     val installMultiple: Boolean,
+    /** Opciones de `pm install`, ya validadas por quien construye el grupo. */
+    val flags: List<String> = listOf("-r"),
 )
 
 data class RemoteApkInstallOutcome(
@@ -101,7 +103,9 @@ internal class LibAdbShell(
                         if (group.installMultiple) {
                             installSplitGroup(group, remotePaths)
                         } else {
-                            val result = exec("pm install -r ${ShellQuote.of(remotePaths.single())}", INSTALL_TIMEOUT_MS)
+                            val installCommand =
+                                "pm install ${group.flags.joinToString(" ")} " + ShellQuote.of(remotePaths.single())
+                            val result = exec(installCommand, INSTALL_TIMEOUT_MS)
                             val text = result.output.trim().ifBlank { "Sin respuesta del Package Manager." }
                             val ok =
                                 result.exitCode == 0 &&
@@ -129,7 +133,7 @@ internal class LibAdbShell(
         remotePaths: List<String>,
     ): Pair<Boolean, String> {
         val totalBytes = group.files.sumOf(File::length)
-        val create = exec("cmd package install-create -r -S $totalBytes", INSTALL_TIMEOUT_MS)
+        val create = exec("cmd package install-create ${group.flags.joinToString(" ")} -S $totalBytes", INSTALL_TIMEOUT_MS)
         val sessionId =
             SESSION_ID_REGEX.find(create.output)?.groupValues?.getOrNull(1)
                 ?: return false to

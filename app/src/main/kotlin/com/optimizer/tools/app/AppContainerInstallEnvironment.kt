@@ -2,6 +2,7 @@ package com.optimizer.tools.app
 
 import android.net.Uri
 import com.optimizer.tools.data.AppContainer
+import com.optimizer.tools.domain.apk.InstallOptions
 import com.optimizer.tools.domain.model.ShizukuLocalStatus
 import com.optimizer.tools.feature.install.InstallEnvironment
 import com.optimizer.tools.feature.install.InstallProgress
@@ -37,8 +38,9 @@ internal class AppContainerInstallEnvironment(
 
     override suspend fun installApks(
         uris: List<Uri>,
+        options: InstallOptions,
         onProgress: (String) -> Unit,
-    ): List<RemoteApkInstallOutcome> = container.installApks(uris, onProgress)
+    ): List<RemoteApkInstallOutcome> = container.installApks(uris, options, onProgress)
 
     override suspend fun installHostApps(
         packageNames: List<String>,

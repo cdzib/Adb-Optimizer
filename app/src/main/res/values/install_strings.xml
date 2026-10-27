@@ -3,6 +3,10 @@
     <string name="install_back_to_apps">Volver a Apps</string>
     <string name="install_title">Instalar aplicaciones</string>
     <string name="install_choose_apk">Elegir APK desde Archivos</string>
+    <string name="install_options_title">Opciones de instalación</string>
+    <string name="install_option_grant">Conceder todos los permisos</string>
+    <string name="install_option_downgrade">Permitir instalar una versión anterior</string>
+    <string name="install_option_test">Permitir APK marcado como prueba</string>
     <string name="install_intro">Selecciona las aplicaciones instaladas en este teléfono que quieres instalar en el dispositivo remoto.</string>
     <string name="install_shizuku_hint">Para explorar las apps de este teléfono, activa Shizuku desde Inicio. También puedes elegir un APK desde Archivos.</string>
     <string name="install_no_user_apps">No hay apps de usuario disponibles en este teléfono.</string>

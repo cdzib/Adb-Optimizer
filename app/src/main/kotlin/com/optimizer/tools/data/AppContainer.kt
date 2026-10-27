@@ -16,6 +16,7 @@ import com.optimizer.tools.data.remote.RemoteAppRepository
 import com.optimizer.tools.data.remote.RemoteLauncherRepository
 import com.optimizer.tools.domain.apk.ApkDescriptor
 import com.optimizer.tools.domain.apk.ApkInstallPlanner
+import com.optimizer.tools.domain.apk.InstallOptions
 import com.optimizer.tools.domain.logging.AppLogger
 import com.optimizer.tools.domain.model.KnownDevice
 import com.optimizer.tools.domain.model.deduplicateKnownDevices
@@ -197,6 +198,7 @@ class AppContainer(
 
     suspend fun installApks(
         uris: List<Uri>,
+        options: InstallOptions = InstallOptions(),
         onProgress: (String) -> Unit,
     ): List<RemoteApkInstallOutcome> =
         withContext(Dispatchers.IO) {
@@ -220,7 +222,7 @@ class AppContainer(
                         val splitName = packageInfo.splitNames?.singleOrNull()
                         ApkDescriptor(file, packageInfo.packageName.orEmpty(), splitName)
                     }
-                installDescriptors(descriptors, onProgress)
+                installDescriptors(descriptors, options, onProgress)
             } finally {
                 stagedFiles.forEach { it.delete() }
             }
@@ -244,6 +246,7 @@ class AppContainer(
     /** Instala archivos APK ya descargados (p. ej. un DPC desde URL). */
     suspend fun installApkFiles(
         files: List<File>,
+        options: InstallOptions = InstallOptions(),
         onProgress: (String) -> Unit,
     ): List<RemoteApkInstallOutcome> =
         withContext(Dispatchers.IO) {
@@ -254,7 +257,7 @@ class AppContainer(
                     val info = packageInfoFor(file)
                     ApkDescriptor(file, info.packageName.orEmpty(), info.splitNames?.singleOrNull())
                 }
-            installDescriptors(descriptors, onProgress)
+            installDescriptors(descriptors, options, onProgress)
         }
 
     @Suppress("DEPRECATION")
@@ -322,6 +325,12 @@ class AppContainer(
     override suspend fun installDescriptors(
         descriptors: List<ApkDescriptor>,
         onProgress: (String) -> Unit,
+    ): List<RemoteApkInstallOutcome> = installDescriptors(descriptors, InstallOptions(), onProgress)
+
+    private suspend fun installDescriptors(
+        descriptors: List<ApkDescriptor>,
+        options: InstallOptions,
+        onProgress: (String) -> Unit,
     ): List<RemoteApkInstallOutcome> {
         val adb = shell ?: throw IOException("No hay un dispositivo remoto conectado.")
         val groups = ApkInstallPlanner.create(descriptors)
@@ -333,6 +342,7 @@ class AppContainer(
                         packageName = group.packageName,
                         files = group.files,
                         installMultiple = group.installMultiple,
+                        flags = options.flags(),
                     )
                 },
             onProgress,

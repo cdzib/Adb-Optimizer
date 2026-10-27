@@ -255,6 +255,7 @@ internal fun AppNavGraph(
                 },
                 onInstall = installViewModel::installHostApps,
                 onInstallApks = installViewModel::installApks,
+                onOptions = installViewModel::setInstallOptions,
             )
         }
 

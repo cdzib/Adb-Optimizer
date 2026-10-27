@@ -1,6 +1,7 @@
 package com.optimizer.tools.feature.install
 
 import android.net.Uri
+import com.optimizer.tools.domain.apk.InstallOptions
 import com.optimizer.tools.domain.model.ShizukuLocalStatus
 import dev.adboptimizer.core.adb.RemoteApkInstallOutcome
 import dev.adboptimizer.core.model.ManagedApp
@@ -28,6 +29,7 @@ interface InstallEnvironment {
 
     suspend fun installApks(
         uris: List<Uri>,
+        options: InstallOptions,
         onProgress: (String) -> Unit,
     ): List<RemoteApkInstallOutcome>
 
