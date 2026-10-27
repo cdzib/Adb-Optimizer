@@ -27,6 +27,8 @@ import com.optimizer.tools.feature.dashboard.DashboardCategory
 import com.optimizer.tools.feature.dashboard.DashboardDetailScreen
 import com.optimizer.tools.feature.dashboard.DashboardScreen
 import com.optimizer.tools.feature.dashboard.DashboardViewModel
+import com.optimizer.tools.feature.doze.DozeScreen
+import com.optimizer.tools.feature.doze.DozeViewModel
 import com.optimizer.tools.feature.dpc.DpcScreen
 import com.optimizer.tools.feature.dpc.DpcViewModel
 import com.optimizer.tools.feature.inspector.InspectorScreen
@@ -70,6 +72,7 @@ internal fun AppNavGraph(
     logcatViewModel: LogcatViewModel,
     settingsDbViewModel: SettingsDbViewModel,
     inspectorViewModel: InspectorViewModel,
+    dozeViewModel: DozeViewModel,
 ) {
     val connectionState by connectionViewModel.state.collectAsStateWithLifecycle()
     val dashboardState by dashboardViewModel.state.collectAsStateWithLifecycle()
@@ -84,6 +87,7 @@ internal fun AppNavGraph(
     val logcatState by logcatViewModel.state.collectAsStateWithLifecycle()
     val settingsDbState by settingsDbViewModel.state.collectAsStateWithLifecycle()
     val inspectorState by inspectorViewModel.state.collectAsStateWithLifecycle()
+    val dozeState by dozeViewModel.state.collectAsStateWithLifecycle()
     NavHost(
         navController = navController,
         startDestination = HomeRoute,
@@ -329,6 +333,10 @@ internal fun AppNavGraph(
                 onQuery = settingsDbViewModel::setQuery,
                 onSave = settingsDbViewModel::save,
                 onRetry = settingsDbViewModel::reload,
+                onNightMode = settingsDbViewModel::setNightMode,
+                onScreenTimeout = settingsDbViewModel::setScreenTimeout,
+                onBrightness = settingsDbViewModel::setBrightness,
+                onBatterySaver = settingsDbViewModel::setBatterySaver,
             )
         }
 
@@ -341,6 +349,18 @@ internal fun AppNavGraph(
                     if (!navController.popBackStack()) viewModel.goHome()
                 },
                 onTab = inspectorViewModel::selectTab,
+            )
+        }
+
+        composable<DozeRoute> {
+            LaunchedEffect(Unit) { dozeViewModel.onEnter() }
+            DozeScreen(
+                state = dozeState,
+                onBack = {
+                    if (!navController.popBackStack()) viewModel.goHome()
+                },
+                onRefresh = dozeViewModel::refresh,
+                onAction = dozeViewModel::run,
             )
         }
 
@@ -399,6 +419,7 @@ internal fun AppNavGraph(
                 onOpenDpc = viewModel::openDpc,
                 onOpenLogcat = { navController.navigate(LogcatRoute) },
                 onOpenSettingsDb = { navController.navigate(SettingsDbRoute) },
+                onOpenDoze = { navController.navigate(DozeRoute) },
             )
         }
 

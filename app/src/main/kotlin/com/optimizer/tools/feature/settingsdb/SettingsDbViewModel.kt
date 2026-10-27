@@ -25,6 +25,9 @@ data class SettingsDbState(
     val error: UiText? = null,
     val message: UiText? = null,
     val connected: Boolean = false,
+    val quick: QuickSettings = QuickSettings(),
+    val quickLoading: Boolean = false,
+    val savingPreset: Boolean = false,
 )
 
 class SettingsDbViewModel(
@@ -35,13 +38,63 @@ class SettingsDbViewModel(
 
     fun onEnter() {
         _state.update { it.copy(connected = environment.activeDevice() != null) }
-        if (environment.activeDevice() != null) reload()
+        if (environment.activeDevice() != null) {
+            reload()
+            refreshQuick()
+        }
     }
 
     fun setNamespace(namespace: String) {
         if (namespace == _state.value.namespace) return
         _state.update { it.copy(namespace = namespace, query = "", message = null) }
         reload()
+    }
+
+    fun refreshQuick() {
+        viewModelScope.launch {
+            _state.update { it.copy(quickLoading = true) }
+            val quick = runCatching { environment.quickSettings() }.getOrNull()
+            _state.update { it.copy(quick = quick ?: it.quick, quickLoading = false) }
+        }
+    }
+
+    fun setNightMode(mode: NightMode) {
+        applyPreset({ it.copy(nightMode = mode) }) { environment.setNightMode(mode) }
+    }
+
+    fun setScreenTimeout(milliseconds: Int) {
+        applyPreset({ it.copy(timeoutMs = milliseconds) }) { environment.setScreenTimeout(milliseconds) }
+    }
+
+    fun setBrightness(value: Int) {
+        applyPreset({ it.copy(brightness = value) }) { environment.setBrightness(value) }
+    }
+
+    fun setBatterySaver(enabled: Boolean) {
+        applyPreset({ it.copy(batterySaver = enabled) }) { environment.setBatterySaver(enabled) }
+    }
+
+    private fun applyPreset(
+        update: (QuickSettings) -> QuickSettings,
+        call: suspend () -> Boolean,
+    ) {
+        if (_state.value.savingPreset) return
+        viewModelScope.launch {
+            _state.update { it.copy(savingPreset = true, error = null, message = null) }
+            try {
+                if (call()) {
+                    _state.update {
+                        it.copy(savingPreset = false, quick = update(it.quick), message = uiText(R.string.settings_db_quick_saved))
+                    }
+                } else {
+                    _state.update { it.copy(savingPreset = false, error = uiText(R.string.settings_db_quick_not_saved)) }
+                }
+            } catch (error: Exception) {
+                _state.update {
+                    it.copy(savingPreset = false, error = error.message?.asUiText() ?: uiText(R.string.settings_db_error))
+                }
+            }
+        }
     }
 
     fun setQuery(query: String) {

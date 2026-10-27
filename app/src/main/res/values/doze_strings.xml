@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="doze_title">Doze y energía</string>
+    <string name="doze_subtitle">Estado del controlador de reposo</string>
+    <string name="doze_deep_state">Estado profundo</string>
+    <string name="doze_light_state">Estado ligero: %1$s</string>
+    <string name="doze_unknown">Desconocido</string>
+    <string name="doze_forced_yes">Forzado</string>
+    <string name="doze_forced_no">No forzado</string>
+    <string name="doze_phase_active">Activo</string>
+    <string name="doze_phase_inactive">Inactivo</string>
+    <string name="doze_phase_pending">Pendiente</string>
+    <string name="doze_phase_idle">En reposo</string>
+    <string name="doze_phase_maintenance">Mantenimiento</string>
+    <string name="doze_actions_title">Acciones</string>
+    <string name="doze_force">Forzar Doze</string>
+    <string name="doze_step">Avanzar un paso</string>
+    <string name="doze_unforce">Salir de Doze</string>
+    <string name="doze_motion">Simular movimiento</string>
+    <string name="doze_message_force">Doze forzado.</string>
+    <string name="doze_message_step">Paso aplicado.</string>
+    <string name="doze_message_unforce">Doze liberado.</string>
+    <string name="doze_message_motion">Movimiento simulado.</string>
+    <string name="doze_error">No se pudo leer o cambiar el estado de Doze.</string>
+    <string name="doze_error_title">No se pudo leer Doze</string>
+    <string name="doze_no_device_title">Sin dispositivo</string>
+    <string name="doze_no_device">Conecta un dispositivo para controlar Doze.</string>
+</resources>

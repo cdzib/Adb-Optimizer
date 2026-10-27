@@ -277,6 +277,9 @@ class AppContainer(
     val appInspector: AppInspectorRepository?
         get() = sessionStore.activeShell()?.let { AppInspectorRepository(it) }
 
+    val doze: DozeRepository?
+        get() = sessionStore.activeShell()?.let { DozeRepository(it) }
+
     val apkDownloader: ApkDownloader by lazy { ApkDownloader(context) }
 
     val installHostAppsUseCase: InstallHostAppsUseCase by lazy {

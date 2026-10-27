@@ -4,6 +4,11 @@
     <string name="power_reboot">Reiniciar</string>
     <string name="power_shutdown">Apagar</string>
     <string name="power_recovery">Reiniciar en recovery</string>
+    <string name="power_bootloader">Reiniciar en bootloader</string>
+    <string name="power_restart_system_ui">Reiniciar la interfaz</string>
+    <string name="power_confirm_bootloader">El dispositivo quedará en modo fastboot hasta que lo saques desde ese menú o con el botón de encendido.</string>
+    <string name="power_confirm_system_ui">Se reinicia solo la interfaz: la barra de estado y la pantalla de bloqueo desaparecen un segundo. Las apps abiertas no se cierran.</string>
+    <string name="power_confirm_body_with_warning">%1$s\n%2$s\n%3$s</string>
     <string name="power_device">Dispositivo: %1$s</string>
     <string name="power_confirm_body">%1$s\n%2$s\nLa conexión finalizará cuando el dispositivo ejecute la acción.</string>
     <string name="power_cancel">Cancelar</string>

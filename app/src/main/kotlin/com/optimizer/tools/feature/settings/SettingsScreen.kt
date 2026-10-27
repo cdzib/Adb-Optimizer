@@ -50,6 +50,7 @@ internal fun SettingsScreen(
     onOpenDpc: () -> Unit,
     onOpenLogcat: () -> Unit,
     onOpenSettingsDb: () -> Unit,
+    onOpenDoze: () -> Unit,
 ) {
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp),
@@ -121,6 +122,10 @@ internal fun SettingsScreen(
                 onClick = onOpenSettingsDb,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
             ) { Text(stringResource(R.string.settings_open_settings_db)) }
+            OutlinedButton(
+                onClick = onOpenDoze,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+            ) { Text(stringResource(R.string.settings_open_doze)) }
         }
 
         if (remoteRole) {

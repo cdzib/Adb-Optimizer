@@ -175,6 +175,15 @@ class AdbCommandRulesTest {
         assertFalse(AdbCommandRules.isAppOpMode("allow ; reboot"))
     }
 
+    @Test
+    fun `el modo noche solo acepta yes, no o auto`() {
+        assertEquals("cmd uimode night yes", AdbCommandRules.nightModeCommand("yes"))
+        assertEquals("cmd uimode night auto", AdbCommandRules.nightModeCommand("auto"))
+        assertNull(AdbCommandRules.nightModeCommand("siempre"))
+        assertTrue(AdbCommandRules.nightModeReported("Night mode: yes", "yes"))
+        assertFalse(AdbCommandRules.nightModeReported("Night mode: no", "yes"))
+    }
+
     // --- Ajustes (settings) ---
 
     @Test

@@ -173,6 +173,18 @@ object AdbCommandRules {
         return "am set-standby-bucket $packageName $bucket"
     }
 
+    /** Los modos que acepta `cmd uimode night`. */
+    val NIGHT_MODES = listOf("yes", "no", "auto")
+
+    /** `cmd uimode night <modo>`, o `null` si el modo no esta permitido. */
+    fun nightModeCommand(mode: String): String? = if (mode in NIGHT_MODES) "cmd uimode night $mode" else null
+
+    /** `cmd uimode night` imprime `Night mode: yes`, asi que la confirmacion es el sufijo. */
+    fun nightModeReported(
+        output: String,
+        mode: String,
+    ): Boolean = mode in NIGHT_MODES && output.trim().endsWith(mode)
+
     /** Las tres tablas de `settings` que Android expone por shell. */
     val SETTINGS_NAMESPACES = listOf("global", "secure", "system")
 

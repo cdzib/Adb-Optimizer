@@ -17,6 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.optimizer.tools.app.AppContainerAppsEnvironment
 import com.optimizer.tools.app.AppContainerConnectionEnvironment
 import com.optimizer.tools.app.AppContainerDashboardEnvironment
+import com.optimizer.tools.app.AppContainerDozeEnvironment
 import com.optimizer.tools.app.AppContainerDpcEnvironment
 import com.optimizer.tools.app.AppContainerInspectorEnvironment
 import com.optimizer.tools.app.AppContainerInstallEnvironment
@@ -37,6 +38,7 @@ import com.optimizer.tools.data.ShizukuLocalAccess
 import com.optimizer.tools.feature.apps.AppsViewModel
 import com.optimizer.tools.feature.connection.ConnectionViewModel
 import com.optimizer.tools.feature.dashboard.DashboardViewModel
+import com.optimizer.tools.feature.doze.DozeViewModel
 import com.optimizer.tools.feature.dpc.DpcViewModel
 import com.optimizer.tools.feature.inspector.InspectorViewModel
 import com.optimizer.tools.feature.install.InstallViewModel
@@ -107,6 +109,9 @@ class MainActivity : ComponentActivity() {
     private val inspectorViewModel: InspectorViewModel by viewModels {
         InspectorViewModel.factory(AppContainerInspectorEnvironment(container))
     }
+    private val dozeViewModel: DozeViewModel by viewModels {
+        DozeViewModel.factory(AppContainerDozeEnvironment(container))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -141,6 +146,7 @@ class MainActivity : ComponentActivity() {
                     logcatViewModel = logcatViewModel,
                     settingsDbViewModel = settingsDbViewModel,
                     inspectorViewModel = inspectorViewModel,
+                    dozeViewModel = dozeViewModel,
                     dictionary = container.dictionary,
                 )
             }

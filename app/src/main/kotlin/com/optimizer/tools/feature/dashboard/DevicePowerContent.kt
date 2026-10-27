@@ -29,6 +29,16 @@ internal fun DevicePowerAction.labelResource(): Int =
         DevicePowerAction.REBOOT -> R.string.power_reboot
         DevicePowerAction.SHUTDOWN -> R.string.power_shutdown
         DevicePowerAction.RECOVERY -> R.string.power_recovery
+        DevicePowerAction.BOOTLOADER -> R.string.power_bootloader
+        DevicePowerAction.RESTART_SYSTEM_UI -> R.string.power_restart_system_ui
+    }
+
+/** Advertencia propia de las acciones que no son un reinicio normal, o `null`. */
+internal fun DevicePowerAction.warningResource(): Int? =
+    when (this) {
+        DevicePowerAction.BOOTLOADER -> R.string.power_confirm_bootloader
+        DevicePowerAction.RESTART_SYSTEM_UI -> R.string.power_confirm_system_ui
+        else -> null
     }
 
 @Composable
@@ -72,7 +82,16 @@ internal fun DevicePowerConfirmation(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(request.action.labelResource())) },
-        text = { Text(stringResource(R.string.power_confirm_body, request.deviceName, request.deviceId)) },
+        text = {
+            val warning = request.action.warningResource()
+            Text(
+                if (warning == null) {
+                    stringResource(R.string.power_confirm_body, request.deviceName, request.deviceId)
+                } else {
+                    stringResource(R.string.power_confirm_body_with_warning, request.deviceName, request.deviceId, stringResource(warning))
+                },
+            )
+        },
         confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(request.action.labelResource())) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.power_cancel)) } },
     )

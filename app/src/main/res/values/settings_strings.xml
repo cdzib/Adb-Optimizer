@@ -25,4 +25,5 @@
     <string name="settings_section_tools">Herramientas</string>
     <string name="settings_open_logcat">Registro del sistema</string>
     <string name="settings_open_settings_db">Ajustes del sistema</string>
+    <string name="settings_open_doze">Doze y energía</string>
 </resources>

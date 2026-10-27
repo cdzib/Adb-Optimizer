@@ -49,6 +49,9 @@ data object LogcatRoute : AppDestination
 data object SettingsDbRoute : AppDestination
 
 @Serializable
+data object DozeRoute : AppDestination
+
+@Serializable
 data class InspectorRoute(
     val packageName: String,
 ) : AppDestination
@@ -92,7 +95,7 @@ fun AppDestination.toScreen(): Screen? =
         TvLauncherRoute -> Screen.TV_LAUNCHER
         SettingsRoute -> Screen.SETTINGS
         DpcRoute -> Screen.DPC
-        RemoteControlRoute, MirrorRoute, LogcatRoute, SettingsDbRoute, is InspectorRoute, is DashboardDetailRoute -> null
+        RemoteControlRoute, MirrorRoute, LogcatRoute, SettingsDbRoute, DozeRoute, is InspectorRoute, is DashboardDetailRoute -> null
     }
 
 /** Traduce el destino actual del back stack al estado de pantalla del host. */
@@ -119,4 +122,5 @@ fun NavDestination.isPushDestination(): Boolean =
         hasRoute<RemoteControlRoute>() ||
         hasRoute<MirrorRoute>() ||
         hasRoute<LogcatRoute>() ||
-        hasRoute<SettingsDbRoute>()
+        hasRoute<SettingsDbRoute>() ||
+        hasRoute<DozeRoute>()
