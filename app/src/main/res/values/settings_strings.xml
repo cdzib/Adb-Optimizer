@@ -22,4 +22,6 @@
     <string name="settings_dpc_description">Instala y configura un DPC (Device Owner o Profile Owner) en el dispositivo remoto.</string>
     <string name="settings_open_dpc">Abrir aprovisionamiento DPC</string>
     <string name="settings_wireless_debug_required">La depuración inalámbrica debe estar activa en el dispositivo remoto.</string>
+    <string name="settings_section_tools">Herramientas</string>
+    <string name="settings_open_logcat">Registro del sistema</string>
 </resources>

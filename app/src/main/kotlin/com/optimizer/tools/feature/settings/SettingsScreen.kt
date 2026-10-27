@@ -48,6 +48,7 @@ internal fun SettingsScreen(
     onAutoReconnect: (Boolean) -> Unit,
     remoteRole: Boolean,
     onOpenDpc: () -> Unit,
+    onOpenLogcat: () -> Unit,
 ) {
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp),
@@ -108,6 +109,13 @@ internal fun SettingsScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+        }
+
+        SettingsSection(title = stringResource(R.string.settings_section_tools)) {
+            OutlinedButton(
+                onClick = onOpenLogcat,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+            ) { Text(stringResource(R.string.settings_open_logcat)) }
         }
 
         if (remoteRole) {

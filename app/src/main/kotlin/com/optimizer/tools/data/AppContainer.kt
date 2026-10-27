@@ -268,6 +268,9 @@ class AppContainer(
     val dpc: DpcRepository?
         get() = sessionStore.activeShell()?.let { DpcRepository(it) }
 
+    val logcat: LogcatRepository?
+        get() = sessionStore.activeShell()?.let { LogcatRepository(it) }
+
     val apkDownloader: ApkDownloader by lazy { ApkDownloader(context) }
 
     val installHostAppsUseCase: InstallHostAppsUseCase by lazy {

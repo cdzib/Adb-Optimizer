@@ -67,6 +67,7 @@ import com.optimizer.tools.feature.dashboard.DashboardViewModel
 import com.optimizer.tools.feature.dpc.DpcViewModel
 import com.optimizer.tools.feature.install.InstallEvent
 import com.optimizer.tools.feature.install.InstallViewModel
+import com.optimizer.tools.feature.logcat.LogcatViewModel
 import com.optimizer.tools.feature.mirror.MirrorViewModel
 import com.optimizer.tools.feature.optimize.OptimizeEvent
 import com.optimizer.tools.feature.optimize.OptimizeViewModel
@@ -89,6 +90,7 @@ fun OptimizerApp(
     dpcViewModel: DpcViewModel,
     remoteControlViewModel: RemoteControlViewModel,
     mirrorViewModel: MirrorViewModel,
+    logcatViewModel: LogcatViewModel,
     dictionary: Map<String, String>,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -243,6 +245,7 @@ fun OptimizerApp(
                 dpcViewModel = dpcViewModel,
                 remoteControlViewModel = remoteControlViewModel,
                 mirrorViewModel = mirrorViewModel,
+                logcatViewModel = logcatViewModel,
             )
         }
     }

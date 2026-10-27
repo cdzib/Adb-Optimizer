@@ -31,6 +31,8 @@ import com.optimizer.tools.feature.dpc.DpcScreen
 import com.optimizer.tools.feature.dpc.DpcViewModel
 import com.optimizer.tools.feature.install.HostAppsInstallScreen
 import com.optimizer.tools.feature.install.InstallViewModel
+import com.optimizer.tools.feature.logcat.LogcatScreen
+import com.optimizer.tools.feature.logcat.LogcatViewModel
 import com.optimizer.tools.feature.mirror.MirrorScreen
 import com.optimizer.tools.feature.mirror.MirrorViewModel
 import com.optimizer.tools.feature.optimize.OptimizeScreen
@@ -61,6 +63,7 @@ internal fun AppNavGraph(
     dpcViewModel: DpcViewModel,
     remoteControlViewModel: RemoteControlViewModel,
     mirrorViewModel: MirrorViewModel,
+    logcatViewModel: LogcatViewModel,
 ) {
     val connectionState by connectionViewModel.state.collectAsStateWithLifecycle()
     val dashboardState by dashboardViewModel.state.collectAsStateWithLifecycle()
@@ -72,6 +75,7 @@ internal fun AppNavGraph(
     val dpcState by dpcViewModel.state.collectAsStateWithLifecycle()
     val remoteControlState by remoteControlViewModel.state.collectAsStateWithLifecycle()
     val mirrorState by mirrorViewModel.state.collectAsStateWithLifecycle()
+    val logcatState by logcatViewModel.state.collectAsStateWithLifecycle()
     NavHost(
         navController = navController,
         startDestination = HomeRoute,
@@ -292,6 +296,19 @@ internal fun AppNavGraph(
             )
         }
 
+        composable<LogcatRoute> {
+            LaunchedEffect(Unit) { logcatViewModel.onEnter() }
+            LogcatScreen(
+                state = logcatState,
+                onBack = {
+                    if (!navController.popBackStack()) viewModel.goHome()
+                },
+                onRefresh = logcatViewModel::refresh,
+                onQuery = logcatViewModel::setQuery,
+                onLevel = logcatViewModel::setLevel,
+            )
+        }
+
         composable<RemoteControlRoute> {
             LaunchedEffect(Unit) { remoteControlViewModel.onEnter() }
             DisposableEffect(Unit) {
@@ -345,6 +362,7 @@ internal fun AppNavGraph(
                 onAutoReconnect = settingsViewModel::setAutoReconnect,
                 remoteRole = state.activeTarget == AppTarget.REMOTE,
                 onOpenDpc = viewModel::openDpc,
+                onOpenLogcat = { navController.navigate(LogcatRoute) },
             )
         }
 

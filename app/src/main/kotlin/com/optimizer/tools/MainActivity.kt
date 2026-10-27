@@ -19,6 +19,7 @@ import com.optimizer.tools.app.AppContainerConnectionEnvironment
 import com.optimizer.tools.app.AppContainerDashboardEnvironment
 import com.optimizer.tools.app.AppContainerDpcEnvironment
 import com.optimizer.tools.app.AppContainerInstallEnvironment
+import com.optimizer.tools.app.AppContainerLogcatEnvironment
 import com.optimizer.tools.app.AppContainerMainEnvironment
 import com.optimizer.tools.app.AppContainerMirrorEnvironment
 import com.optimizer.tools.app.AppContainerOptimizeEnvironment
@@ -36,6 +37,7 @@ import com.optimizer.tools.feature.connection.ConnectionViewModel
 import com.optimizer.tools.feature.dashboard.DashboardViewModel
 import com.optimizer.tools.feature.dpc.DpcViewModel
 import com.optimizer.tools.feature.install.InstallViewModel
+import com.optimizer.tools.feature.logcat.LogcatViewModel
 import com.optimizer.tools.feature.mirror.MirrorViewModel
 import com.optimizer.tools.feature.optimize.OptimizeViewModel
 import com.optimizer.tools.feature.remote.RemoteControlViewModel
@@ -92,6 +94,9 @@ class MainActivity : ComponentActivity() {
     private val mirrorViewModel: MirrorViewModel by viewModels {
         MirrorViewModel.factory(AppContainerMirrorEnvironment(container))
     }
+    private val logcatViewModel: LogcatViewModel by viewModels {
+        LogcatViewModel.factory(AppContainerLogcatEnvironment(container))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -123,6 +128,7 @@ class MainActivity : ComponentActivity() {
                     dpcViewModel = dpcViewModel,
                     remoteControlViewModel = remoteControlViewModel,
                     mirrorViewModel = mirrorViewModel,
+                    logcatViewModel = logcatViewModel,
                     dictionary = container.dictionary,
                 )
             }
