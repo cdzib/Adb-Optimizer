@@ -79,10 +79,10 @@ class CatalogAndEngineTest {
     }
 
     @Test
-    fun `el catalogo compartido es valido y no requiere root`() {
+    fun `el catalogo compartido permite root solo para WanboOS`() {
         assertTrue(bundle.catalog.recipes.isNotEmpty())
         assertTrue(bundle.actions.actions.isNotEmpty())
-        assertTrue(bundle.catalog.recipes.none { it.requiresRoot })
+        assertEquals(listOf("wanboos-launcher"), bundle.catalog.recipes.filter { it.requiresRoot }.map { it.id })
         assertEquals(1, bundle.catalog.schemaVersion)
     }
 

@@ -71,13 +71,29 @@ data class VerifySpec(
 )
 
 @Serializable
+enum class RecipeStepType {
+    @SerialName("shell")
+    SHELL,
+
+    @SerialName("installSystemApk")
+    INSTALL_SYSTEM_APK,
+}
+
+@Serializable
 data class RecipeStep(
+    val type: RecipeStepType = RecipeStepType.SHELL,
     val run: String,
     val verify: VerifySpec,
     val undo: String? = null,
     val undoIfUnset: String? = null,
     val timeoutMs: Long,
     val optional: Boolean = false,
+    val apkPath: String? = null,
+    val targetPath: String? = null,
+    val mode: String? = null,
+    val owner: String? = null,
+    val selinuxContext: String? = null,
+    val disablePackages: List<String>? = null,
 )
 
 @Serializable
@@ -260,6 +276,7 @@ object Compatibility {
         recipe: Recipe,
         device: DeviceInfo,
     ): String? {
+        if (recipe.steps.any { it.type == RecipeStepType.INSTALL_SYSTEM_APK }) return "specializedFlow"
         if (recipe.requiresRoot && !device.hasRoot) return "requiresRoot"
         recipe.appliesTo.minSdk?.let { if (device.sdk < it) return "minSdk" }
         recipe.appliesTo.maxSdk?.let { if (device.sdk > it) return "maxSdk" }

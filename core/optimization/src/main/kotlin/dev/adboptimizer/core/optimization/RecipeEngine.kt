@@ -214,6 +214,14 @@ class RecipeEngine(
         step: RecipeStep,
         dryRun: Boolean,
     ): StepResult {
+        if (step.type == dev.adboptimizer.core.model.RecipeStepType.INSTALL_SYSTEM_APK) {
+            return StepResult(
+                index = index,
+                run = step.run,
+                status = StepStatus.UNSUPPORTED,
+                error = "La instalación en /system requiere adb root/remount desde un host. dadb ejecuta como uid 2000; Android solo permite pm install y elegir Home.",
+            )
+        }
         val startedAt = System.nanoTime()
         val previous = readValue(step.verify.run)
 

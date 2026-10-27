@@ -32,6 +32,21 @@ object CatalogValidator {
                 if (undoCommand != null && !undoCommand.contains("{{prev}}") && step.undoIfUnset != null) {
                     problems += "${recipe.id}[$index]: undoIfUnset sin plantilla {{prev}}"
                 }
+                if (step.type == dev.adboptimizer.core.model.RecipeStepType.INSTALL_SYSTEM_APK) {
+                    if (!recipe.requiresRoot) problems += "${recipe.id}[$index]: installSystemApk requiere root"
+                    if (step.apkPath.isNullOrBlank()) problems += "${recipe.id}[$index]: apkPath vacio"
+                    val targetPath = step.targetPath
+                    if (targetPath == null || !targetPath.startsWith("/system/") || targetPath.contains("..")) {
+                        problems += "${recipe.id}[$index]: targetPath debe estar bajo /system"
+                    }
+                    if (step.mode?.matches(Regex("[0-7]{3,4}")) != true) problems += "${recipe.id}[$index]: mode invalido"
+                    if (step.owner?.matches(Regex("[0-9]+:[0-9]+")) != true) problems += "${recipe.id}[$index]: owner invalido"
+                    if (step.selinuxContext.isNullOrBlank()) problems += "${recipe.id}[$index]: selinuxContext vacio"
+                    val disablePackages = step.disablePackages
+                    if (disablePackages.isNullOrEmpty() || disablePackages.any { !it.matches(Regex("[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)+")) }) {
+                        problems += "${recipe.id}[$index]: disablePackages invalido"
+                    }
+                }
             }
         }
 
