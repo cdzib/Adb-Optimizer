@@ -124,6 +124,17 @@ class AdbCommandRulesTest {
         assertNull(AdbCommandRules.compileCommand("com.foo.bar;reboot", "speed", force = false))
     }
 
+    @Test
+    fun `construye appops set solo con operacion y modo validos`() {
+        assertEquals(
+            "appops set com.foo.bar RUN_IN_BACKGROUND ignore",
+            AdbCommandRules.appOpsCommand("com.foo.bar", "RUN_IN_BACKGROUND", "ignore"),
+        )
+        assertNull(AdbCommandRules.appOpsCommand("com.foo.bar", "run_in_background", "ignore"))
+        assertNull(AdbCommandRules.appOpsCommand("com.foo.bar", "RUN_IN_BACKGROUND", "always"))
+        assertNull(AdbCommandRules.appOpsCommand("com.foo.bar;reboot", "RUN_IN_BACKGROUND", "ignore"))
+    }
+
     // --- Componentes ---
 
     @Test

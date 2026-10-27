@@ -38,6 +38,9 @@ internal fun appActionLabel(action: AppAction): String =
         AppAction.UNINSTALL -> stringResource(R.string.apps_uninstall)
         AppAction.EXTRACT_APK -> stringResource(R.string.apps_extract_apk)
         AppAction.APP_INFO -> stringResource(R.string.apps_info)
+        AppAction.COMPILE_AOT -> stringResource(R.string.apps_compile_aot)
+        AppAction.RESTRICT_STANDBY -> stringResource(R.string.apps_restrict_standby)
+        AppAction.RESTRICT_BACKGROUND -> stringResource(R.string.apps_restrict_background)
     }
 
 @Composable

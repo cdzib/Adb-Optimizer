@@ -32,6 +32,9 @@
     <string name="apps_enable">Activar</string>
     <string name="apps_clear_data">Borrar datos</string>
     <string name="apps_clear_cache">Limpiar caché</string>
+    <string name="apps_compile_aot">Compilar para arranque rápido</string>
+    <string name="apps_restrict_standby">Restringir en segundo plano</string>
+    <string name="apps_restrict_background">Bloquear ejecución en segundo plano</string>
     <string name="apps_extract_apk">Extraer APK</string>
     <string name="apps_read_detail">Leyendo detalle…</string>
     <string name="apps_version">Versión</string>

@@ -564,6 +564,12 @@ internal fun AppCard(
                     }
                     menuAction(stringResource(R.string.apps_clear_data), !busy) { onAction(app, AppAction.CLEAR_DATA) }
                     menuAction(stringResource(R.string.apps_clear_cache), !busy) { onAction(app, AppAction.CLEAR_CACHE) }
+                    HorizontalDivider()
+                    menuAction(stringResource(R.string.apps_compile_aot), !busy) { onAction(app, AppAction.COMPILE_AOT) }
+                    menuAction(stringResource(R.string.apps_restrict_standby), !busy) { onAction(app, AppAction.RESTRICT_STANDBY) }
+                    menuAction(stringResource(R.string.apps_restrict_background), !busy) {
+                        onAction(app, AppAction.RESTRICT_BACKGROUND)
+                    }
                     menuAction(stringResource(R.string.apps_extract_apk), !busy) { onAction(app, AppAction.EXTRACT_APK) }
                     HorizontalDivider()
                     actions.filter { it.paramKind == ParamKind.PACKAGE && it.id !in NATIVE_ACTION_IDS }.forEach { action ->

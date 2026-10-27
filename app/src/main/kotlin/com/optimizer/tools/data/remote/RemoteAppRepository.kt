@@ -1,8 +1,11 @@
 package com.optimizer.tools.data.remote
 
+import com.optimizer.tools.domain.apk.PackageReadBack
 import dev.adboptimizer.core.model.AppAction
 import dev.adboptimizer.core.model.AppActionResult
+import dev.adboptimizer.core.model.AppSafety
 import dev.adboptimizer.core.model.ManagedApp
+import dev.adboptimizer.core.shell.AdbCommandRules
 import dev.adboptimizer.core.shell.AdbShell
 import dev.adboptimizer.core.shell.ShellQuote
 import java.text.SimpleDateFormat
@@ -131,6 +134,9 @@ class RemoteAppRepository(
         action: AppAction,
     ): AppActionResult {
         if (packageName.isBlank()) return AppActionResult(false, "Paquete vacio.")
+        if (action in PROTECTED_ACTIONS && AppSafety.isCritical(packageName)) {
+            return AppActionResult(false, "Paquete crítico protegido.")
+        }
         val result =
             when (action) {
                 AppAction.OPEN -> {
@@ -178,6 +184,43 @@ class RemoteAppRepository(
 
                 AppAction.EXTRACT_APK -> {
                     extract(packageName)
+                }
+
+                AppAction.COMPILE_AOT -> {
+                    val command = AdbCommandRules.compileCommand(packageName, "speed", force = true)
+                    if (command == null) {
+                        AppActionResult(false, "Nombre de paquete inválido.")
+                    } else {
+                        execVerified(command, "App compilada para arranque rápido.", 120_000, PackageReadBack.aot(packageName), "Success")
+                    }
+                }
+
+                AppAction.RESTRICT_STANDBY -> {
+                    val command = AdbCommandRules.standbyBucketCommand(packageName, "restricted")
+                    if (command == null) {
+                        AppActionResult(false, "Nombre de paquete inválido.")
+                    } else {
+                        execVerified(
+                            command,
+                            "App restringida en segundo plano.",
+                            10_000,
+                            PackageReadBack.standby(packageName),
+                        )
+                    }
+                }
+
+                AppAction.RESTRICT_BACKGROUND -> {
+                    val command = AdbCommandRules.appOpsCommand(packageName, "RUN_IN_BACKGROUND", "ignore")
+                    if (command == null) {
+                        AppActionResult(false, "Nombre de paquete inválido.")
+                    } else {
+                        execVerified(
+                            command,
+                            "Ejecución en segundo plano bloqueada.",
+                            10_000,
+                            PackageReadBack.backgroundOp(packageName),
+                        )
+                    }
                 }
 
                 AppAction.APP_INFO -> {
@@ -228,6 +271,27 @@ class RemoteAppRepository(
         } else {
             AppActionResult(true, successMessage)
         }
+    }
+
+    /** Ejecuta y solo da la accion por buena cuando el estado leido de vuelta la confirma. */
+    private suspend fun execVerified(
+        command: String,
+        successMessage: String,
+        timeoutMs: Long,
+        readBack: PackageReadBack,
+        successToken: String? = null,
+    ): AppActionResult {
+        val output = exec(command, timeoutMs)
+        if (output.contains("Failure", true) || output.contains("Error", true)) {
+            return AppActionResult(false, output)
+        }
+        if (successToken != null && !output.contains(successToken, ignoreCase = true)) {
+            return AppActionResult(false, output.ifBlank { "El dispositivo rechazo la accion." })
+        }
+        if (!readBack.confirm(shell)) {
+            return AppActionResult(false, "El dispositivo no confirmo el cambio; revisa la app en Ajustes.")
+        }
+        return AppActionResult(true, successMessage)
     }
 
     private suspend fun exec(
@@ -332,5 +396,10 @@ class RemoteAppRepository(
         return runCatching {
             SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).parse(value)?.time ?: 0L
         }.getOrDefault(0L)
+    }
+
+    private companion object {
+        /** Acciones que cambian el comportamiento de la app y no deben tocar paquetes críticos. */
+        val PROTECTED_ACTIONS = setOf(AppAction.COMPILE_AOT, AppAction.RESTRICT_STANDBY, AppAction.RESTRICT_BACKGROUND)
     }
 }

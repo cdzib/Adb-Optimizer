@@ -19,6 +19,15 @@ enum class AppAction {
     UNINSTALL,
     EXTRACT_APK,
     APP_INFO,
+
+    /** Compila el codigo dex de la app con el filtro ART `speed` para que arranque sin interpretar. */
+    COMPILE_AOT,
+
+    /** Pone la app en el bucket de standby `restricted`. */
+    RESTRICT_STANDBY,
+
+    /** Bloquea la ejecucion en segundo plano con AppOps `RUN_IN_BACKGROUND ignore`. */
+    RESTRICT_BACKGROUND,
 }
 
 /**

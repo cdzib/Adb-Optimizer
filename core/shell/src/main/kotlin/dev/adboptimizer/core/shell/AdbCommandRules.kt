@@ -146,6 +146,19 @@ object AdbCommandRules {
     fun isAppOpMode(value: String): Boolean = APP_OP_MODE.matches(value)
 
     /**
+     * `appops set <paquete> <op> <modo>` con el nombre y el modo validados, o `null` si algo
+     * no esta permitido. Se usa para restringir comportamiento sin tocar el APK de la app.
+     */
+    fun appOpsCommand(
+        packageName: String,
+        op: String,
+        mode: String,
+    ): String? {
+        if (!isPackageName(packageName) || !isAppOp(op) || !isAppOpMode(mode)) return null
+        return "appops set $packageName $op $mode"
+    }
+
+    /**
      * `am get-standby-bucket` cuando [bucket] es `null`, o `am set-standby-bucket` con uno de los
      * buckets permitidos. `null` cuando el paquete o el bucket no son validos; `exempted`,
      * `never` y los valores numericos no se pueden fijar por esta via.

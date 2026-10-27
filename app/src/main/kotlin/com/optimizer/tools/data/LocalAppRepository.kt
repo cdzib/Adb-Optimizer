@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Environment
 import com.optimizer.tools.domain.apk.ApkDescriptor
 import com.optimizer.tools.domain.apk.LocalPackageCommands
+import com.optimizer.tools.domain.apk.PackageReadBack
 import com.optimizer.tools.domain.model.ShizukuLocalStatus
 import com.optimizer.tools.domain.port.HostAppsSource
 import dev.adboptimizer.core.model.AppAction
@@ -117,7 +118,13 @@ class LocalAppRepository(
                     if (action == AppAction.UNINSTALL && shizukuAccess.status() != ShizukuLocalStatus.READY) {
                         return@withContext uninstallWithSystemUi(packageName)
                     }
-                    runPrivileged(command.command, command.timeoutMs, command.successMessage, command.successToken)
+                    runPrivileged(
+                        command.command,
+                        command.timeoutMs,
+                        command.successMessage,
+                        command.successToken,
+                        command.readBack,
+                    )
                 }
             }
         }
@@ -127,6 +134,7 @@ class LocalAppRepository(
         timeoutMs: Long,
         successMessage: String,
         successToken: String? = null,
+        readBack: PackageReadBack? = null,
     ): AppActionResult =
         runCatching {
             val response = shell.exec(command, timeoutMs)
@@ -136,10 +144,18 @@ class LocalAppRepository(
                     (successToken == null || output.contains(successToken, ignoreCase = true)) &&
                     !output.contains("Failure", ignoreCase = true) &&
                     !output.contains("Error", ignoreCase = true)
-            if (success) {
-                AppActionResult(true, successMessage)
-            } else {
-                AppActionResult(false, output.ifBlank { "El sistema rechazó la acción (código ${response.exitCode})." })
+            when {
+                !success -> {
+                    AppActionResult(false, output.ifBlank { "El sistema rechazó la acción (código ${response.exitCode})." })
+                }
+
+                readBack != null && !readBack.confirm(shell) -> {
+                    AppActionResult(false, "El sistema no confirmó el cambio; vuelve a intentarlo o revisa la app en Ajustes.")
+                }
+
+                else -> {
+                    AppActionResult(true, successMessage)
+                }
             }
         }.getOrElse { error ->
             AppActionResult(false, error.message ?: "No se pudo ejecutar la acción con Shizuku.")
