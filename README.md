@@ -7,6 +7,9 @@ App Android de AdbOptimizer. Compose + ViewModels con un contrato MVI ligero y D
 - JDK 17 o superior (el CI usa 21)
 - Android SDK 36
 - Gradle Wrapper incluido (`./gradlew`)
+- Catálogo compartido (`recipes/recipes.json`). Se busca en `-PsharedDir`, en
+  `ADB_OPTIMIZER_SHARED`, en `../shared` y en `../AdbOptimizer-Desktop/shared`. Sin catálogo
+  los tests del catálogo se omiten y el empaquetado del APK falla.
 
 ## Comandos
 
@@ -16,6 +19,7 @@ App Android de AdbOptimizer. Compose + ViewModels con un contrato MVI ligero y D
 ./gradlew :app:testDebugUnitTest
 ./gradlew :app:assembleDebug
 ./gradlew :app:assembleRelease
+./gradlew :app:assembleDebug -PsharedDir=/ruta/al/shared
 ```
 
 ## Estructura

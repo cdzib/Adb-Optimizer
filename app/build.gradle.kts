@@ -7,6 +7,22 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+/**
+ * El catalogo es la unica fuente de verdad del repo de escritorio (`shared/`), sin copias.
+ * Se busca en este orden y se usa la primera carpeta que tenga `recipes/recipes.json`:
+ * `-PsharedDir=...`, `ADB_OPTIMIZER_SHARED`, `../shared` y `../AdbOptimizer-Desktop/shared`.
+ */
+val sharedCatalogDir: File? =
+    listOfNotNull(
+        providers.gradleProperty("sharedDir").orNull,
+        providers.environmentVariable("ADB_OPTIMIZER_SHARED").orNull,
+        rootProject.file("../shared").path,
+        rootProject.file("../AdbOptimizer-Desktop/shared").path,
+    ).map(::File)
+        .firstOrNull { File(it, "recipes/recipes.json").isFile }
+
+val sharedCatalogPresent = sharedCatalogDir != null
+
 android {
     namespace = "com.optimizer.tools"
     compileSdk = 36
@@ -42,8 +58,8 @@ android {
         aidl = true
     }
 
-    // Unica fuente de verdad del catalogo: shared/ del repo, sin copias.
-    sourceSets["main"].assets.srcDir(rootProject.file("../shared"))
+    // Unica fuente de verdad del catalogo: shared/ del repo de escritorio, sin copias.
+    sourceSets["main"].assets.srcDir(sharedCatalogDir ?: rootProject.file("../shared"))
 
     packaging {
         resources.excludes += setOf("/META-INF/{AL2.0,LGPL2.1}")
@@ -88,6 +104,29 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+}
+
+// Un APK sin catalogo no sirve: el empaquetado falla con un mensaje que dice como resolverlo.
+tasks
+    .matching {
+        it.name.startsWith("merge") &&
+            it.name.endsWith("Assets") &&
+            !it.name.contains("UnitTest") &&
+            !it.name.contains("AndroidTest")
+    }.configureEach {
+        if (!sharedCatalogPresent) {
+            doFirst {
+                throw GradleException(
+                    "No se encontro el catalogo compartido (recipes/recipes.json). " +
+                        "Ejecuta con -PsharedDir=/ruta/al/shared o define ADB_OPTIMIZER_SHARED.",
+                )
+            }
+        }
+    }
+
+// Los tests del catalogo reciben la misma carpeta que el empaquetado, para no adivinar rutas.
+tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
+    sharedCatalogDir?.let { systemProperty("adb.shared.dir", it.absolutePath) }
 }
 
 detekt {

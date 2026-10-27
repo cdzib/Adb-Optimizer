@@ -16,6 +16,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
 
@@ -52,12 +53,23 @@ class FakeAdbShell(
 }
 
 class CatalogAndEngineTest {
-    private val sharedRoot =
-        generateSequence(File(".").absoluteFile) { it.parentFile }
-            .map { File(it, "shared") }
-            .firstOrNull { File(it, "recipes/recipes.json").exists() }
-            ?: File("../../shared")
-    private val bundle by lazy { CatalogLoader(FileCatalogSource(sharedRoot)).load() }
+    private val sharedRoot: File? =
+        System.getProperty("adb.shared.dir")?.let(::File)?.takeIf(::hasCatalog)
+            ?: generateSequence(File(".").absoluteFile) { it.parentFile }
+                .map { File(it, "shared") }
+                .firstOrNull(::hasCatalog)
+            ?: listOf(File("../AdbOptimizer-Desktop/shared"), File("../../AdbOptimizer-Desktop/shared"))
+                .firstOrNull(::hasCatalog)
+
+    private val bundle by lazy {
+        assumeTrue(
+            "Catalogo compartido no disponible: usa -PsharedDir=... o ADB_OPTIMIZER_SHARED",
+            sharedRoot != null,
+        )
+        CatalogLoader(FileCatalogSource(requireNotNull(sharedRoot))).load()
+    }
+
+    private fun hasCatalog(dir: File) = File(dir, "recipes/recipes.json").isFile
 
     private val tv =
         DeviceInfo(
