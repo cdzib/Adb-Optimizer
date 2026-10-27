@@ -125,8 +125,12 @@ tasks
     }
 
 // Los tests del catalogo reciben la misma carpeta que el empaquetado, para no adivinar rutas.
+// Se declara como entrada para que un cambio en el catalogo invalide la tarea.
 tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
-    sharedCatalogDir?.let { systemProperty("adb.shared.dir", it.absolutePath) }
+    sharedCatalogDir?.let {
+        systemProperty("adb.shared.dir", it.absolutePath)
+        inputs.dir(it).withPropertyName("sharedCatalog")
+    }
 }
 
 detekt {
