@@ -42,6 +42,16 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
 }
 
+// Los fixtures de conformidad salen de la misma carpeta `shared/` que el catalogo.
+val sharedRootDir: File? = rootProject.extra["sharedRootDir"] as File?
+
+tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
+    sharedRootDir?.let {
+        systemProperty("adb.shared.dir", it.absolutePath)
+        inputs.dir(File(it, "conformance")).withPropertyName("sharedConformance")
+    }
+}
+
 detekt {
     buildUponDefaultConfig = false
     parallel = true

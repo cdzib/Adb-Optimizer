@@ -7,6 +7,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
 
@@ -15,17 +16,27 @@ import java.io.File
  * Si los dos parsers divergen, uno de los dos CI falla.
  */
 class ConformanceTest {
-    private val casesDir = File("../../../shared/conformance/cases")
+    private val casesDir: File? =
+        System.getProperty("adb.shared.dir")?.let { File(it, "conformance/cases") }
+            ?: generateSequence(File(".").absoluteFile) { it.parentFile }
+                .map { File(it, "shared/conformance/cases") }
+                .firstOrNull { it.isDirectory }
+            ?: listOf(
+                File("../../../AdbOptimizer-Desktop/shared/conformance/cases"),
+                File("../../../../AdbOptimizer-Desktop/shared/conformance/cases"),
+            ).firstOrNull { it.isDirectory }
 
     @Test
     fun `hay casos de conformidad compartidos`() {
-        val files = casesDir.listFiles { file -> file.extension == "json" }.orEmpty()
+        assumeTrue("fixtures de conformidad no disponibles: usa -PsharedDir=...", casesDir != null)
+        val files = requireNotNull(casesDir).listFiles { file -> file.extension == "json" }.orEmpty()
         assertTrue("sin fixtures en $casesDir", files.size >= 4)
     }
 
     @Test
     fun `todos los casos parsean igual que lo esperado`() {
-        val files = casesDir.listFiles { file -> file.extension == "json" }.orEmpty()
+        assumeTrue("fixtures de conformidad no disponibles: usa -PsharedDir=...", casesDir != null)
+        val files = requireNotNull(casesDir).listFiles { file -> file.extension == "json" }.orEmpty()
         files.forEach { file ->
             val root = Json.parseToJsonElement(file.readText()).jsonObject
             val command = root["command"]!!.jsonPrimitive.content

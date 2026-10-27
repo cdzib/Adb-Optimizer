@@ -7,19 +7,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-/**
- * El catalogo es la unica fuente de verdad del repo de escritorio (`shared/`), sin copias.
- * Se busca en este orden y se usa la primera carpeta que tenga `recipes/recipes.json`:
- * `-PsharedDir=...`, `ADB_OPTIMIZER_SHARED`, `../shared` y `../AdbOptimizer-Desktop/shared`.
- */
-val sharedCatalogDir: File? =
-    listOfNotNull(
-        providers.gradleProperty("sharedDir").orNull,
-        providers.environmentVariable("ADB_OPTIMIZER_SHARED").orNull,
-        rootProject.file("../shared").path,
-        rootProject.file("../AdbOptimizer-Desktop/shared").path,
-    ).map(::File)
-        .firstOrNull { File(it, "recipes/recipes.json").isFile }
+/** Carpeta `shared/` del repo de escritorio, resuelta una sola vez en el build raiz. */
+val sharedCatalogDir: File? = rootProject.extra["sharedRootDir"] as File?
 
 val sharedCatalogPresent = sharedCatalogDir != null
 

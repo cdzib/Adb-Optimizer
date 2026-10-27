@@ -5,6 +5,7 @@ import dev.adboptimizer.core.adb.scrcpy.ScrcpyVideoStream
 import dev.adboptimizer.core.shell.AdbErrorKind
 import dev.adboptimizer.core.shell.AdbException
 import dev.adboptimizer.core.shell.AdbShell
+import dev.adboptimizer.core.shell.ShellQuote
 import dev.adboptimizer.core.shell.ShellResult
 import io.github.muntashirakon.adb.AbsAdbConnectionManager
 import io.github.muntashirakon.adb.AdbAuthenticationFailedException
@@ -100,7 +101,7 @@ internal class LibAdbShell(
                         if (group.installMultiple) {
                             installSplitGroup(group, remotePaths)
                         } else {
-                            val result = exec("pm install -r ${shellQuote(remotePaths.single())}", INSTALL_TIMEOUT_MS)
+                            val result = exec("pm install -r ${ShellQuote.of(remotePaths.single())}", INSTALL_TIMEOUT_MS)
                             val text = result.output.trim().ifBlank { "Sin respuesta del Package Manager." }
                             val ok =
                                 result.exitCode == 0 &&
@@ -112,7 +113,7 @@ internal class LibAdbShell(
                     onProgress(if (successful) "Instalado: ${group.packageName}" else "Falló: ${group.packageName} — $output")
                 } finally {
                     runCatching {
-                        exec("rm -f ${remotePaths.joinToString(" ") { shellQuote(it) }}", 10_000)
+                        exec("rm -f ${remotePaths.joinToString(" ") { ShellQuote.of(it) }}", 10_000)
                     }
                 }
             }
@@ -143,7 +144,7 @@ internal class LibAdbShell(
                 val write =
                     exec(
                         "cmd package install-write -S ${file.length()} $sessionId " +
-                            "${shellQuote(splitName)} ${shellQuote(remotePaths[index])}",
+                            "${ShellQuote.of(splitName)} ${ShellQuote.of(remotePaths[index])}",
                         INSTALL_TIMEOUT_MS,
                     )
                 val writeOutput = write.output.trim()
@@ -209,8 +210,6 @@ internal class LibAdbShell(
             AdbSyncProtocol.readResponse(inputStream)
         }
     }
-
-    private fun shellQuote(value: String): String = "'${value.replace("'", "'\\''")}'"
 
     /**
      * Sube scrcpy-server.jar, lanza el servidor con `tunnel_forward=true` y abre el socket de video

@@ -1,7 +1,9 @@
 package com.optimizer.tools.data.remote
 
 import dev.adboptimizer.core.model.RemoteLauncher
+import dev.adboptimizer.core.shell.AdbCommandRules
 import dev.adboptimizer.core.shell.AdbShell
+import dev.adboptimizer.core.shell.ShellQuote
 import java.io.IOException
 
 class RemoteLauncherRepository(
@@ -32,12 +34,12 @@ class RemoteLauncherRepository(
     }
 
     suspend fun setDefaultHomeLauncher(packageName: String): RemoteLauncher {
-        require(packageName.matches(PACKAGE_NAME_PATTERN)) { "El paquete launcher no es válido." }
+        require(AdbCommandRules.isPackageName(packageName)) { "El paquete launcher no es válido." }
         val launcher =
             listHomeLaunchers().firstOrNull { it.packageName == packageName }
                 ?: throw IOException("$packageName no está disponible como launcher de inicio en esta TV.")
 
-        val result = shell.exec("cmd package set-home-activity --user 0 ${shellQuote(packageName)}", 20_000)
+        val result = shell.exec("cmd package set-home-activity --user 0 ${ShellQuote.of(packageName)}", 20_000)
         if (result.exitCode != 0 || result.output.contains("Error", ignoreCase = true)) {
             throw IOException(result.output.ifBlank { "Android rechazó el cambio de launcher." })
         }
@@ -46,12 +48,6 @@ class RemoteLauncherRepository(
             throw IOException("Android no confirmó el cambio; el launcher actual sigue sin verificarse.")
         }
         return current
-    }
-
-    private fun shellQuote(value: String): String = "'${value.replace("'", "'\\''")}'"
-
-    private companion object {
-        val PACKAGE_NAME_PATTERN = Regex("[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)+")
     }
 }
 

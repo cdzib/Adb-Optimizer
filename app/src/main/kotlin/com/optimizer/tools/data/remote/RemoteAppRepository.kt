@@ -4,6 +4,7 @@ import dev.adboptimizer.core.model.AppAction
 import dev.adboptimizer.core.model.AppActionResult
 import dev.adboptimizer.core.model.ManagedApp
 import dev.adboptimizer.core.shell.AdbShell
+import dev.adboptimizer.core.shell.ShellQuote
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -56,13 +57,13 @@ class RemoteAppRepository(
     }
 
     suspend fun details(packageName: String): ManagedApp? {
-        val result = shell.exec("dumpsys package ${shQuote(packageName)}", 30_000)
+        val result = shell.exec("dumpsys package ${ShellQuote.of(packageName)}", 30_000)
         val raw = result.stdout
         if (raw.isBlank()) return null
 
         val paths =
             shell
-                .exec("pm path ${shQuote(packageName)}", 15_000)
+                .exec("pm path ${ShellQuote.of(packageName)}", 15_000)
                 .stdout
                 .lineSequence()
                 .mapNotNull { it.trim().removePrefix("package:").takeIf(String::isNotBlank) }
@@ -133,7 +134,7 @@ class RemoteAppRepository(
         val result =
             when (action) {
                 AppAction.OPEN -> {
-                    val output = exec("monkey -p ${shQuote(packageName)} -c android.intent.category.LAUNCHER 1", 20_000)
+                    val output = exec("monkey -p ${ShellQuote.of(packageName)} -c android.intent.category.LAUNCHER 1", 20_000)
                     if (output.contains("No activities found", true) ||
                         output.contains("monkey aborted", true)
                     ) {
@@ -144,30 +145,30 @@ class RemoteAppRepository(
                 }
 
                 AppAction.FORCE_STOP -> {
-                    execResult("am force-stop ${shQuote(packageName)}", "App detenida.")
+                    execResult("am force-stop ${ShellQuote.of(packageName)}", "App detenida.")
                 }
 
                 AppAction.ENABLE -> {
-                    execResult("pm enable ${shQuote(packageName)}", "App habilitada.")
+                    execResult("pm enable ${ShellQuote.of(packageName)}", "App habilitada.")
                 }
 
                 AppAction.DISABLE -> {
-                    execResult("pm disable-user --user 0 ${shQuote(packageName)}", "App deshabilitada.")
+                    execResult("pm disable-user --user 0 ${ShellQuote.of(packageName)}", "App deshabilitada.")
                 }
 
                 AppAction.CLEAR_DATA -> {
-                    execResult("pm clear ${shQuote(packageName)}", "Datos borrados.")
+                    execResult("pm clear ${ShellQuote.of(packageName)}", "Datos borrados.")
                 }
 
                 AppAction.CLEAR_CACHE -> {
                     execResult(
-                        "pm clear --cache-only ${shQuote(packageName)}",
+                        "pm clear --cache-only ${ShellQuote.of(packageName)}",
                         "Cache borrada.",
                     )
                 }
 
                 AppAction.UNINSTALL -> {
-                    val output = exec("pm uninstall --user 0 ${shQuote(packageName)}", 45_000)
+                    val output = exec("pm uninstall --user 0 ${ShellQuote.of(packageName)}", 45_000)
                     if (output.contains("Success", true)) {
                         AppActionResult(true, "App desinstalada.")
                     } else {
@@ -189,7 +190,7 @@ class RemoteAppRepository(
     private suspend fun extract(packageName: String): AppActionResult {
         val paths =
             shell
-                .exec("pm path ${shQuote(packageName)}", 15_000)
+                .exec("pm path ${ShellQuote.of(packageName)}", 15_000)
                 .stdout
                 .lineSequence()
                 .mapNotNull { it.trim().removePrefix("package:").takeIf(String::isNotBlank) }
@@ -198,7 +199,7 @@ class RemoteAppRepository(
 
         val safePackage = packageName.replace(Regex("""[^A-Za-z0-9._-]"""), "_")
         val targetDir = "/sdcard/Download/AdbOptimizer/$safePackage"
-        val mkdir = shell.exec("mkdir -p ${shQuote(targetDir)}", 10_000)
+        val mkdir = shell.exec("mkdir -p ${ShellQuote.of(targetDir)}", 10_000)
         if (mkdir.exitCode != 0) {
             return AppActionResult(false, "No se pudo crear $targetDir.")
         }
@@ -207,7 +208,7 @@ class RemoteAppRepository(
         paths.forEachIndexed { index, path ->
             val name = if (paths.size == 1) "base.apk" else path.substringAfterLast('/')
             val target = "$targetDir/" + name.ifBlank { "split_$index.apk" }
-            val copy = shell.exec("cp ${shQuote(path)} ${shQuote(target)}", 30_000)
+            val copy = shell.exec("cp ${ShellQuote.of(path)} ${ShellQuote.of(target)}", 30_000)
             if (copy.exitCode != 0) failures += name
         }
         return if (failures.isEmpty()) {
@@ -273,7 +274,7 @@ class RemoteAppRepository(
         if (paths.isEmpty()) return emptyMap()
         val result = mutableMapOf<String, StatInfo>()
         paths.chunked(80).forEach { chunk ->
-            val command = "stat -c '%n|%s|%Y' " + chunk.joinToString(" ") { shQuote(it) }
+            val command = "stat -c '%n|%s|%Y' " + chunk.joinToString(" ") { ShellQuote.of(it) }
             shell.exec(command, 20_000).stdout.lineSequence().forEach { line ->
                 val parts = line.trim().split('|')
                 if (parts.size >= 3) {
@@ -332,6 +333,4 @@ class RemoteAppRepository(
             SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).parse(value)?.time ?: 0L
         }.getOrDefault(0L)
     }
-
-    private fun shQuote(value: String): String = "'" + value.replace("'", "'\\''") + "'"
 }
