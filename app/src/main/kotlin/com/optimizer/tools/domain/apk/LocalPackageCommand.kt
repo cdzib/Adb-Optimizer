@@ -1,6 +1,8 @@
 package com.optimizer.tools.domain.apk
 
 import dev.adboptimizer.core.model.AppAction
+import dev.adboptimizer.core.shell.AdbCommandRules
+import dev.adboptimizer.core.shell.ShellQuote
 
 /** A package-scoped command whose package argument has passed strict validation. */
 data class LocalPackageCommand(
@@ -12,15 +14,13 @@ data class LocalPackageCommand(
 
 /** Pure command policy shared by the local repository and unit tests. */
 object LocalPackageCommands {
-    private val packageNamePattern = Regex("[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)+")
-
     fun create(
         packageName: String,
         action: AppAction,
         sdk: Int,
     ): LocalPackageCommand? {
-        require(packageNamePattern.matches(packageName)) { "Nombre de paquete inválido." }
-        val pkg = "'${packageName.replace("'", "'\\''")}'"
+        require(AdbCommandRules.isPackageName(packageName)) { "Nombre de paquete inválido." }
+        val pkg = ShellQuote.of(packageName)
         return when (action) {
             AppAction.FORCE_STOP -> {
                 LocalPackageCommand("am force-stop $pkg", "App detenida.", 15_000L)
@@ -61,5 +61,5 @@ object LocalPackageCommands {
         }
     }
 
-    fun isValidPackageName(packageName: String): Boolean = packageNamePattern.matches(packageName)
+    fun isValidPackageName(packageName: String): Boolean = AdbCommandRules.isPackageName(packageName)
 }

@@ -17,6 +17,7 @@ import dev.adboptimizer.core.model.RunStatus
 import dev.adboptimizer.core.model.StepResult
 import dev.adboptimizer.core.model.StepStatus
 import dev.adboptimizer.core.model.VerifySpec
+import dev.adboptimizer.core.shell.AdbCommandRules
 import dev.adboptimizer.core.shell.AdbShell
 import dev.adboptimizer.core.shell.ShellResult
 import kotlinx.coroutines.delay
@@ -131,7 +132,7 @@ class RecipeEngine(
         if (minSdk != null && device.sdk < minSdk) {
             return StepResult(0, expandedRun, StepStatus.UNSUPPORTED, error = "Requiere Android $minSdk o posterior.")
         }
-        if (action.paramKind == ParamKind.PACKAGE && !PACKAGE_NAME.matches(pkg)) {
+        if (action.paramKind == ParamKind.PACKAGE && !AdbCommandRules.isPackageName(pkg)) {
             return StepResult(0, expandedRun, StepStatus.FAILED, error = "Nombre de paquete inválido.")
         }
         if (action.paramKind == ParamKind.PACKAGE && AppSafety.isCritical(pkg)) {
@@ -391,8 +392,6 @@ class RecipeEngine(
     )
 
     companion object {
-        private val PACKAGE_NAME = Regex("[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)+")
-
         fun resolveUndo(
             step: RecipeStep,
             previousValue: String?,

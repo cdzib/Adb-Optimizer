@@ -5,6 +5,7 @@ import dev.adboptimizer.core.model.Catalog
 import dev.adboptimizer.core.model.Recipe
 import dev.adboptimizer.core.model.RecipeStep
 import dev.adboptimizer.core.model.RecipeStepType
+import dev.adboptimizer.core.shell.AdbCommandRules
 
 object CatalogValidator {
     fun validate(
@@ -75,7 +76,7 @@ object CatalogValidator {
         if (step.selinuxContext.isNullOrBlank()) problems += "$prefix: selinuxContext vacio"
 
         val packages = step.disablePackages
-        if (packages.isNullOrEmpty() || packages.any { !PACKAGE_NAME.matches(it) }) {
+        if (packages.isNullOrEmpty() || packages.any { !AdbCommandRules.isPackageName(it) }) {
             problems += "$prefix: disablePackages invalido"
         }
         return problems
@@ -83,5 +84,4 @@ object CatalogValidator {
 
     private val SYSTEM_APK_MODE = Regex("[0-7]{3,4}")
     private val SYSTEM_APK_OWNER = Regex("[0-9]+:[0-9]+")
-    private val PACKAGE_NAME = Regex("[A-Za-z0-9_]+(?:\\.[A-Za-z0-9_]+)+")
 }
