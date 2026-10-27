@@ -29,6 +29,8 @@ import com.optimizer.tools.feature.dashboard.DashboardScreen
 import com.optimizer.tools.feature.dashboard.DashboardViewModel
 import com.optimizer.tools.feature.dpc.DpcScreen
 import com.optimizer.tools.feature.dpc.DpcViewModel
+import com.optimizer.tools.feature.inspector.InspectorScreen
+import com.optimizer.tools.feature.inspector.InspectorViewModel
 import com.optimizer.tools.feature.install.HostAppsInstallScreen
 import com.optimizer.tools.feature.install.InstallViewModel
 import com.optimizer.tools.feature.logcat.LogcatScreen
@@ -67,6 +69,7 @@ internal fun AppNavGraph(
     mirrorViewModel: MirrorViewModel,
     logcatViewModel: LogcatViewModel,
     settingsDbViewModel: SettingsDbViewModel,
+    inspectorViewModel: InspectorViewModel,
 ) {
     val connectionState by connectionViewModel.state.collectAsStateWithLifecycle()
     val dashboardState by dashboardViewModel.state.collectAsStateWithLifecycle()
@@ -80,6 +83,7 @@ internal fun AppNavGraph(
     val mirrorState by mirrorViewModel.state.collectAsStateWithLifecycle()
     val logcatState by logcatViewModel.state.collectAsStateWithLifecycle()
     val settingsDbState by settingsDbViewModel.state.collectAsStateWithLifecycle()
+    val inspectorState by inspectorViewModel.state.collectAsStateWithLifecycle()
     NavHost(
         navController = navController,
         startDestination = HomeRoute,
@@ -237,6 +241,7 @@ internal fun AppNavGraph(
                 onReload = appsViewModel::loadApps,
                 onOpen = appsViewModel::requestAction,
                 onDetails = appsViewModel::loadDetails,
+                onInspect = { packageName -> navController.navigate(InspectorRoute(packageName)) },
                 onDismissDetails = appsViewModel::dismissDetails,
                 onToggle = appsViewModel::toggleSelection,
                 onSelectAll = { appsViewModel.selectAll(appsVisible(appsState)) },
@@ -323,6 +328,18 @@ internal fun AppNavGraph(
                 onNamespace = settingsDbViewModel::setNamespace,
                 onQuery = settingsDbViewModel::setQuery,
                 onSave = settingsDbViewModel::save,
+            )
+        }
+
+        composable<InspectorRoute> { entry ->
+            val route = entry.toRoute<InspectorRoute>()
+            LaunchedEffect(route.packageName) { inspectorViewModel.onEnter(route.packageName) }
+            InspectorScreen(
+                state = inspectorState,
+                onBack = {
+                    if (!navController.popBackStack()) viewModel.goHome()
+                },
+                onTab = inspectorViewModel::selectTab,
             )
         }
 

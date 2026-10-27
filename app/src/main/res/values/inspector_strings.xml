@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="inspector_title">Inspector</string>
+    <string name="inspector_back">Volver</string>
+    <string name="inspector_tab_permissions">Permisos</string>
+    <string name="inspector_tab_appops">AppOps</string>
+    <string name="inspector_tab_components">Componentes</string>
+    <string name="inspector_tab_signature">Firma</string>
+    <string name="inspector_granted">Concedido</string>
+    <string name="inspector_denied">Denegado</string>
+    <string name="inspector_declared">Declarado</string>
+    <string name="inspector_activity">Activity</string>
+    <string name="inspector_service">Service</string>
+    <string name="inspector_receiver">Receiver</string>
+    <string name="inspector_provider">Provider</string>
+    <string name="inspector_signature_note">Hash de firma: %1$s\nEs el valor corto que imprime el volcado del sistema, no un SHA-256 del APK.</string>
+    <string name="inspector_empty">Sin datos para esta pestaña.</string>
+    <string name="inspector_no_device">Conecta un dispositivo para inspeccionar sus apps.</string>
+    <string name="inspector_error">No se pudo leer el detalle de la app.</string>
+</resources>

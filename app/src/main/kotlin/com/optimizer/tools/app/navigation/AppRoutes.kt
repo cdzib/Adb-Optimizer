@@ -49,6 +49,11 @@ data object LogcatRoute : AppDestination
 data object SettingsDbRoute : AppDestination
 
 @Serializable
+data class InspectorRoute(
+    val packageName: String,
+) : AppDestination
+
+@Serializable
 data class DashboardDetailRoute(
     val category: String,
 ) : AppDestination
@@ -87,7 +92,7 @@ fun AppDestination.toScreen(): Screen? =
         TvLauncherRoute -> Screen.TV_LAUNCHER
         SettingsRoute -> Screen.SETTINGS
         DpcRoute -> Screen.DPC
-        RemoteControlRoute, MirrorRoute, LogcatRoute, SettingsDbRoute, is DashboardDetailRoute -> null
+        RemoteControlRoute, MirrorRoute, LogcatRoute, SettingsDbRoute, is InspectorRoute, is DashboardDetailRoute -> null
     }
 
 /** Traduce el destino actual del back stack al estado de pantalla del host. */

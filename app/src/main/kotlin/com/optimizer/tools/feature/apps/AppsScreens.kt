@@ -103,6 +103,7 @@ internal fun AppsScreen(
     onReload: () -> Unit,
     onOpen: (ManagedApp, AppAction) -> Unit,
     onDetails: (ManagedApp) -> Unit,
+    onInspect: (String) -> Unit,
     onDismissDetails: () -> Unit,
     onToggle: (String) -> Unit,
     onSelectAll: () -> Unit,
@@ -325,6 +326,7 @@ internal fun AppsScreen(
                                 t = t,
                                 onToggle = onToggle,
                                 onDetails = onDetails,
+                                onInspect = onInspect,
                                 onAction = onOpen,
                                 onAdvancedAction = onAdvancedAction,
                             )
@@ -494,6 +496,7 @@ internal fun AppCard(
     t: Translate,
     onToggle: (String) -> Unit,
     onDetails: (ManagedApp) -> Unit,
+    onInspect: (String) -> Unit,
     onAction: (ManagedApp, AppAction) -> Unit,
     onAdvancedAction: (String, String) -> Unit,
 ) {
@@ -555,6 +558,7 @@ internal fun AppCard(
                 DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
                     menuAction(stringResource(R.string.apps_open), !busy) { onAction(app, AppAction.OPEN) }
                     menuAction(stringResource(R.string.apps_details), !busy) { onDetails(app) }
+                    menuAction(stringResource(R.string.apps_inspect), !busy) { onInspect(app.packageName) }
                     menuAction(stringResource(R.string.apps_force_stop), !busy) { onAction(app, AppAction.FORCE_STOP) }
                     menuAction(
                         stringResource(if (app.enabled) R.string.apps_disable else R.string.apps_enable),

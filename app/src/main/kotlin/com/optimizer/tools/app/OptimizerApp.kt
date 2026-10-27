@@ -65,6 +65,7 @@ import com.optimizer.tools.feature.connection.ConnectionEvent
 import com.optimizer.tools.feature.connection.ConnectionViewModel
 import com.optimizer.tools.feature.dashboard.DashboardViewModel
 import com.optimizer.tools.feature.dpc.DpcViewModel
+import com.optimizer.tools.feature.inspector.InspectorViewModel
 import com.optimizer.tools.feature.install.InstallEvent
 import com.optimizer.tools.feature.install.InstallViewModel
 import com.optimizer.tools.feature.logcat.LogcatViewModel
@@ -93,6 +94,7 @@ fun OptimizerApp(
     mirrorViewModel: MirrorViewModel,
     logcatViewModel: LogcatViewModel,
     settingsDbViewModel: SettingsDbViewModel,
+    inspectorViewModel: InspectorViewModel,
     dictionary: Map<String, String>,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -249,6 +251,7 @@ fun OptimizerApp(
                 mirrorViewModel = mirrorViewModel,
                 logcatViewModel = logcatViewModel,
                 settingsDbViewModel = settingsDbViewModel,
+                inspectorViewModel = inspectorViewModel,
             )
         }
     }
