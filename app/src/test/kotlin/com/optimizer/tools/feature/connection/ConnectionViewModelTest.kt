@@ -98,6 +98,7 @@ class ConnectionViewModelTest {
             assertEquals(listOf(ConnectCall(service.host, 47000, true)), environment.connectCalls)
             assertEquals(listOf(phone), environment.startedSessions)
             assertNull(viewModel.state.value.qrText)
+            assertEquals(QrStatus.CONNECTED, viewModel.state.value.qrStatus)
         }
 
     @Test

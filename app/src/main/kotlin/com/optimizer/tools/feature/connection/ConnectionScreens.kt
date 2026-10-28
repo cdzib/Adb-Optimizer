@@ -156,12 +156,18 @@ internal fun ConnectScreen(
     var manualPort by rememberSaveable { mutableStateOf("5555") }
     var step by rememberSaveable { mutableStateOf(ConnectionStep.SELECT) }
     var showUsbHelp by remember { mutableStateOf(false) }
-    val selectMode: (ConnectMode) -> Unit = {
-        onMode(it)
+    val selectMode: (ConnectMode) -> Unit = { mode ->
+        // Reentrar en QR debe empezar de cero: el estado anterior pudo quedar en CONNECTED.
+        if (mode == ConnectMode.QR) onCancelQr()
+        onMode(mode)
         step = ConnectionStep.CONNECT
     }
-    LaunchedEffect(step, state.connectMode) {
-        if (step == ConnectionStep.CONNECT && state.connectMode == ConnectMode.QR && state.qrText == null) {
+    LaunchedEffect(step, state.connectMode, state.qrStatus) {
+        if (step == ConnectionStep.CONNECT &&
+            state.connectMode == ConnectMode.QR &&
+            state.qrText == null &&
+            state.qrStatus != QrStatus.CONNECTED
+        ) {
             onStartQr()
         }
     }
@@ -1010,7 +1016,9 @@ internal fun QrPanel(
     onCancelQr: () -> Unit,
     onUseCode: () -> Unit,
 ) {
+    val succeeded = state.qrStatus == QrStatus.CONNECTED
     val failed = state.connectTimedOut || state.qrStatus == QrStatus.ERROR || state.qrStatus == QrStatus.TIMEOUT
+    val preparing = !succeeded && !failed && state.qrText == null
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(24.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
@@ -1034,42 +1042,61 @@ internal fun QrPanel(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            if (!failed && state.qrText != null) {
-                QrImage(state.qrText, Modifier.widthIn(max = 248.dp).fillMaxWidth().aspectRatio(1f))
-            }
-            if (failed || state.qrText == null) {
-                Text(
-                    stringResource(
-                        if (state.qrStatus ==
-                            QrStatus.TIMEOUT
-                        ) {
-                            R.string.connection_qr_expired
-                        } else {
-                            R.string.connection_qr_unavailable
-                        },
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Button(
-                    onClick = onStartQr,
-                    enabled = state.wifiEnabled != false && !state.connecting,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-                ) {
-                    Text(stringResource(R.string.connection_qr_retry))
+            when {
+                succeeded -> {
+                    Text(
+                        stringResource(R.string.connection_qr_connected),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
                 }
-            } else {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (state.qrStatus == QrStatus.PAIRING || state.qrStatus == QrStatus.CONNECTING) {
-                        CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+
+                preparing -> {
+                    CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                    Text(
+                        stringResource(R.string.connection_qr_preparing),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                failed -> {
+                    Text(
+                        stringResource(
+                            if (state.qrStatus == QrStatus.TIMEOUT) {
+                                R.string.connection_qr_expired
+                            } else {
+                                R.string.connection_qr_unavailable
+                            },
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Button(
+                        onClick = onStartQr,
+                        enabled = state.wifiEnabled != false && !state.connecting,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                    ) {
+                        Text(stringResource(R.string.connection_qr_retry))
                     }
-                    Text(qrStatusText(state.qrStatus), style = MaterialTheme.typography.bodyMedium)
                 }
-                Text(
-                    stringResource(R.string.connection_qr_keep_open),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+
+                else -> {
+                    state.qrText?.let {
+                        QrImage(it, Modifier.widthIn(max = 248.dp).fillMaxWidth().aspectRatio(1f))
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (state.qrStatus == QrStatus.PAIRING || state.qrStatus == QrStatus.CONNECTING) {
+                            CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                        }
+                        Text(qrStatusText(state.qrStatus), style = MaterialTheme.typography.bodyMedium)
+                    }
+                    Text(
+                        stringResource(R.string.connection_qr_keep_open),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -1203,6 +1230,7 @@ internal fun qrStatusText(status: QrStatus?): String =
         QrStatus.WAITING -> stringResource(R.string.connection_qr_waiting)
         QrStatus.PAIRING -> stringResource(R.string.connection_qr_pairing)
         QrStatus.CONNECTING -> stringResource(R.string.connection_qr_connecting)
+        QrStatus.CONNECTED -> stringResource(R.string.connection_qr_connected)
         QrStatus.TIMEOUT -> stringResource(R.string.connection_qr_timeout)
         QrStatus.ERROR -> stringResource(R.string.connection_qr_error)
         null -> ""

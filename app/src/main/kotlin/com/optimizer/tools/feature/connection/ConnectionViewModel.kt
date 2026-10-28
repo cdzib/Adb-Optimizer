@@ -510,15 +510,17 @@ class ConnectionViewModel(
                     }
                     environment.log("Connect flow succeeded: ${info.displayName} in ${environment.elapsedRealtime() - startedAt}ms")
                     environment.startSessionService(info)
-                    _state.update {
-                        it.copy(
+                    _state.update { current ->
+                        current.copy(
                             connecting = false,
                             connectTimedOut = false,
                             connectTarget = null,
                             discovered = emptyList(),
                             known = environment.knownDevices(),
+                            // El texto del QR se descarta, pero el estado queda en CONNECTED:
+                            // sin el, el panel lo leia como "no se pudo preparar" al conectar.
                             qrText = null,
-                            qrStatus = null,
+                            qrStatus = current.qrStatus?.let { QrStatus.CONNECTED },
                         )
                     }
                     _events.tryEmit(ConnectionEvent.Connected(info.displayName))

@@ -78,11 +78,17 @@ internal fun TelevisionConnectScreen(
     var manualPort by rememberSaveable { mutableStateOf(DEFAULT_ADB_PORT) }
 
     val chooseMode: (ConnectMode) -> Unit = { mode ->
+        // Reentrar en QR debe empezar de cero: el estado anterior pudo quedar en CONNECTED.
+        if (mode == ConnectMode.QR) onCancelQr()
         onMode(mode)
         step = ConnectionStep.CONNECT
     }
-    LaunchedEffect(step, state.connectMode) {
-        if (step == ConnectionStep.CONNECT && state.connectMode == ConnectMode.QR && state.qrText == null) {
+    LaunchedEffect(step, state.connectMode, state.qrStatus) {
+        if (step == ConnectionStep.CONNECT &&
+            state.connectMode == ConnectMode.QR &&
+            state.qrText == null &&
+            state.qrStatus != QrStatus.CONNECTED
+        ) {
             onStartQr()
         }
     }

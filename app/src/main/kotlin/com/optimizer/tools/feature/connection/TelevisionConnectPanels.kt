@@ -248,34 +248,54 @@ private fun QrModePanel(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        if (!failed && state.qrText != null) {
-            QrImage(
-                state.qrText,
-                Modifier.widthIn(max = 220.dp).aspectRatio(1f).padding(vertical = 4.dp),
-            )
-            Text(qrStatusText(state.qrStatus), style = MaterialTheme.typography.bodyMedium)
-            Text(
-                stringResource(R.string.connection_qr_keep_open),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        } else {
-            Text(
-                stringResource(
-                    if (state.qrStatus == QrStatus.TIMEOUT) {
-                        R.string.connection_qr_expired
-                    } else {
-                        R.string.connection_qr_unavailable
-                    },
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            TvActionRow(
-                primaryLabel = stringResource(R.string.connection_qr_retry),
-                primaryEnabled = state.wifiEnabled != false && !state.connecting,
-                onPrimary = onStartQr,
-            )
+        when {
+            state.qrStatus == QrStatus.CONNECTED -> {
+                Text(
+                    stringResource(R.string.connection_qr_connected),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+
+            !failed && state.qrText != null -> {
+                QrImage(
+                    state.qrText,
+                    Modifier.widthIn(max = 220.dp).aspectRatio(1f).padding(vertical = 4.dp),
+                )
+                Text(qrStatusText(state.qrStatus), style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    stringResource(R.string.connection_qr_keep_open),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            !failed -> {
+                Text(
+                    stringResource(R.string.connection_qr_preparing),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            else -> {
+                Text(
+                    stringResource(
+                        if (state.qrStatus == QrStatus.TIMEOUT) {
+                            R.string.connection_qr_expired
+                        } else {
+                            R.string.connection_qr_unavailable
+                        },
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                TvActionRow(
+                    primaryLabel = stringResource(R.string.connection_qr_retry),
+                    primaryEnabled = state.wifiEnabled != false && !state.connecting,
+                    onPrimary = onStartQr,
+                )
+            }
         }
         TvActionRow(
             primaryLabel = stringResource(R.string.connection_code_alternative),
