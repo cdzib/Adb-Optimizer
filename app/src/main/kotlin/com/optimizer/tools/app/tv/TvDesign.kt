@@ -87,6 +87,7 @@ fun TvFocusCard(
     onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
     shape: RoundedCornerShape = TvCardShape,
+    selected: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     var focused by remember { mutableStateOf(false) }
@@ -106,7 +107,12 @@ fun TvFocusCard(
             } else {
                 MaterialTheme.colorScheme.surface
             },
-        border = if (focused) BorderStroke(2.dp, MaterialTheme.colorScheme.onSurface) else null,
+        border =
+            when {
+                focused -> BorderStroke(2.dp, MaterialTheme.colorScheme.onSurface)
+                selected -> BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                else -> null
+            },
     ) {
         content()
     }
@@ -163,10 +169,12 @@ fun TvTile(
     onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    selected: Boolean = false,
 ) {
     TvFocusCard(
         onClick = if (enabled) onClick else null,
         modifier = modifier,
+        selected = selected,
     ) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
@@ -179,10 +187,10 @@ fun TvTile(
                     title,
                     style = MaterialTheme.typography.titleMedium.copy(fontSize = 16.sp),
                     color =
-                        if (enabled) {
-                            MaterialTheme.colorScheme.onSurface
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
+                        when {
+                            !enabled -> MaterialTheme.colorScheme.onSurfaceVariant
+                            selected -> MaterialTheme.colorScheme.primary
+                            else -> MaterialTheme.colorScheme.onSurface
                         },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

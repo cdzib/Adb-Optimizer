@@ -188,26 +188,23 @@ fun OptimizerApp(
 
     AdaptiveAppScaffold(
         televisionItems =
-            listOfNotNull(
-                TvNavigationItem("home", stringResource(R.string.nav_home), Icons.Filled.Home, viewModel::goHome),
-                TvNavigationItem("apps", t("nav.apps"), Icons.Filled.Apps, viewModel::openApps),
-                if (Screen.OPTIMIZE in mainNavigationScreens(state.activeTarget, shizukuStatus == ShizukuLocalStatus.READY)) {
-                    TvNavigationItem("optimize", t("nav.optimize"), Icons.Filled.Bolt) { viewModel.navigateTo(Screen.OPTIMIZE) }
-                } else {
-                    null
-                },
-                TvNavigationItem("tools", stringResource(R.string.tools_title), Icons.Filled.Tune) {
-                    navController.navigate(ToolsRoute) { launchSingleTop = true }
-                },
-                TvNavigationItem("settings", stringResource(R.string.nav_settings), Icons.Filled.Settings) {
-                    viewModel.navigateTo(Screen.SETTINGS)
-                },
+            tvNavigationItems(
+                activeTarget = state.activeTarget,
+                shizukuReady = shizukuStatus == ShizukuLocalStatus.READY,
+                t = t,
+                onHome = viewModel::goHome,
+                onApps = viewModel::openApps,
+                onConnect = viewModel::openConnect,
+                onOptimize = { viewModel.navigateTo(Screen.OPTIMIZE) },
+                onTools = { navController.navigate(ToolsRoute) { launchSingleTop = true } },
+                onSettings = { viewModel.navigateTo(Screen.SETTINGS) },
             ),
         selectedKey =
             when {
                 currentDestination?.hasRoute<ToolsRoute>() == true -> "tools"
                 currentScreen == Screen.HOME -> "home"
                 currentScreen == Screen.APPS -> "apps"
+                currentScreen == Screen.CONNECT -> "connect"
                 currentScreen == Screen.OPTIMIZE -> "optimize"
                 currentScreen == Screen.SETTINGS -> "settings"
                 else -> null
@@ -283,6 +280,62 @@ fun OptimizerApp(
                 localAdbViewModel = localAdbViewModel,
                 localAdbReady = localAdbReady,
             )
+        }
+    }
+}
+
+/** Construye el rail de TV en el orden declarado por [tvNavigationKeys]. */
+@Composable
+private fun tvNavigationItems(
+    activeTarget: dev.adboptimizer.core.model.AppTarget,
+    shizukuReady: Boolean,
+    t: Translate,
+    onHome: () -> Unit,
+    onApps: () -> Unit,
+    onConnect: () -> Unit,
+    onOptimize: () -> Unit,
+    onTools: () -> Unit,
+    onSettings: () -> Unit,
+): List<TvNavigationItem> {
+    val showOptimize = Screen.OPTIMIZE in mainNavigationScreens(activeTarget, shizukuReady)
+    return tvNavigationKeys.mapNotNull { key ->
+        when (key) {
+            "home" -> {
+                TvNavigationItem("home", stringResource(R.string.nav_home), Icons.Filled.Home, onHome)
+            }
+
+            "apps" -> {
+                TvNavigationItem("apps", t("nav.apps"), Icons.Filled.Apps, onApps)
+            }
+
+            "connect" -> {
+                TvNavigationItem(
+                    "connect",
+                    stringResource(R.string.nav_destination),
+                    Icons.Filled.Devices,
+                    onConnect,
+                )
+            }
+
+            "optimize" -> {
+                if (showOptimize) {
+                    TvNavigationItem("optimize", t("nav.optimize"), Icons.Filled.Bolt, onOptimize)
+                } else {
+                    null
+                }
+            }
+
+            "tools" -> {
+                TvNavigationItem("tools", stringResource(R.string.tools_title), Icons.Filled.Tune, onTools)
+            }
+
+            "settings" -> {
+                TvNavigationItem("settings", stringResource(R.string.nav_settings), Icons.Filled.Settings, onSettings)
+            }
+
+            else -> {
+                null
+            }
         }
     }
 }

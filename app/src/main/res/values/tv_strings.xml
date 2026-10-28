@@ -14,4 +14,15 @@
     <string name="tv_optimize_apply">Aplicar %1$d</string>
     <string name="tv_optimize_risk_review">%1$d requieren confirmación</string>
     <string name="tv_settings_subtitle">Se guardan en este televisor</string>
+    <string name="tv_devices_subtitle">Elige el equipo a controlar</string>
+    <string name="tv_devices_local_adb_subtitle">127.0.0.1:5555 · sin otro equipo</string>
+    <string name="tv_devices_add_subtitle">TV, teléfono o tablet por red</string>
+    <string name="tv_devices_active">Activo</string>
+    <string name="tv_devices_actions_for">Acciones de %1$s</string>
+    <string name="tv_devices_disconnect">Desconectar</string>
+    <string name="tv_devices_close">Cerrar</string>
+    <string name="tv_connect_title">Nuevo equipo</string>
+    <string name="tv_connect_network_detail">Equipos ya vinculados en la misma Wi-Fi</string>
+    <string name="tv_connect_manual_detail">IP y puerto, ADB clásico o TLS</string>
+    <string name="tv_connect_back">Volver</string>
 </resources>

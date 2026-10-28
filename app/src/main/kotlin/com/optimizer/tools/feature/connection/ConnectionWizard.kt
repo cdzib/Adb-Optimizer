@@ -154,6 +154,26 @@ private fun DevicesEmptyPreview() {
     }
 }
 
+@Preview(name = "Dispositivos con ADB local", showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun DevicesLocalAdbPreview() {
+    AdbOptimizerTheme(ThemeMode.DARK) {
+        Surface {
+            DevicesScreen(
+                ConnectionState(),
+                AppTarget.LOCAL,
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                onOpenLocalAdb = {},
+            )
+        }
+    }
+}
+
 @Preview(name = "Remoto conectado", showBackground = true, widthDp = 360, heightDp = 800)
 @Composable
 private fun DevicesConnectedPreview() {

@@ -26,4 +26,13 @@ class RoleNavigationTest {
             mainNavigationScreens(AppTarget.REMOTE, shizukuReady = false),
         )
     }
+
+    @Test
+    fun `tv rail keeps destination between apps and optimize`() {
+        assertEquals(
+            listOf("home", "apps", "connect", "optimize", "tools", "settings"),
+            tvNavigationKeys,
+        )
+        assertEquals(1, tvNavigationKeys.count { it == "connect" })
+    }
 }

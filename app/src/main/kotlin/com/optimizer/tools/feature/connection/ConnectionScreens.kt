@@ -75,6 +75,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import com.optimizer.tools.R
+import com.optimizer.tools.app.tv.LocalTelevisionUi
 import com.optimizer.tools.core.ui.AppColors
 import com.optimizer.tools.core.ui.DesignChip
 import com.optimizer.tools.core.ui.DesignEmptyState
@@ -111,6 +112,26 @@ internal fun ConnectScreen(
     onRefreshWifi: () -> Unit,
     onEnableWifi: () -> Boolean,
 ) {
+    if (LocalTelevisionUi.current) {
+        TelevisionConnectScreen(
+            state = state,
+            onBack = onBack,
+            onMode = onMode,
+            onDiscover = onDiscover,
+            onConnectDiscovered = onConnectDiscovered,
+            onConnectManual = onConnectManual,
+            onConnectSecure = onConnectSecure,
+            onPairWithCode = onPairWithCode,
+            onStartQr = onStartQr,
+            onCancelQr = onCancelQr,
+            onConnectKnown = onConnectKnown,
+            onCancelConnect = onCancelConnect,
+            onRetryConnect = onRetryConnect,
+            onEnableWifi = onEnableWifi,
+        )
+        return
+    }
+
     val context = LocalContext.current
 
     LaunchedEffect(Unit) { onRefreshWifi() }
@@ -416,7 +437,26 @@ internal fun DevicesScreen(
     onOpenRemote: (() -> Unit)? = null,
     onOpenMirror: (() -> Unit)? = null,
     onOpenTools: (() -> Unit)? = null,
+    onOpenLocalAdb: (() -> Unit)? = null,
 ) {
+    if (LocalTelevisionUi.current) {
+        TelevisionDevicesContent(
+            state = state,
+            activeTarget = activeTarget,
+            onAddDevice = onAddDevice,
+            onSelectTarget = onSelectTarget,
+            onSelectDevice = onSelectDevice,
+            onDisconnectDevice = onDisconnectDevice,
+            onConnectKnown = onConnectKnown,
+            onForgetKnown = onForgetKnown,
+            onCancelConnect = onCancelConnect,
+            onOpenLocalAdb = onOpenLocalAdb,
+            onOpenRemote = onOpenRemote,
+            onOpenMirror = onOpenMirror,
+            onOpenTools = onOpenTools,
+        )
+        return
+    }
     Box(Modifier.fillMaxSize()) {
         MyDevicesContent(
             state = state,
@@ -431,6 +471,7 @@ internal fun DevicesScreen(
             onOpenRemote = onOpenRemote,
             onOpenMirror = onOpenMirror,
             onOpenTools = onOpenTools,
+            onOpenLocalAdb = onOpenLocalAdb,
             modifier = Modifier.fillMaxSize(),
         )
         FloatingActionButton(
@@ -459,6 +500,7 @@ private fun MyDevicesContent(
     onOpenRemote: (() -> Unit)? = null,
     onOpenMirror: (() -> Unit)? = null,
     onOpenTools: (() -> Unit)? = null,
+    onOpenLocalAdb: (() -> Unit)? = null,
 ) {
     val device = state.connected
     Column(
@@ -508,6 +550,10 @@ private fun MyDevicesContent(
             }
         }
         Spacer(Modifier.height(10.dp))
+        if (onOpenLocalAdb != null) {
+            LocalAdbEntryCard(onOpenLocalAdb)
+            Spacer(Modifier.height(10.dp))
+        }
         if (device != null) {
             ActiveDeviceCard(
                 device = device,
@@ -569,6 +615,44 @@ private fun MyDevicesContent(
             },
             onDisconnect = onDisconnectDevice,
             connectTarget = state.connectTarget,
+        )
+    }
+}
+
+/**
+ * Acceso a la sesión ADB de loopback. Es el camino para controlar este mismo equipo,
+ * incluida una TV, sin depender del emparejamiento inalámbrico de Android 11+.
+ */
+@Composable
+private fun LocalAdbEntryCard(onOpenLocalAdb: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .clickable(onClick = onOpenLocalAdb)
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        DesignIconBadge(Icons.Filled.Devices, DesignTone.Neutral)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                stringResource(R.string.devices_local_adb),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Text(
+                stringResource(R.string.devices_local_adb_body),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        PillButton(
+            text = stringResource(R.string.devices_local_adb_action),
+            onClick = onOpenLocalAdb,
+            style = PillStyle.Tonal,
         )
     }
 }

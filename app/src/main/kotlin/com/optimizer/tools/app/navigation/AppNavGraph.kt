@@ -246,6 +246,7 @@ internal fun AppNavGraph(
                         onOpenRemote = { navController.navigate(RemoteControlRoute) { launchSingleTop = true } },
                         onOpenMirror = { navController.navigate(MirrorRoute) { launchSingleTop = true } },
                         onOpenTools = { navController.navigate(ToolsRoute) { launchSingleTop = true } },
+                        onOpenLocalAdb = { navController.navigate(LocalAdbRoute) { launchSingleTop = true } },
                     )
                 }
             }
