@@ -63,6 +63,8 @@ import com.optimizer.tools.feature.settings.SettingsViewModel
 import com.optimizer.tools.feature.settingsdb.SettingsDbScreen
 import com.optimizer.tools.feature.settingsdb.SettingsDbViewModel
 import com.optimizer.tools.feature.shizuku.ShizukuViewModel
+import com.optimizer.tools.feature.termux.presentation.TermuxScreen
+import com.optimizer.tools.feature.termux.presentation.TermuxViewModel
 import com.optimizer.tools.feature.tools.ToolsScreen
 import com.optimizer.tools.feature.tvlauncher.TvLauncherScreen
 import com.optimizer.tools.feature.tvlauncher.TvLauncherViewModel
@@ -94,6 +96,7 @@ internal fun AppNavGraph(
     filesViewModel: FilesViewModel,
     consoleViewModel: ConsoleViewModel,
     localAdbViewModel: LocalAdbViewModel,
+    termuxViewModel: TermuxViewModel,
     localAdbReady: Boolean,
 ) {
     val connectionState by connectionViewModel.state.collectAsStateWithLifecycle()
@@ -180,6 +183,13 @@ internal fun AppNavGraph(
         composable<LocalAdbRoute> {
             LocalAdbScreen(
                 viewModel = localAdbViewModel,
+                onBack = { if (!navController.popBackStack()) viewModel.goHome() },
+            )
+        }
+
+        composable<TermuxRoute> {
+            TermuxScreen(
+                viewModel = termuxViewModel,
                 onBack = { if (!navController.popBackStack()) viewModel.goHome() },
             )
         }
@@ -559,6 +569,7 @@ internal fun AppNavGraph(
                 onOpenDebloat = { navController.navigate(DebloatRoute) { launchSingleTop = true } },
                 onOpenFiles = { navController.navigate(FilesRoute) { launchSingleTop = true } },
                 onOpenLocalAdb = { navController.navigate(LocalAdbRoute) { launchSingleTop = true } },
+                onOpenTermux = { navController.navigate(TermuxRoute) { launchSingleTop = true } },
                 onOpenDpc = if (state.activeTarget == AppTarget.REMOTE) viewModel::openDpc else null,
                 targetLabel = dashboardState.device?.displayName,
             )

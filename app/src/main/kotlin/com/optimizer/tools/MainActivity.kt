@@ -35,6 +35,7 @@ import com.optimizer.tools.app.AppContainerRemoteControlEnvironment
 import com.optimizer.tools.app.AppContainerSettingsDbEnvironment
 import com.optimizer.tools.app.AppContainerSettingsEnvironment
 import com.optimizer.tools.app.AppContainerShizukuEnvironment
+import com.optimizer.tools.app.AppContainerTermuxEnvironment
 import com.optimizer.tools.app.AppContainerTvLauncherEnvironment
 import com.optimizer.tools.app.MainViewModel
 import com.optimizer.tools.app.OptimizerApp
@@ -62,6 +63,7 @@ import com.optimizer.tools.feature.remote.RemoteControlViewModel
 import com.optimizer.tools.feature.settings.SettingsViewModel
 import com.optimizer.tools.feature.settingsdb.SettingsDbViewModel
 import com.optimizer.tools.feature.shizuku.ShizukuViewModel
+import com.optimizer.tools.feature.termux.presentation.TermuxViewModel
 import com.optimizer.tools.feature.tvlauncher.TvLauncherViewModel
 import rikka.shizuku.Shizuku
 
@@ -140,6 +142,9 @@ class MainActivity : ComponentActivity() {
     private val localAdbViewModel: LocalAdbViewModel by viewModels {
         LocalAdbViewModel.factory(AppContainerLocalAdbEnvironment(container))
     }
+    private val termuxViewModel: TermuxViewModel by viewModels {
+        TermuxViewModel.factory(AppContainerTermuxEnvironment(container, this))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -182,6 +187,7 @@ class MainActivity : ComponentActivity() {
                         filesViewModel = filesViewModel,
                         consoleViewModel = consoleViewModel,
                         localAdbViewModel = localAdbViewModel,
+                        termuxViewModel = termuxViewModel,
                         localAdbReady = localAdbReady,
                         dictionary = container.dictionary,
                     )

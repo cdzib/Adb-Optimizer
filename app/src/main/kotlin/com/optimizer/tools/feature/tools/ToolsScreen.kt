@@ -76,6 +76,7 @@ fun ToolsScreen(
     onOpenDebloat: () -> Unit,
     onOpenFiles: () -> Unit,
     onOpenLocalAdb: () -> Unit,
+    onOpenTermux: () -> Unit,
     onOpenDpc: (() -> Unit)? = null,
     targetLabel: String? = null,
 ) {
@@ -119,6 +120,16 @@ fun ToolsScreen(
                     Icons.Filled.Cable,
                     DesignTone.Green,
                     onOpenLocalAdb,
+                ),
+            )
+            add(
+                ToolEntry(
+                    ToolsGroupId.System,
+                    R.string.termux_title,
+                    R.string.termux_tools_description,
+                    Icons.Filled.Terminal,
+                    DesignTone.Amber,
+                    onOpenTermux,
                 ),
             )
             add(
@@ -295,7 +306,7 @@ private fun TelevisionToolsContent(
 @Preview(showBackground = true, heightDp = 800)
 @Composable
 private fun ToolsScreenPreview() {
-    AdbOptimizerTheme { ToolsScreen({}, {}, {}, {}, {}, {}, {}, {}, {}) }
+    AdbOptimizerTheme { ToolsScreen({}, {}, {}, {}, {}, {}, {}, {}, {}, {}) }
 }
 
 @Preview(widthDp = 608, heightDp = 400, showBackground = true)
@@ -303,7 +314,7 @@ private fun ToolsScreenPreview() {
 private fun ToolsScreenTelevisionPreview() {
     AdbOptimizerTheme {
         CompositionLocalProvider(LocalTelevisionUi provides true) {
-            ToolsScreen({}, {}, {}, {}, {}, {}, {}, {}, {})
+            ToolsScreen({}, {}, {}, {}, {}, {}, {}, {}, {}, {})
         }
     }
 }

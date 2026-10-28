@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="termux_title">Termux y Linux</string>
+    <string name="termux_subtitle">Ejecuta paquetes y scripts Linux sin root</string>
+    <string name="termux_tools_description">Linux, paquetes y scripts con Termux</string>
+
+    <string name="termux_status_ready">Termux listo</string>
+    <string name="termux_status_pending">Falta configurar Termux</string>
+    <string name="termux_check_installed">Termux instalado</string>
+    <string name="termux_check_permission">Permiso RUN_COMMAND</string>
+    <string name="termux_check_api">Termux:API</string>
+    <string name="termux_version">v%1$s</string>
+    <string name="termux_note_external">En Termux activa allow-external-apps=true en ~/.termux/termux.properties y concede el permiso adicional a esta app.</string>
+
+    <string name="termux_action_install">Instalar Termux</string>
+    <string name="termux_action_permissions">Conceder permiso</string>
+    <string name="termux_action_open">Abrir Termux</string>
+    <string name="termux_action_external">Copiar comando y abrir Termux</string>
+
+    <string name="termux_presets">Recetas</string>
+    <string name="termux_preset_tools">Herramientas</string>
+    <string name="termux_preset_repair">Reparar dpkg</string>
+    <string name="termux_preset_storage">Preparar almacenamiento</string>
+    <string name="termux_preset_ssh">Servidor SSH</string>
+    <string name="termux_preset_backup">Respaldo</string>
+
+    <string name="termux_command_label">Comando</string>
+    <string name="termux_command_hint">p. ej. pkg install -y htop</string>
+    <string name="termux_run">Ejecutar en Termux</string>
+    <string name="termux_output_label">Salida</string>
+    <string name="termux_output_empty">Aún no hay comandos ejecutados.</string>
+    <string name="termux_clear">Limpiar</string>
+    <string name="termux_retry">Actualizar estado</string>
+    <string name="termux_truncated">Salida truncada por Termux</string>
+    <string name="termux_hint_space">Sin espacio: libera con pkg clean y borra $PREFIX/var/cache/apt/archives.</string>
+    <string name="termux_hint_dpkg">dpkg quedó a medias: ejecuta la receta “Reparar dpkg”.</string>
+    <string name="termux_hint_mirror">El repositorio no responde: cambia de mirror con termux-change-repo.</string>
+    <string name="termux_hint_lock">Otro proceso de apt/pkg está en curso: cierra Termux y reintenta.</string>
+    <string name="termux_hint_storage">Termux necesita acceso al almacenamiento: ejecuta la receta “Preparar almacenamiento” y acepta el permiso.</string>
+    <string name="termux_duration">%1$d ms</string>
+    <string name="termux_exit_ok">exit 0</string>
+    <string name="termux_exit_error">exit %1$d</string>
+
+    <string name="termux_error_not_installed_title">Termux no está instalado</string>
+    <string name="termux_error_not_installed_body">Instálalo desde F-Droid o GitHub. La versión de Play Store está descontinuada y no admite comandos externos.</string>
+    <string name="termux_error_permission_title">Permiso de Termux pendiente</string>
+    <string name="termux_error_permission_body">Concede “Ejecutar comandos en Termux” en Ajustes → Apps → AdbOptimizer → Permisos adicionales. Android no muestra el diálogo para permisos de otras apps.</string>
+    <string name="termux_permission_dialog_title">Permiso de Termux</string>
+    <string name="termux_permission_dialog_body">Android gestiona este permiso como “permiso adicional” y normalmente no muestra el diálogo del sistema.\n\nCon root o ADB local/Shizuku, “Conceder automáticamente” lo activa y configura allow-external-apps. Si no, usa “Abrir Ajustes” y activa “Ejecutar comandos en Termux” en Permisos adicionales.</string>
+    <string name="termux_permission_dialog_auto">Conceder automáticamente</string>
+    <string name="termux_permission_dialog_open">Abrir Ajustes</string>
+    <string name="termux_error_external_title">allow-external-apps está desactivado</string>
+    <string name="termux_error_external_body">Termux bloquea comandos externos por seguridad y solo tú puedes activarlo. El botón copia el comando: pégalo en Termux (mantén pulsado → Pegar), pulsa Enter y vuelve aquí.</string>
+    <string name="termux_error_start_title">Termux rechazó el comando</string>
+    <string name="termux_error_start_body">Verifica que allow-external-apps esté activo y que Termux no esté restringido por el ahorro de batería.</string>
+    <string name="termux_error_timeout_title">Termux no respondió</string>
+    <string name="termux_error_timeout_body">El comando sigue ejecutándose o Termux fue detenido por el sistema. Abre Termux y revisa su sesión.</string>
+    <string name="termux_error_unknown_title">Fallo al ejecutar en Termux</string>
+    <string name="termux_error_unknown_body">Revisa el estado de la integración y vuelve a intentarlo.</string>
+</resources>

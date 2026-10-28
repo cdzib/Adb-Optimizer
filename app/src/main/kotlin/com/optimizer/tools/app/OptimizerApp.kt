@@ -71,6 +71,7 @@ import com.optimizer.tools.feature.remote.RemoteControlViewModel
 import com.optimizer.tools.feature.settings.SettingsViewModel
 import com.optimizer.tools.feature.settingsdb.SettingsDbViewModel
 import com.optimizer.tools.feature.shizuku.ShizukuViewModel
+import com.optimizer.tools.feature.termux.presentation.TermuxViewModel
 import com.optimizer.tools.feature.tvlauncher.TvLauncherViewModel
 
 @Composable
@@ -96,6 +97,7 @@ fun OptimizerApp(
     filesViewModel: FilesViewModel,
     consoleViewModel: ConsoleViewModel,
     localAdbViewModel: LocalAdbViewModel,
+    termuxViewModel: TermuxViewModel,
     localAdbReady: Boolean,
     dictionary: Map<String, String>,
 ) {
@@ -278,6 +280,7 @@ fun OptimizerApp(
                 filesViewModel = filesViewModel,
                 consoleViewModel = consoleViewModel,
                 localAdbViewModel = localAdbViewModel,
+                termuxViewModel = termuxViewModel,
                 localAdbReady = localAdbReady,
             )
         }

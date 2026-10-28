@@ -12,10 +12,14 @@
     <!-- Desinstalacion mediada por el sistema (ACTION_DELETE). -->
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
     <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
+    <!-- Ejecuta comandos en el contexto de Termux (RUN_COMMAND). -->
+    <uses-permission android:name="com.termux.permission.RUN_COMMAND" />
 
     <queries>
         <package android:name="moe.shizuku.privileged.api" />
         <package android:name="moe.shizuku.privileged.api.debug" />
+        <package android:name="com.termux" />
+        <package android:name="com.termux.api" />
     </queries>
 
     <uses-feature android:name="android.software.leanback" android:required="false" />
@@ -53,6 +57,11 @@
             android:name=".data.AdbSessionService"
             android:exported="false"
             android:foregroundServiceType="connectedDevice|dataSync" />
+
+        <!-- Recibe el resultado de los comandos lanzados en Termux. -->
+        <service
+            android:name=".feature.termux.data.TermuxResultService"
+            android:exported="false" />
 
         <activity
             android:name=".MainActivity"

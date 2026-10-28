@@ -46,6 +46,9 @@ data object PowerRoute : AppDestination
 data object LocalAdbRoute : AppDestination
 
 @Serializable
+data object TermuxRoute : AppDestination
+
+@Serializable
 data object RemoteControlRoute : AppDestination
 
 @Serializable
@@ -126,6 +129,7 @@ fun AppDestination.toScreen(): Screen? =
         ToolsRoute,
         PowerRoute,
         LocalAdbRoute,
+        TermuxRoute,
         LogcatRoute,
         SettingsDbRoute,
         DozeRoute,
@@ -159,6 +163,7 @@ fun NavDestination.isPushDestination(): Boolean =
         hasRoute<ToolsRoute>() ||
         hasRoute<PowerRoute>() ||
         hasRoute<LocalAdbRoute>() ||
+        hasRoute<TermuxRoute>() ||
         hasRoute<AddDeviceRoute>() ||
         hasRoute<HostAppPickerRoute>() ||
         hasRoute<TvLauncherRoute>() ||
