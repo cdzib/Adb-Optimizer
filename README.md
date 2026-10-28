@@ -47,6 +47,7 @@ deben depender entre sí; la composición vive en `app/`.
 - [ADR-014: estructura por feature](docs/adr/ADR-014-estructura-por-feature.md)
 - [ADR-008: DI manual](docs/adr/ADR-008-di-manual.md)
 - [Diagnóstico del dispositivo: revisión e integración de SysInfo](docs/specs/sysinfo-integration.md)
+- [Plan de soporte de televisiones](docs/specs/tv-support.md)
 
 ## Reglas rápidas
 
