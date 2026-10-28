@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AdbOptimizer · Rediseño de la app</title>
+<style>
+  :root{
+    --bg:#0B0F14; --surface:#17212E; --surface2:#1A2432; --surface3:#101823;
+    --line:#1F2B3A; --text:#E7EEF7; --muted:#8BA0B8; --outline:#64748B;
+    --primary:#4ADE80; --secondary:#22D3EE; --tertiary:#FBBF24; --danger:#F87171;
+    --primary-soft:rgba(74,222,128,.12); --secondary-soft:rgba(34,211,238,.12);
+    --tertiary-soft:rgba(251,191,36,.14); --danger-soft:rgba(248,113,113,.12);
+    --r-sm:8px; --r-md:12px; --r-lg:16px; --r-full:999px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#05080c;color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,system-ui,sans-serif;}
+  a{color:var(--secondary)}
+  .page{max-width:1280px;margin:0 auto;padding:48px 28px 80px}
+  header.hero{max-width:920px;margin-bottom:36px}
+  .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--primary);font-weight:700}
+  h1{font-size:34px;line-height:1.15;margin:10px 0 12px;font-weight:700}
+  .lead{color:var(--muted);font-size:15px;line-height:1.6;margin:0}
+  .pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+  .pill{font-size:12px;font-weight:600;padding:6px 12px;border-radius:var(--r-full);
+    background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+  .pill.ok{color:var(--primary);border-color:rgba(74,222,128,.35);background:var(--primary-soft)}
+  .pill.warn{color:var(--tertiary);border-color:rgba(251,191,36,.35);background:var(--tertiary-soft)}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:36px 28px;margin-top:12px}
+  .item{display:flex;flex-direction:column;gap:10px}
+  .cap{display:flex;align-items:baseline;gap:8px}
+  .cap b{font-size:14px}
+  .cap span{font-size:12px;color:var(--muted)}
+
+  /* ---------- phone ---------- */
+  .phone{position:relative;width:100%;max-width:340px;aspect-ratio:390/844;background:var(--bg);
+    border-radius:38px;border:1px solid #22303f;box-shadow:0 24px 60px rgba(0,0,0,.55), inset 0 0 0 6px #0d131a;
+    overflow:hidden;display:flex;flex-direction:column}
+  .status{height:34px;flex:none;display:flex;align-items:center;justify-content:space-between;
+    padding:0 22px;font-size:11px;font-weight:600;color:var(--text)}
+  .status .dotrow{display:flex;gap:5px;align-items:center;color:var(--muted)}
+  .status i{display:block;width:14px;height:8px;border-radius:2px;background:var(--muted);opacity:.7}
+  .status i.sig{width:12px;height:9px;border-radius:2px;background:var(--muted);opacity:.5}
+  .body{flex:1;overflow:hidden;padding:4px 16px 0;display:flex;flex-direction:column;min-height:0}
+  .body.tight{padding:4px 0 0}
+  .appbar{flex:none;display:flex;align-items:center;gap:6px;padding:6px 0 10px}
+  .appbar .titles{flex:1;min-width:0}
+  .appbar h2{font-size:21px;line-height:1.2;margin:0;font-weight:700;letter-spacing:-.01em}
+  .appbar p{margin:2px 0 0;font-size:11px;color:var(--muted)}
+  .iconbtn{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--muted);flex:none}
+  .iconbtn.primary{color:var(--primary)}
+  .search{flex:none;display:flex;align-items:center;gap:10px;height:48px;padding:0 14px;margin:2px 0 12px;
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);color:var(--muted);font-size:13px}
+  .search.ghost{background:transparent;border-color:transparent;padding:0}
+  .chips{flex:none;display:flex;gap:8px;margin-bottom:12px;overflow:hidden}
+  .chip{font-size:12px;font-weight:600;padding:7px 12px;border-radius:var(--r-full);border:1px solid var(--line);
+    color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap}
+  .chip.on{color:var(--text);background:var(--surface2);border-color:#2c3b4e}
+  .chip .dot{width:7px;height:7px;border-radius:50%;background:var(--outline)}
+  .chip .n{font-size:10px;color:var(--muted)}
+  .chip.on .n{color:var(--text)}
+
+  .content{flex:1;overflow:hidden;min-height:0;display:flex;flex-direction:column;gap:10px;padding-bottom:10px}
+  .scroll{flex:1;overflow:hidden;min-height:0}
+
+  .card{background:var(--surface);border-radius:var(--r-lg);padding:14px}
+  .card.tight{padding:0;overflow:hidden}
+  .card-title{font-size:13px;font-weight:700;margin:0 0 10px}
+  .muted{color:var(--muted)}
+  .small{font-size:11px}
+  .tiny{font-size:10px}
+
+  .row{display:flex;align-items:center;gap:12px;padding:12px 14px}
+  .row + .row{border-top:1px solid var(--line)}
+  .row .ico{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex:none}
+  .row .txt{flex:1;min-width:0}
+  .row .txt b{display:block;font-size:13.5px;font-weight:600;letter-spacing:-.01em}
+  .row .txt span{display:block;font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chev{color:#4d6076}
+
+  .i-green{background:var(--primary-soft);color:var(--primary)}
+  .i-cyan{background:var(--secondary-soft);color:var(--secondary)}
+  .i-amber{background:var(--tertiary-soft);color:var(--tertiary)}
+  .i-red{background:var(--danger-soft);color:var(--danger)}
+  .i-grey{background:#1d2734;color:var(--muted)}
+
+  .section-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+    margin:2px 4px 8px}
+  .group{background:var(--surface);border-radius:var(--r-lg);overflow:hidden}
+
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;height:44px;border-radius:var(--r-full);
+    font-size:13px;font-weight:600;border:1px solid var(--line);color:var(--text);background:transparent}
+  .btn.solid{background:var(--primary);border-color:var(--primary);color:#052e16}
+  .btn.tonal{background:var(--primary-soft);border-color:rgba(74,222,128,.3);color:var(--primary)}
+
+  .nav{flex:none;display:flex;justify-content:space-around;align-items:center;height:58px;border-top:1px solid var(--line);
+    background:#0d141c;padding:0 6px}
+  .nav .tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9.5px;color:var(--muted);width:56px}
+  .nav .tab.on{color:var(--primary)}
+  .nav .tab .pillnav{width:44px;height:26px;border-radius:var(--r-full);display:grid;place-items:center}
+  .nav .tab.on .pillnav{background:var(--primary-soft)}
+
+  .logrow{display:flex;gap:10px;padding:10px 12px;border-radius:10px;background:var(--surface);position:relative;overflow:hidden}
+  .logrow::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tint)}
+  .logrow .meta{display:flex;align-items:center;gap:7px;margin-bottom:3px}
+  .logrow .time{font-size:9.5px;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .badge{width:17px;height:17px;border-radius:5px;display:grid;place-items:center;font-size:9px;font-weight:800;background:color-mix(in srgb,var(--tint) 18%,transparent);color:var(--tint)}
+  .logrow .tag{font-size:10px;font-weight:700;color:var(--tint);font-family:ui-monospace,monospace}
+  .logrow .msg{font-size:11px;line-height:1.45;font-family:ui-monospace,monospace;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  .kv{display:flex;align-items:center;gap:12px;padding:11px 14px}
+  .kv + .kv{border-top:1px solid var(--line)}
+  .kv .k{flex:1;min-width:0}
+  .kv .k b{display:block;font-family:ui-monospace,monospace;font-size:11.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kv .k span{display:block;font-family:ui-monospace,monospace;font-size:10px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  .term{background:#050a0f;border-radius:var(--r-md);padding:12px;font-family:ui-monospace,monospace;font-size:10.5px;line-height:1.7;color:#c9d7e6;overflow:hidden}
+  .term .p{color:var(--primary)}
+  .term .o{color:var(--muted)}
+
+  .empty{align-items:center;justify-content:center;text-align:center;gap:8px;display:flex;flex-direction:column;padding:24px 20px}
+  .empty .circle{width:56px;height:56px;border-radius:50%;background:var(--primary-soft);display:grid;place-items:center;color:var(--primary)}
+  .empty b{font-size:13px}
+  .empty span{font-size:11px;color:var(--muted);max-width:220px}
+
+  .stat{display:flex;gap:10px}
+  .stat > div{flex:1;background:var(--surface);border-radius:var(--r-md);padding:12px}
+  .stat .label{font-size:10px;color:var(--muted)}
+  .stat .value{font-size:19px;font-weight:700;margin-top:4px}
+  .stat .hint{font-size:10px;color:var(--muted);margin-top:2px}
+
+  .appicon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:12px;font-weight:800;flex:none;
+    background:#22303f;color:#cfe0f2}
+
+  .tile{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border-radius:var(--r-md);padding:12px}
+  .tile .ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none}
+  .tile b{display:block;font-size:12.5px}
+  .tile span{display:block;font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.35}
+
+  /* notes */
+  .notes{margin-top:56px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
+  .note{background:var(--surface3);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px}
+  .note h3{margin:0 0 10px;font-size:15px}
+  .note ul{margin:0;padding-left:18px;color:var(--muted);font-size:13px;line-height:1.7}
+  .note ul b{color:var(--text)}
+  .note code{font-family:ui-monospace,monospace;font-size:12px;color:var(--secondary)}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px;color:var(--muted);font-size:12px}
+  .legend b{color:var(--text)}
+  svg{display:block}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-back" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="i-chevdown" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 9l7 7 7-7"/></symbol>
+  <symbol id="i-log" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 6h16M4 12h16M4 18h10"/></symbol>
+  <symbol id="i-term" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 10l3 2.5L7 15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 15h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2.2" fill="var(--surface)" stroke="currentColor" stroke-width="2"/><circle cx="15" cy="12" r="2.2" fill="var(--surface)" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="17" r="2.2" fill="var(--surface)" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M20 14.5A8.5 8.5 0 019.5 4a8.5 8.5 0 1010.5 10.5z"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13M10 11v6M14 11v6"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M4 10.5L12 4l8 6.5V20a1 1 0 01-1 1h-5v-6h-4v6H5a1 1 0 01-1-1z"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M13 3L5 14h6l-1 7 8-11h-6l1-7z"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10.5 18.5h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z" fill="currentColor"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M20 12a8 8 0 11-2.34-5.66M20 4v5h-5"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 12a8 8 0 118 8 8 8 0 01-6.2-3M4 4v5h5"/><path d="M12 8v4.5l3 1.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4" stroke="currentColor" stroke-width="2"/></symbol>
+</svg>
+
+<div class="page">
+  <header class="hero">
+    <div class="eyebrow">Propuesta de diseño · v1</div>
+    <h1>AdbOptimizer: una app más limpia, con Herramientas en su propio espacio</h1>
+    <p class="lead">Hoy Ajustes acumula <b>siete botones idénticos</b> para abrir herramientas que no son preferencias.
+      Esta propuesta separa <b>preferencias</b> de <b>herramientas</b>, agrupa las utilidades por intención y unifica
+      el lenguaje visual en todas las pantallas. Todo sobre el tema oscuro actual y la paleta verde/cian/ámbar.</p>
+    <div class="pills">
+      <span class="pill warn">Antes: 7 botones apilados</span>
+      <span class="pill ok">Después: 1 sección agrupada + pantalla propia</span>
+      <span class="pill">Grid 8dp · radios 12/16 · touch ≥ 48dp</span>
+      <span class="pill">Componentes: ToolTopBar / ToolSearchField / ToolEmptyState</span>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- ============ 1. INICIO ============ -->
+    <div class="item">
+      <div class="cap"><b>Inicio</b><span>estado + accesos</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
+        <div class="body">
+          <div class="appbar">
+            <div class="titles">
+              <h2>Inicio</h2>
+              <p>Google TV · conectado</p>
+            </div>
+            <div class="iconbtn"><svg width="20" height="20"><use href="#i-phone"/></svg></div>
+          </div>
+          <div class="scroll">
+            <div class="stat" style="margin-bottom:10px">
+              <div><div class="label">Batería</div><div class="value">—</div><div class="hint">No disponible en TV</div></div>
+              <div><div class="label">RAM en uso</div><div class="value">1.5 GB</div><div class="hint">de 1.9 GB</div></div>
+            </div>
+            <div class="section-label">Accesos rápidos</div>
+            <div class="card tight" style="margin-bottom:10px">
+              <div class="row"><div class="ico i-green"><svg width="18" height="18"><use href="#i-bolt"/></svg></div>
+                <div class="txt"><b>Optimizar</b><span>12 recetas para este equipo</span></div>
+                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+              <div class="row"><div class="ico i-cyan"><svg width="18" height="18"><use href="#i-grid"/></svg></div>
+                <div class="txt"><b>Herramientas</b><span>Registro, consola, archivos y más</span></div>
+                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+              <div class="row"><div class="ico i-amber"><svg width="18" height="18"><use href="#i-layers"/></svg></div>
+                <div class="txt"><b>Perfiles</b><span>Aplica un conjunto de apps de una vez</span></div>
+                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+            </div>
+            <div class="section-label">Del dispositivo</div>
+            <div class="card">
+              <div class="row" style="padding:0 0 10px;border:0">
+                <div class="appicon" style="background:var(--primary-soft);color:var(--primary)">TV</div>
+                <div class="txt"><b>Google TV · sdk_google_atv</b><span>Android 16 · arm64 · TV</span></div>
+              </div>
+              <div class="small muted" style="line-height:1.6">Sesión activa. Puedes cerrar sesión desde Destino sin perder el historial.</div>
+            </div>
+          </div>
+        </div>
+        <div class="nav">
+          <div class="tab on"><span class="pillnav"><svg width="18" height="18"><use href="#i-home"/></svg></span>Inicio</div>
+          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-grid"/></svg></span>Apps</div>
+          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-bolt"/></svg></span>Optimizar</div>
+          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-term"/></svg></span>Herramientas</div>
+          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-sliders"/></svg></span>Ajustes</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 2. APPS ============ -->
+    <div class="item">
+      <div class="cap"><b>Apps</b><span>búsqueda + acciones</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
+        <div class="body">
+          <div class="appbar">
+            <div class="titles"><h2>Apps</h2><p>48 apps · 12 de sistema</p></div>
+            <div class="iconbtn primary"><svg width="20" height="20"><use href="#i-grid"/></svg></div>
+          </div>
+          <div class="search"><svg width="16" height="16"><use href="#i-search"/></svg>Buscar app</div>
+          <div class="chips">
+            <div class="chip on">Todas <span class="n">48</span></div>
+            <div class="chip">Usuario <span class="n">36</span></div>
+            <div class="chip">Sistema <span class="n">12</span></div>
+          </div>
+          <div class="scroll card tight">
+            <div class="row"><div class="appicon" style="background:#1d2a3a;color:#8ec5ff">YT</div>
+              <div class="txt"><b>YouTube Music</b><span>com.google.android.youtube.tvmusic · 2.4 MB</span></div>
+              <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+            <div class="row"><div class="appicon" style="background:#2a1f1f;color:#ffb4b4">NF</div>
+              <div class="txt"><b>Netflix</b><span>com.netflix.ninja · 84 MB</span></div>
+              <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+            <div class="row"><div class="appicon" style="background:#1f2a22;color:#a7f3c4">SP</div>
+              <div class="txt"><b>Spotify</b><span>com.spotify.tv.android · 42 MB</span></div>
+              <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+            <div class="row"><div class="appicon" style="background:#241f2f;color:#d6c4ff">PL</div>
+              <div class="txt"><b>Plex</b><span>com.plexapp.android · 31 MB</span></div>
+              <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+            <div class="row"><div class="appicon" style="background:#2a2416;color:#ffd79a">TV</div>
+              <div class="txt"><b>Launcher de TV</b><span>com.google.android.tvlauncher · sistema</span></div>
+              <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+          </div>
+        </div>
+        <div class="nav">
+          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-home"/></svg></span>Inicio</div>
+          <div class="tab on"><span class="pillnav"><svg width="18" height="18"><use href="#i-grid"/></svg></span>Apps</div>
+          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-bolt"/></svg></span>Optimizar</div>
+          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-term"/></svg></span>Herramientas</div>
+          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-sliders"/></svg></span>Ajustes</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 3. HERRAMIENTAS (NUEVA) ============ -->
+    <div class="item">
+      <div class="cap"><b>Herramientas</b><span>nueva pantalla · agrupada por intención</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
+        <div class="body">
+          <div class="appbar">
+            <div class="titles"><h2>Herramientas</h2><p>8 utilidades · Google TV</p></div>
+          </div>
+          <div class="search"><svg width="16" height="16"><use href="#i-search"/></svg>Buscar herramienta</div>
+          <div class="scroll">
+            <div class="section-label">Diagnóstico</div>
+            <div class="group" style="margin-bottom:12px">
+              <div class="row"><div class="ico i-green"><svg width="18" height="18"><use href="#i-log"/></svg></div>
+                <div class="txt"><b>Registro del sistema</b><span>Logcat con niveles y modo en vivo</span></div>
+                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+              <div class="row"><div class="ico i-cyan"><svg width="18" height="18"><use href="#i-term"/></svg></div>
+                <div class="txt"><b>Consola</b><span>Comandos ADB con historial</span></div>
+                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+              <div class="row"><div class="ico i-amber"><svg width="18" height="18"><use href="#i-moon"/></svg></div>
+                <div class="txt"><b>Doze y energía</b><span>Estado de reposo y acciones</span></div>
+                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+            </div>
+
+            <div class="section-label">Sistema</div>
+            <div class="group" style="margin-bottom:12px">
+              <div class="row"><div class="ico i-green"><svg width="18" height="18"><use href="#i-sliders"/></svg></div>
+                <div class="txt"><b>Ajustes del sistema</b><span>Global, seguro y sistema con deshacer</span></div>
+                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+              <div class="row"><div class="ico i-cyan"><svg width="18" height="18"><use href="#i-folder"/></svg></div>
+                <div class="txt"><b>Archivos</b><span>Explorar, copiar y borrar en el equipo</span></div>
+                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+              <div class="row"><div class="ico i-red"><svg width="18" height="18"><use href="#i-trash"/></svg></div>
+                <div class="txt"><b>Debloater</b><span>Revisar y desinstalar apps del sistema</span></div>
+                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+            </div>
+
+            <div class="section-label">Apps</div>
+            <div class="group">
+              <div class="row"><div class="ico i-amber"><svg width="18" height="18"><use href="#i-layers"/></svg></div>
+                <div class="txt"><b>Perfiles</b><span>Conjuntos de apps para aplicar de una vez</span></div>
+                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="nav">
+          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-home"/></svg></span>Inicio</div>
+          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-grid"/></svg></span>Apps</div>
+          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-bolt"/></svg></span>Optimizar</div>
+          <div class="tab on"><span class="pillnav"><svg width="18" height="18"><use href="#i-term"/></svg></span>Herramientas</div>
+          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-sliders"/></svg></span>Ajustes</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 4. AJUSTES (LIMPIO) ============ -->
+    <div class="item">
+      <div class="cap"><b>Ajustes</b><span>solo preferencias · sin botones de herramientas</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
+        <div class="body">
+          <div class="appbar"><div class="titles"><h2>Ajustes</h2><p>Preferencias de la app</p></div></div>
+          <div class="scroll">
+            <div class="section-label">Apariencia</div>
+            <div class="group" style="margin-bottom:12px">
+              <div class="row"><div class="ico i-grey"><svg width="18" height="18"><use href="#i-moon"/></svg></div>
+                <div class="txt"><b>Tema</b><span>Seguir el sistema</span></div>
+                <div class="chev"><svg width="16" height="16"><use href="#i-chevdown"/></svg></div></div>
+            </div>
+            <div class="section-label">Apps</div>
+            <div class="group" style="margin-bottom:12px">
+              <div class="row"><div class="ico i-grey"><svg width="18" height="18"><use href="#i-grid"/></svg></div>
+                <div class="txt"><b>Mostrar apps del sistema</b><span>Incluye apps de sistema en la lista</span></div>
+                <div style="width:38px;height:22px;border-radius:999px;background:#2a3647;position:relative"><span style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#8ba0b8"></span></div></div>
+            </div>
+            <div class="section-label">Conexión y dispositivo</div>
+            <div class="group" style="margin-bottom:12px">
+              <div class="row"><div class="ico i-grey"><svg width="18" height="18"><use href="#i-phone"/></svg></div>
+                <div class="txt"><b>Mantener pantalla encendida</b><span>Evita que se apague mientras usas la app</span></div>
+                <div style="width:38px;height:22px;border-radius:999px;background:#2a3647;position:relative"><span style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#8ba0b8"></span></div></div>
+              <div class="row"><div class="ico i-grey"><svg width="18" height="18"><use href="#i-refresh"/></svg></div>
+                <div class="txt"><b>Actualizar métricas</b><span>Cada 30 segundos</span></div>
+                <div class="chev"><svg width="16" height="16"><use href="#i-chevdown"/></svg></div></div>
+            </div>
+            <div class="section-label">Avanzado</div>
+            <div class="group">
+              <div class="row"><div class="ico i-grey"><svg width="18" height="18"><use href="#i-layers"/></svg></div>
+                <div class="txt"><b>Administración (DPC)</b><span>Solo con un perfil de trabajo activo</span></div>
+                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="nav">
+          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-home"/></svg></span>Inicio</div>
+          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-grid"/></svg></span>Apps</div>
+          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-bolt"/></svg></span>Optimizar</div>
+          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-term"/></svg></span>Herramientas</div>
+          <div class="tab on"><span class="pillnav"><svg width="18" height="18"><use href="#i-sliders"/></svg></span>Ajustes</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 5. REGISTRO ============ -->
+    <div class="item">
+      <div class="cap"><b>Registro del sistema</b><span>en vivo, con niveles</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
+        <div class="body">
+          <div class="appbar">
+            <div class="iconbtn"><svg width="20" height="20"><use href="#i-back"/></svg></div>
+            <div class="titles"><h2>Registro</h2><p>EN VIVO · 812 líneas · 42 visibles</p></div>
+            <div class="iconbtn primary"><svg width="18" height="18"><use href="#i-play"/></svg></div>
+            <div class="iconbtn"><svg width="18" height="18"><use href="#i-refresh"/></svg></div>
+          </div>
+          <div class="search"><svg width="16" height="16"><use href="#i-search"/></svg>Buscar etiqueta o mensaje</div>
+          <div class="chips">
+            <div class="chip on"><span class="dot" style="background:#8ba0b8"></span>Todo <span class="n">812</span></div>
+            <div class="chip"><span class="dot" style="background:var(--secondary)"></span>D <span class="n">96</span></div>
+            <div class="chip"><span class="dot" style="background:var(--primary)"></span>I <span class="n">31</span></div>
+            <div class="chip"><span class="dot" style="background:var(--tertiary)"></span>W <span class="n">12</span></div>
+            <div class="chip"><span class="dot" style="background:var(--danger)"></span>E <span class="n">3</span></div>
+          </div>
+          <div class="scroll" style="display:flex;flex-direction:column;gap:8px">
+            <div class="logrow" style="--tint:var(--primary)"><div class="meta"><span class="time">03:04:05.678</span><span class="badge">I</span><span class="tag">ActivityManager</span></div><div class="msg">Start proc com.example.player</div></div>
+            <div class="logrow" style="--tint:var(--tertiary)"><div class="meta"><span class="time">03:04:06.001</span><span class="badge">W</span><span class="tag">PackageManager</span></div><div class="msg">Package no debuggable</div></div>
+            <div class="logrow" style="--tint:var(--danger)"><div class="meta"><span class="time">03:04:07.250</span><span class="badge">E</span><span class="tag">AndroidRuntime</span></div><div class="msg">FATAL EXCEPTION: main</div></div>
+            <div class="logrow" style="--tint:var(--secondary)"><div class="meta"><span class="time">03:04:07.981</span><span class="badge">D</span><span class="tag">SurfaceFlinger</span></div><div class="msg">Display 0: mode 1920x1080@60</div></div>
+            <div class="logrow" style="--tint:var(--primary)"><div class="meta"><span class="time">03:04:08.110</span><span class="badge">I</span><span class="tag">Doze</span></div><div class="msg">Stepped to deep: IDLE_PENDING</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 6. CONSOLA ============ -->
+    <div class="item">
+      <div class="cap"><b>Consola</b><span>comandos con historial</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
+        <div class="body">
+          <div class="appbar">
+            <div class="iconbtn"><svg width="20" height="20"><use href="#i-back"/></svg></div>
+            <div class="titles"><h2>Consola</h2><p>shell como uid 2000</p></div>
+            <div class="iconbtn"><svg width="18" height="18"><use href="#i-history"/></svg></div>
+          </div>
+          <div class="scroll" style="display:flex;flex-direction:column;gap:10px">
+            <div class="card" style="padding:12px">
+              <div class="tiny muted" style="margin-bottom:6px">pm list packages -3 | wc -l</div>
+              <div class="term" style="background:transparent;padding:0">36</div>
+            </div>
+            <div class="card" style="padding:12px">
+              <div class="tiny muted" style="margin-bottom:6px">dumpsys deviceidle get deep</div>
+              <div class="term" style="background:transparent;padding:0">ACTIVE</div>
+            </div>
+            <div class="card" style="padding:12px;border:1px solid rgba(74,222,128,.35)">
+              <div class="tiny" style="color:var(--primary);margin-bottom:6px">EN EJECUCIÓN</div>
+              <div class="term"><span class="p">$</span> settings get global low_power<br><span class="o">0</span><br><span class="p">$</span> <span style="opacity:.6">▍</span></div>
+            </div>
+            <div class="chips" style="margin:0">
+              <div class="chip">getprop</div><div class="chip">dumpsys battery</div><div class="chip">wm size</div>
+            </div>
+          </div>
+          <div style="flex:none;display:flex;gap:8px;padding:10px 0 12px">
+            <div class="search" style="margin:0;flex:1">Escribe un comando…</div>
+            <div class="iconbtn primary" style="background:var(--primary-soft)"><svg width="18" height="18"><use href="#i-play"/></svg></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 7. AJUSTES DEL SISTEMA ============ -->
+    <div class="item">
+      <div class="cap"><b>Ajustes del sistema</b><span>presets + claves con deshacer</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
+        <div class="body">
+          <div class="appbar">
+            <div class="iconbtn"><svg width="20" height="20"><use href="#i-back"/></svg></div>
+            <div class="titles"><h2>Ajustes del sistema</h2><p>48 claves visibles</p></div>
+            <div class="iconbtn"><svg width="18" height="18"><use href="#i-history"/></svg></div>
+          </div>
+          <div class="card" style="padding:12px;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <b style="font-size:12.5px">Ajustes rápidos</b>
+              <span class="tiny muted">Auto · 30 s · 128</span>
+              <span style="margin-left:auto;color:var(--muted)"><svg width="16" height="16"><use href="#i-chev"/></svg></span>
+            </div>
+          </div>
+          <div class="chips">
+            <div class="chip">Global</div><div class="chip on">Seguro</div><div class="chip">Sistema</div>
+          </div>
+          <div class="search"><svg width="16" height="16"><use href="#i-search"/></svg>Buscar clave</div>
+          <div class="scroll group">
+            <div class="kv"><div class="k"><b>android_id</b><span>9f2c1a77b4e1d0c3</span></div><span class="chev"><svg width="15" height="15"><use href="#i-edit"/></svg></span></div>
+            <div class="kv"><div class="k"><b>screen_brightness</b><span>128</span></div><span class="chev"><svg width="15" height="15"><use href="#i-edit"/></svg></span></div>
+            <div class="kv"><div class="k"><b>accessibility_display_inversion_enabled</b><span>null</span></div><span class="chev"><svg width="15" height="15"><use href="#i-edit"/></svg></span></div>
+            <div class="kv"><div class="k"><b>wifi_scan_always_enabled</b><span>0</span></div><span class="chev"><svg width="15" height="15"><use href="#i-edit"/></svg></span></div>
+            <div class="kv"><div class="k"><b>ui_night_mode</b><span>auto</span></div><span class="chev"><svg width="15" height="15"><use href="#i-edit"/></svg></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 8. DEBLOATER ============ -->
+    <div class="item">
+      <div class="cap"><b>Debloater</b><span>revisión antes de tocar nada</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
+        <div class="body">
+          <div class="appbar">
+            <div class="iconbtn"><svg width="20" height="20"><use href="#i-back"/></svg></div>
+            <div class="titles"><h2>Debloater</h2><p>12 sugeridas · 3 seleccionadas</p></div>
+          </div>
+          <div class="search"><svg width="16" height="16"><use href="#i-search"/></svg>Buscar app</div>
+          <div class="scroll">
+            <div class="card tight" style="margin-bottom:10px">
+              <div class="row"><div class="appicon" style="background:#2a2416;color:#ffd79a">M</div>
+                <div class="txt"><b>Movies Anywhere</b><span>com.moviesanywhere · no usada en TV</span></div>
+                <div style="width:20px;height:20px;border-radius:5px;background:var(--primary);display:grid;place-items:center;color:#052e16"><svg width="12" height="12"><use href="#i-check"/></svg></div></div>
+              <div class="row"><div class="appicon" style="background:#1f2a22;color:#a7f3c4">G</div>
+                <div class="txt"><b>Google Play Games</b><span>com.google.android.play.games · duplicado</span></div>
+                <div style="width:20px;height:20px;border-radius:5px;background:var(--primary);display:grid;place-items:center;color:#052e16"><svg width="12" height="12"><use href="#i-check"/></svg></div></div>
+              <div class="row"><div class="appicon" style="background:#2a1f1f;color:#ffb4b4">S</div>
+                <div class="txt"><b>Samsung TV Plus</b><span>com.samsung.tvplus · sustituible</span></div>
+                <div style="width:20px;height:20px;border-radius:5px;border:1.5px solid var(--outline)"></div></div>
+            </div>
+            <div class="card" style="border:1px solid rgba(251,191,36,.35)">
+              <div class="small" style="color:var(--tertiary);font-weight:700;margin-bottom:4px">Antes de continuar</div>
+              <div class="small muted" style="line-height:1.6">El launcher actual está protegido. Nada se ejecuta hasta confirmar y todo queda en el historial para deshacer.</div>
+            </div>
+          </div>
+          <div style="flex:none;padding:10px 0 12px"><div class="btn solid">Revisar 3 apps</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 9. ARCHIVOS ============ -->
+    <div class="item">
+      <div class="cap"><b>Archivos</b><span>rutas con guardas de seguridad</span></div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
+        <div class="body">
+          <div class="appbar">
+            <div class="iconbtn"><svg width="20" height="20"><use href="#i-back"/></svg></div>
+            <div class="titles"><h2>Archivos</h2><p>/sdcard/Download</p></div>
+            <div class="iconbtn"><svg width="18" height="18"><use href="#i-folder"/></svg></div>
+          </div>
+          <div class="scroll group">
+            <div class="row"><div class="ico i-amber"><svg width="18" height="18"><use href="#i-folder"/></svg></div>
+              <div class="txt"><b>AdbOptimizer</b><span>Carpeta · 3 elementos</span></div>
+              <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+            <div class="row"><div class="ico i-cyan"><svg width="18" height="18"><use href="#i-folder"/></svg></div>
+              <div class="txt"><b>Movies</b><span>Carpeta</span></div>
+              <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+            <div class="row"><div class="appicon">APK</div>
+              <div class="txt"><b>youtube-tv.apk</b><span>24.8 MB · 23 oct</span></div>
+              <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+            <div class="row"><div class="appicon">LOG</div>
+              <div class="txt"><b>registro-2026-10-27.txt</b><span>412 KB · hoy</span></div>
+              <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
+          </div>
+          <div class="card" style="margin:10px 0 12px;padding:12px">
+            <div class="small muted" style="line-height:1.6">Las rutas protegidas del sistema no se pueden borrar: la app comprueba la ruta antes de tocar nada.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================= NOTES ================= -->
+  <div class="notes">
+    <div class="note">
+      <h3>Qué se fusiona</h3>
+      <ul>
+        <li><b>7 botones idénticos</b> de Ajustes → una sola fila reutilizable (<code>ToolRow</code>) dentro de una pantalla propia.</li>
+        <li><b>Ajustes</b> queda solo con preferencias: tema, apps del sistema, pantalla, métricas, DPC.</li>
+        <li>Cada herramienta conserva su pantalla, pero todas comparten <code>ToolTopBar</code>, <code>ToolSearchField</code> y <code>ToolEmptyState</code>.</li>
+        <li>Orden por frecuencia de uso: <b>Diagnóstico → Sistema → Apps</b>, no por orden de creación.</li>
+      </ul>
+    </div>
+    <div class="note">
+      <h3>Navegación propuesta</h3>
+      <ul>
+        <li>Barra inferior con <b>5 destinos</b>: Inicio · Apps · Optimizar · Herramientas · Ajustes.</li>
+        <li>Inicio gana accesos rápidos a Optimizar, Herramientas y Perfiles.</li>
+        <li>Alternativa si prefieres no tocar la barra: Herramientas como tarjeta grande en Inicio y sin pestaña propia.</li>
+      </ul>
+    </div>
+    <div class="note">
+      <h3>Reglas visuales aplicadas</h3>
+      <ul>
+        <li>Grid de 8 dp, radios 12/16, touch targets ≥ 48 dp.</li>
+        <li>Jerarquía: título 21 sp, fila 13.5 sp, subtítulo 11 sp con <code>onSurfaceVariant</code>.</li>
+        <li>Color semántico: verde acción, cian diagnóstico, ámbar aviso, rojo destructivo.</li>
+        <li>Icono en contenedor tintado de 36 dp: identifica sin competir con el texto.</li>
+      </ul>
+    </div>
+    <div class="note">
+      <h3>Duplicación detectada</h3>
+      <ul>
+        <li><b>UI:</b> 7 bloques <code>OutlinedButton</code> copiados en <code>SettingsScreen</code>.</li>
+        <li><b>Boilerplate:</b> un <code>AppContainer*Environment</code> y un <code>factory()</code> por feature, casi idénticos.</li>
+        <li><b>Cabeceras:</b> varias pantallas repiten barra de título y estado vacío antes de usar <code>ToolChrome</code>.</li>
+        <li><b>Solape funcional:</b> Archivos vs “Extraer APK”; Consola vs Registro; Debloater vs deshabilitar app. Conviene enlazarlos en lugar de duplicarlos.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><b>Antes:</b> Ajustes con 7 botones apilados, herramientas mezcladas con preferencias.</span>
+    <span><b>Después:</b> herramientas agrupadas por intención, preferencias limpias y un solo lenguaje visual.</span>
+  </div>
+</div>
+</body>
+</html>
