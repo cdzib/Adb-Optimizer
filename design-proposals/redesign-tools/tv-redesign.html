@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AdbOptimizer · Diseño para TV</title>
+<style>
+  :root{
+    --bg:#0B0F14; --surface:#17212E; --surface2:#1A2432; --surface3:#101823;
+    --line:#1F2B3A; --text:#E7EEF7; --muted:#8BA0B8; --outline:#64748B;
+    --primary:#4ADE80; --secondary:#22D3EE; --tertiary:#FBBF24; --danger:#F87171;
+    --primary-soft:rgba(74,222,128,.12); --secondary-soft:rgba(34,211,238,.12);
+    --tertiary-soft:rgba(251,191,36,.14); --danger-soft:rgba(248,113,113,.12);
+    --r-md:12px; --r-lg:16px; --r-full:999px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#05080c;color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,system-ui,sans-serif}
+  .page{max-width:1400px;margin:0 auto;padding:48px 28px 80px}
+  .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--primary);font-weight:700}
+  h1{font-size:34px;line-height:1.15;margin:10px 0 12px;font-weight:700;max-width:980px}
+  .lead{color:var(--muted);font-size:15px;line-height:1.6;margin:0;max-width:960px}
+  .pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+  .pill{font-size:12px;font-weight:600;padding:6px 12px;border-radius:99px;background:var(--surface);
+    border:1px solid var(--line);color:var(--muted)}
+  .pill.ok{color:var(--primary);border-color:rgba(74,222,128,.35);background:var(--primary-soft)}
+  .pill.warn{color:var(--tertiary);border-color:rgba(251,191,36,.35);background:var(--tertiary-soft)}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(620px,1fr));gap:30px;margin-top:34px}
+  .item{display:flex;flex-direction:column;gap:10px}
+  .cap{display:flex;align-items:baseline;gap:8px}
+  .cap b{font-size:14px}
+  .cap span{font-size:12px;color:var(--muted)}
+
+  /* TV frame 16:9 */
+  .tv{position:relative;width:100%;aspect-ratio:16/9;background:var(--bg);border-radius:14px;
+    border:1px solid #22303f;box-shadow:0 26px 60px rgba(0,0,0,.6);overflow:hidden;
+    display:flex;flex-direction:column;font-size:13px}
+
+  .safearea{position:absolute;inset:26px 34px;border:1px dashed rgba(139,160,184,.13);border-radius:8px;pointer-events:none}
+
+  /* top bar */
+  .tvbar{flex:none;display:flex;align-items:center;gap:10px;padding:12px 30px 6px}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13px;letter-spacing:.02em}
+  .brand .dot{width:16px;height:16px;border-radius:5px;background:var(--primary-soft);display:grid;place-items:center;color:var(--primary)}
+  .clock{margin-left:auto;color:var(--muted);font-size:12px;font-weight:600}
+  .chipstate{font-size:11px;font-weight:700;color:var(--primary);background:var(--primary-soft);
+    border-radius:99px;padding:5px 10px}
+
+  .stage{flex:1;display:grid;grid-template-columns:150px 1fr;min-height:0;padding:0 30px 14px;overflow:hidden}
+  /* left rail */
+  .rail{display:flex;flex-direction:column;gap:6px;padding:6px 10px 0 0;min-width:0}
+  .rail .r{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:10px;color:var(--muted);font-size:12px;font-weight:600}
+  .rail .r.on{background:var(--surface2);color:var(--text)}
+  .rail .r.focus{outline:2px solid #fff;outline-offset:2px;background:var(--surface2);color:var(--text)}
+  .rail .r svg{flex:none}
+
+  .panel{min-width:0;padding:2px 0 0 12px;display:flex;flex-direction:column;gap:9px;overflow:hidden}
+  .h{display:flex;align-items:flex-end;gap:10px}
+  .h h2{font-size:22px;margin:0;font-weight:700;letter-spacing:-.01em}
+  .h p{margin:0 0 2px;font-size:11px;color:var(--muted)}
+
+  .hero{border-radius:var(--r-lg);padding:12px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    background:linear-gradient(120deg,#16222f 0%,#132333 60%,#122a24 100%);border:1px solid var(--line)}
+  .hero .big{flex:none;width:52px;height:52px;border-radius:14px;background:var(--primary-soft);color:var(--primary);
+    display:grid;place-items:center;font-weight:800;font-size:15px}
+  .hero b{display:block;font-size:16px}
+  .hero span{display:block;font-size:11.5px;color:var(--muted);margin-top:3px}
+  .hero .info{flex:1;min-width:180px}
+  .hero .info b{font-size:15px}
+  .hero .actions{margin-left:auto;display:flex;gap:8px;flex:none}
+  .tvbtn{height:36px;padding:0 16px;border-radius:99px;display:flex;align-items:center;gap:7px;
+    font-size:12px;font-weight:700;border:1px solid var(--line);color:var(--text);background:transparent}
+  .tvbtn.solid{background:var(--primary);border-color:var(--primary);color:#052e16}
+  .tvbtn.tonal{background:var(--primary-soft);border-color:rgba(74,222,128,.35);color:var(--primary)}
+
+  .rowtitle{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:2px 2px 0}
+
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .tile{background:var(--surface);border-radius:var(--r-md);padding:10px;display:flex;gap:10px;align-items:flex-start;
+    border:1px solid transparent}
+  .tile.focus{outline:2px solid #fff;outline-offset:2px;background:var(--surface2)}
+  .tile .ico{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex:none}
+  .tile b{display:block;font-size:12.5px}
+  .tile span{display:block;font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.35}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .stat{background:var(--surface);border-radius:var(--r-md);padding:12px 14px}
+  .stat .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .stat .v{font-size:20px;font-weight:800;margin-top:4px}
+  .stat .s{font-size:10px;color:var(--muted);margin-top:2px}
+
+  .appgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .app{background:var(--surface);border-radius:var(--r-md);padding:14px 10px;display:flex;flex-direction:column;
+    align-items:center;gap:8px;border:1px solid transparent}
+  .app.focus{outline:2px solid #fff;outline-offset:2px;background:var(--surface2)}
+  .app .sq{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:14px;background:#22303f;color:#cfe0f2}
+  .app b{font-size:11.5px;font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .app span{font-size:9.5px;color:var(--muted)}
+
+  .hint{flex:none;display:flex;align-items:center;gap:8px;padding:8px 30px;border-top:1px solid var(--line);
+    background:#0d141c;color:var(--muted);font-size:11px}
+  .key{display:inline-grid;place-items:center;min-width:22px;height:20px;padding:0 6px;border-radius:5px;
+    background:#22303f;color:var(--text);font-size:10px;font-weight:700;border:1px solid #2f4157}
+  .hint .sep{opacity:.35}
+
+  .recipe{display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:var(--r-md);
+    padding:11px 14px;border:1px solid transparent}
+  .recipe.focus{outline:2px solid #fff;outline-offset:2px;background:var(--surface2)}
+  .recipe .t{flex:1;min-width:0}
+  .recipe b{display:block;font-size:12.5px}
+  .recipe span{display:block;font-size:10.5px;color:var(--muted);margin-top:2px}
+  .risk{font-size:9.5px;font-weight:800;padding:3px 8px;border-radius:99px;letter-spacing:.04em}
+  .risk.safe{color:var(--primary);background:var(--primary-soft)}
+  .risk.mod{color:var(--tertiary);background:var(--tertiary-soft)}
+  .risk.adv{color:var(--danger);background:var(--danger-soft)}
+
+  .setrow{display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:var(--r-md);
+    padding:12px 14px;border:1px solid transparent}
+  .setrow.focus{outline:2px solid #fff;outline-offset:2px;background:var(--surface2)}
+  .setrow .t{flex:1}
+  .setrow b{display:block;font-size:12.5px}
+  .setrow span{display:block;font-size:10.5px;color:var(--muted);margin-top:2px}
+  .toggle{width:44px;height:24px;border-radius:99px;background:#2a3647;position:relative;flex:none}
+  .toggle i{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#8ba0b8}
+  .toggle.on{background:rgba(74,222,128,.35)}
+  .toggle.on i{left:23px;background:var(--primary)}
+
+  .dialog{position:absolute;inset:0;background:rgba(3,6,10,.72);display:grid;place-items:center;padding:26px}
+  .sheet{width:min(520px,90%);background:#1b2735;border-radius:var(--r-lg);padding:20px 22px;
+    border:1px solid #2b3b4e;box-shadow:0 30px 70px rgba(0,0,0,.6)}
+  .sheet h3{margin:0 0 6px;font-size:16px}
+  .sheet p{margin:0 0 14px;font-size:11.5px;color:var(--muted);line-height:1.6}
+  .sheet .btns{display:flex;gap:10px;justify-content:flex-end}
+
+  /* remote legend */
+  .remote{display:flex;gap:26px;align-items:center;background:var(--surface3);border:1px solid var(--line);
+    border-radius:var(--r-lg);padding:22px;margin-top:34px}
+  .dpad{width:104px;height:104px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:4px;flex:none}
+  .dpad div{background:#22303f;border-radius:8px;display:grid;place-items:center;color:var(--muted);font-size:11px;font-weight:700}
+  .dpad .ok{background:var(--primary);color:#052e16;border-radius:50%}
+  .dpad .empty{background:transparent}
+  .remote h3{margin:0 0 8px;font-size:15px}
+  .remote ul{margin:0;padding-left:18px;color:var(--muted);font-size:13px;line-height:1.75}
+  .remote b{color:var(--text)}
+
+  .notes{margin-top:34px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
+  .note{background:var(--surface3);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px}
+  .note h3{margin:0 0 10px;font-size:15px}
+  .note ul{margin:0;padding-left:18px;color:var(--muted);font-size:13px;line-height:1.7}
+  .note ul b{color:var(--text)}
+  svg{display:block}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M4 10.5L12 4l8 6.5V20a1 1 0 01-1 1h-5v-6h-4v6H5a1 1 0 01-1-1z"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M13 3L5 14h6l-1 7 8-11h-6l1-7z"/></symbol>
+  <symbol id="i-term" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 10l3 2.5L7 15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 15h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2.2" fill="var(--surface)" stroke="currentColor" stroke-width="2"/><circle cx="15" cy="12" r="2.2" fill="var(--surface)" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="17" r="2.2" fill="var(--surface)" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-log" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 6h16M4 12h16M4 18h10"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13M10 11v6M14 11v6"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10.5 18.5h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z" fill="currentColor"/></symbol>
+</svg>
+
+<div class="page">
+  <div class="eyebrow">Propuesta de diseño · TV</div>
+  <h1>AdbOptimizer en la televisión: 10-foot UI con foco, no un teléfono estirado</h1>
+  <p class="lead">La app en Android TV se maneja <b>solo con el mando</b>: nada de toques, nada de hover.
+    Todo se resuelve con foco visible, una barra lateral de navegación y tres o cuatro acciones por pantalla.
+    Reutiliza el mismo motor y el mismo lenguaje visual, pero recalibrado para verse a tres metros.</p>
+  <div class="pills">
+    <span class="pill ok">1920×1080 · área segura 48 dp</span>
+    <span class="pill">Texto mínimo 24 sp</span>
+    <span class="pill">Foco siempre visible</span>
+    <span class="pill">D-pad + OK + Atrás</span>
+    <span class="pill warn">Requiere Fase 3 del plan de TV</span>
+  </div>
+
+  <div class="grid">
+
+    <!-- ================= TV 1 · INICIO ================= -->
+    <div class="item">
+      <div class="cap"><b>Inicio</b><span>estado del televisor + accesos</span></div>
+      <div class="tv">
+        <div class="safearea"></div>
+        <div class="tvbar">
+          <div class="brand"><span class="dot"><svg width="11" height="11"><use href="#i-bolt"/></svg></span>AdbOptimizer</div>
+          <span class="chipstate">Conectado · local</span>
+          <span class="clock">21:40</span>
+        </div>
+        <div class="stage">
+          <div class="rail">
+            <div class="r on"><svg width="16" height="16"><use href="#i-home"/></svg>Inicio</div>
+            <div class="r"><svg width="16" height="16"><use href="#i-grid"/></svg>Apps</div>
+            <div class="r"><svg width="16" height="16"><use href="#i-bolt"/></svg>Optimizar</div>
+            <div class="r"><svg width="16" height="16"><use href="#i-term"/></svg>Herramientas</div>
+            <div class="r"><svg width="16" height="16"><use href="#i-sliders"/></svg>Ajustes</div>
+          </div>
+          <div class="panel">
+            <div class="hero">
+              <div class="big">TV</div>
+              <div class="info">
+                <b>Google TV · sdk_google_atv</b>
+                <span>Android 16 · 4K · 3 apps con actualización pendiente</span>
+              </div>
+              <div class="actions">
+                <div class="tvbtn tonal"><svg width="13" height="13"><use href="#i-bolt"/></svg>Optimizar</div>
+                <div class="tvbtn">Herramientas</div>
+              </div>
+            </div>
+            <div class="stats">
+              <div class="stat"><div class="l">RAM</div><div class="v">1.5 GB</div><div class="s">de 1.9 GB</div></div>
+              <div class="stat"><div class="l">Almacenamiento</div><div class="v">9.2 GB</div><div class="s">libres de 16 GB</div></div>
+              <div class="stat"><div class="l">Apps</div><div class="v">48</div><div class="s">12 de sistema</div></div>
+            </div>
+            <div class="tiles">
+              <div class="tile focus"><div class="ico" style="background:var(--primary-soft);color:var(--primary)"><svg width="17" height="17"><use href="#i-bolt"/></svg></div>
+                <div><b>Optimizar</b><span>12 recetas</span></div></div>
+              <div class="tile"><div class="ico" style="background:var(--secondary-soft);color:var(--secondary)"><svg width="17" height="17"><use href="#i-trash"/></svg></div>
+                <div><b>Debloater</b><span>12 sugeridas</span></div></div>
+              <div class="tile"><div class="ico" style="background:var(--tertiary-soft);color:var(--tertiary)"><svg width="17" height="17"><use href="#i-layers"/></svg></div>
+                <div><b>Perfiles</b><span>Conjuntos</span></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="hint"><span class="key">◀ ▶ ▲ ▼</span> mover <span class="sep">·</span> <span class="key">OK</span> abrir <span class="sep">·</span> <span class="key">Atrás</span> volver</div>
+      </div>
+    </div>
+
+    <!-- ================= TV 2 · APPS ================= -->
+    <div class="item">
+      <div class="cap"><b>Apps</b><span>cuadrícula con foco, no lista larga</span></div>
+      <div class="tv">
+        <div class="safearea"></div>
+        <div class="tvbar">
+          <div class="brand"><span class="dot"><svg width="11" height="11"><use href="#i-bolt"/></svg></span>AdbOptimizer</div>
+          <span class="chipstate">48 apps</span>
+          <span class="clock">21:40</span>
+        </div>
+        <div class="stage">
+          <div class="rail">
+            <div class="r"><svg width="16" height="16"><use href="#i-home"/></svg>Inicio</div>
+            <div class="r on"><svg width="16" height="16"><use href="#i-grid"/></svg>Apps</div>
+            <div class="r"><svg width="16" height="16"><use href="#i-bolt"/></svg>Optimizar</div>
+            <div class="r"><svg width="16" height="16"><use href="#i-term"/></svg>Herramientas</div>
+            <div class="r"><svg width="16" height="16"><use href="#i-sliders"/></svg>Ajustes</div>
+          </div>
+          <div class="panel">
+            <div class="h"><h2>Apps</h2><p>Filtro: usuario · orden por nombre</p></div>
+            <div class="appgrid">
+              <div class="app focus"><div class="sq" style="background:#1d2a3a;color:#8ec5ff">YT</div><b>YouTube Music</b><span>2.4 MB</span></div>
+              <div class="app"><div class="sq" style="background:#2a1f1f;color:#ffb4b4">NF</div><b>Netflix</b><span>84 MB</span></div>
+              <div class="app"><div class="sq" style="background:#1f2a22;color:#a7f3c4">SP</div><b>Spotify</b><span>42 MB</span></div>
+              <div class="app"><div class="sq" style="background:#241f2f;color:#d6c4ff">PL</div><b>Plex</b><span>31 MB</span></div>
+              <div class="app"><div class="sq" style="background:#2a2416;color:#ffd79a">TV</div><b>Launcher</b><span>sistema</span></div>
+            </div>
+            <div class="rowtitle">Acciones de YouTube Music</div>
+            <div class="tiles">
+              <div class="tile"><div class="ico" style="background:var(--primary-soft);color:var(--primary)"><svg width="17" height="17"><use href="#i-play"/></svg></div><div><b>Compilar AOT</b><span>Arranque más rápido</span></div></div>
+              <div class="tile"><div class="ico" style="background:var(--tertiary-soft);color:var(--tertiary)"><svg width="17" height="17"><use href="#i-bolt"/></svg></div><div><b>Restringir</b><span>Segundo plano</span></div></div>
+              <div class="tile"><div class="ico" style="background:var(--danger-soft);color:var(--danger)"><svg width="17" height="17"><use href="#i-trash"/></svg></div><div><b>Desinstalar</b><span>Solo este usuario</span></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="hint"><span class="key">OK</span> abre acciones de la app enfocada <span class="sep">·</span> <span class="key">Atrás</span> vuelve al inicio</div>
+      </div>
+    </div>
+
+    <!-- ================= TV 3 · OPTIMIZAR ================= -->
+    <div class="item">
+      <div class="cap"><b>Optimizar</b><span>recetas con riesgo explícito</span></div>
+      <div class="tv">
+        <div class="safearea"></div>
+        <div class="tvbar">
+          <div class="brand"><span class="dot"><svg width="11" height="11"><use href="#i-bolt"/></svg></span>AdbOptimizer</div>
+          <span class="chipstate">TV · 12 compatibles</span>
+          <span class="clock">21:41</span>
+        </div>
+        <div class="stage">
+          <div class="rail">
+            <div class="r"><svg width="16" height="16"><use href="#i-home"/></svg>Inicio</div>
+            <div class="r"><svg width="16" height="16"><use href="#i-grid"/></svg>Apps</div>
+            <div class="r on"><svg width="16" height="16"><use href="#i-bolt"/></svg>Optimizar</div>
+            <div class="r"><svg width="16" height="16"><use href="#i-term"/></svg>Herramientas</div>
+            <div class="r"><svg width="16" height="16"><use href="#i-sliders"/></svg>Ajustes</div>
+          </div>
+          <div class="panel">
+            <div class="h"><h2>Optimizar</h2><p>Perfil: TV · sin root</p></div>
+            <div class="recipe focus"><div class="t"><b>Apagar animaciones</b><span>Escala de ventana, transición y animador a 0</span></div><span class="risk safe">SEGURO</span></div>
+            <div class="recipe"><div class="t"><b>Reducir resolución a 1080p</b><span>Menos trabajo para la GPU en paneles 4K</span></div><span class="risk mod">MEDIO</span></div>
+            <div class="recipe"><div class="t"><b>Forzar Doze</b><span>Entra en reposo profundo ahora</span></div><span class="risk mod">MEDIO</span></div>
+          </div>
+        </div>
+        <div class="hint"><span class="key">OK</span> abre la confirmación con el detalle y el deshacer</div>
+      </div>
+    </div>
+
+    <!-- ================= TV 4 · HERRAMIENTAS ================= -->
+    <div class="item">
+      <div class="cap"><b>Herramientas</b><span>seis utilidades, dos filas</span></div>
+      <div class="tv">
+        <div class="safearea"></div>
+        <div class="tvbar">
+          <div class="brand"><span class="dot"><svg width="11" height="11"><use href="#i-bolt"/></svg></span>AdbOptimizer</div>
+          <span class="chipstate">6 utilidades</span>
+          <span class="clock">21:42</span>
+        </div>
+        <div class="stage">
+          <div class="rail">
+            <div class="r"><svg width="16" height="16"><use href="#i-home"/></svg>Inicio</div>
+            <div class="r"><svg width="16" height="16"><use href="#i-grid"/></svg>Apps</div>
+            <div class="r"><svg width="16" height="16"><use href="#i-bolt"/></svg>Optimizar</div>
+            <div class="r on"><svg width="16" height="16"><use href="#i-term"/></svg>Herramientas</div>
+            <div class="r"><svg width="16" height="16"><use href="#i-sliders"/></svg>Ajustes</div>
+          </div>
+          <div class="panel">
+            <div class="h"><h2>Herramientas</h2><p>Todo se ejecuta en este televisor</p></div>
+            <div class="tiles" style="grid-template-columns:repeat(3,1fr)">
+              <div class="tile focus"><div class="ico" style="background:var(--primary-soft);color:var(--primary)"><svg width="17" height="17"><use href="#i-log"/></svg></div><div><b>Registro</b><span>Logcat en vivo</span></div></div>
+              <div class="tile"><div class="ico" style="background:var(--secondary-soft);color:var(--secondary)"><svg width="17" height="17"><use href="#i-term"/></svg></div><div><b>Consola</b><span>Comandos ADB</span></div></div>
+              <div class="tile"><div class="ico" style="background:var(--tertiary-soft);color:var(--tertiary)"><svg width="17" height="17"><use href="#i-sliders"/></svg></div><div><b>Ajustes del sistema</b><span>Con deshacer</span></div></div>
+              <div class="tile"><div class="ico" style="background:var(--secondary-soft);color:var(--secondary)"><svg width="17" height="17"><use href="#i-folder"/></svg></div><div><b>Archivos</b><span>Explorar y copiar</span></div></div>
+              <div class="tile"><div class="ico" style="background:var(--danger-soft);color:var(--danger)"><svg width="17" height="17"><use href="#i-trash"/></svg></div><div><b>Debloater</b><span>Apps del sistema</span></div></div>
+              <div class="tile"><div class="ico" style="background:var(--tertiary-soft);color:var(--tertiary)"><svg width="17" height="17"><use href="#i-layers"/></svg></div><div><b>Perfiles</b><span>Conjuntos de apps</span></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="hint"><span class="key">OK</span> abre la herramienta <span class="sep">·</span> las utilidades de escritura piden confirmación</div>
+      </div>
+    </div>
+
+    <!-- ================= TV 5 · AJUSTES ================= -->
+    <div class="item">
+      <div class="cap"><b>Ajustes</b><span>filas grandes, toggles claros</span></div>
+      <div class="tv">
+        <div class="safearea"></div>
+        <div class="tvbar">
+          <div class="brand"><span class="dot"><svg width="11" height="11"><use href="#i-bolt"/></svg></span>AdbOptimizer</div>
+          <span class="chipstate">Preferencias</span>
+          <span class="clock">21:43</span>
+        </div>
+        <div class="stage">
+          <div class="rail">
+            <div class="r"><svg width="16" height="16"><use href="#i-home"/></svg>Inicio</div>
+            <div class="r"><svg width="16" height="16"><use href="#i-grid"/></svg>Apps</div>
+            <div class="r"><svg width="16" height="16"><use href="#i-bolt"/></svg>Optimizar</div>
+            <div class="r"><svg width="16" height="16"><use href="#i-term"/></svg>Herramientas</div>
+            <div class="r on"><svg width="16" height="16"><use href="#i-sliders"/></svg>Ajustes</div>
+          </div>
+          <div class="panel">
+            <div class="h"><h2>Ajustes</h2><p>Se guardan en este televisor</p></div>
+            <div class="setrow focus"><div class="t"><b>Mostrar apps del sistema</b><span>Incluye apps de sistema en la lista</span></div><div class="toggle on"><i></i></div></div>
+            <div class="setrow"><div class="t"><b>Actualizar métricas</b><span>Cada 30 segundos</span></div><div class="toggle on"><i></i></div></div>
+          </div>
+        </div>
+        <div class="hint"><span class="key">OK</span> cambia el interruptor <span class="sep">·</span> <span class="key">Atrás</span> vuelve</div>
+      </div>
+    </div>
+
+    <!-- ================= TV 6 · CONFIRMACIÓN ================= -->
+    <div class="item">
+      <div class="cap"><b>Confirmación</b><span>diálogo a tamaño de sofá</span></div>
+      <div class="tv">
+        <div class="safearea"></div>
+        <div class="tvbar">
+          <div class="brand"><span class="dot"><svg width="11" height="11"><use href="#i-bolt"/></svg></span>AdbOptimizer</div>
+          <span class="chipstate">TV · 12 compatibles</span>
+          <span class="clock">21:41</span>
+        </div>
+        <div class="stage">
+          <div class="rail">
+            <div class="r"><svg width="16" height="16"><use href="#i-home"/></svg>Inicio</div>
+            <div class="r"><svg width="16" height="16"><use href="#i-grid"/></svg>Apps</div>
+            <div class="r on"><svg width="16" height="16"><use href="#i-bolt"/></svg>Optimizar</div>
+            <div class="r"><svg width="16" height="16"><use href="#i-term"/></svg>Herramientas</div>
+            <div class="r"><svg width="16" height="16"><use href="#i-sliders"/></svg>Ajustes</div>
+          </div>
+          <div class="panel">
+            <div class="h"><h2>Optimizar</h2><p>Perfil: TV · sin root</p></div>
+            <div class="recipe"><div class="t"><b>Apagar animaciones</b><span>Escala de ventana, transición y animador a 0</span></div><span class="risk safe">SEGURO</span></div>
+            <div class="recipe"><div class="t"><b>Reducir resolución a 1080p</b><span>Menos trabajo para la GPU en paneles 4K</span></div><span class="risk mod">MEDIO</span></div>
+            <div class="recipe"><div class="t"><b>Forzar Doze</b><span>Entra en reposo profundo ahora</span></div><span class="risk mod">MEDIO</span></div>
+          </div>
+        </div>
+        <div class="dialog">
+          <div class="sheet">
+            <h3>Aplicar “Apagar animaciones”</h3>
+            <p>Se cambiarán tres ajustes del sistema. Se leerán de vuelta para confirmar y podrás deshacerlo desde el historial.</p>
+            <div class="btns">
+              <div class="tvbtn">Cancelar</div>
+              <div class="tvbtn solid">Aplicar</div>
+            </div>
+          </div>
+        </div>
+        <div class="hint"><span class="key">◀ ▶</span> elegir botón <span class="sep">·</span> <span class="key">OK</span> confirmar <span class="sep">·</span> <span class="key">Atrás</span> cancelar</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================= REMOTE ================= -->
+  <div class="remote">
+    <div class="dpad">
+      <div class="empty"></div><div>▲</div><div class="empty"></div>
+      <div>◀</div><div class="ok">OK</div><div>▶</div>
+      <div class="empty"></div><div>▼</div><div class="empty"></div>
+    </div>
+    <div>
+      <h3>Cómo se maneja</h3>
+      <ul>
+        <li><b>D-pad</b> mueve el foco (nunca hay dos focos a la vez).</li>
+        <li><b>OK</b> abre o activa lo enfocado; en diálogos elige el botón.</li>
+        <li><b>Atrás</b> cancela o vuelve; en la pantalla inicial no cierra la app.</li>
+        <li>Sin hover, sin arrastrar, sin tocar: todo estado tiene equivalente con teclas.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="notes">
+    <div class="note">
+      <h3>Qué cambia respecto al teléfono</h3>
+      <ul>
+        <li><b>Barra lateral</b> en lugar de barra inferior: más cómoda con D-pad.</li>
+        <li><b>Cuadrícula de apps</b> en vez de lista: menos desplazamiento vertical.</li>
+        <li><b>3–6 elementos por pantalla</b>; el resto se alcanza cambiando de pantalla, no con scroll infinito.</li>
+        <li>Sin control remoto ni espejo: la app corre <b>en</b> el televisor.</li>
+      </ul>
+    </div>
+    <div class="note">
+      <h3>Reglas de 10 pies</h3>
+      <ul>
+        <li>Área segura de <b>48 dp</b> en los cuatro bordes (overscan).</li>
+        <li>Texto mínimo <b>24 sp</b>; títulos a 40–48 sp.</li>
+        <li>Foco: anillo blanco de 2 dp + halo verde; nunca se comunica solo con color.</li>
+        <li>Contraste AA y estados de carga con esqueleto, igual que en el teléfono.</li>
+      </ul>
+    </div>
+    <div class="note">
+      <h3>Qué hace falta para implementarlo</h3>
+      <ul>
+        <li><code>LEANBACK_LAUNCHER</code> y banner 320×180 en el manifiesto.</li>
+        <li>Navegación por foco en Compose (<code>focusRequester</code>, <code>onKeyEvent</code>, <code>Modifier.focusable</code>).</li>
+        <li>Permiso para actuar sobre el propio televisor: Shizuku en TV o ADB local; sin eso solo lectura.</li>
+        <li>Está en la <b>Fase 3</b> de <code>docs/specs/tv-support.md</code>: después de la detección y la protección del launcher.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</body>
+</html>
