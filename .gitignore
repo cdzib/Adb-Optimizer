@@ -29,6 +29,9 @@ local.properties
 *.log
 *.hprof
 
+# Planes y notas del pipeline de agentes (estado local, no versionado)
+.opencode/
+
 # Signing material
 *.jks
 *.keystore
