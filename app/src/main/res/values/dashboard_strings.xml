@@ -8,6 +8,11 @@
     <string name="dashboard_memory">Memoria</string>
     <string name="dashboard_glance">DE UN VISTAZO</string>
     <string name="dashboard_explore">EXPLORA TU EQUIPO</string>
+    <string name="dashboard_identity">Identidad</string>
+    <string name="dashboard_hardware">Hardware</string>
+    <string name="dashboard_build_details">Compilación</string>
+    <string name="dashboard_processor">Procesador</string>
+    <string name="dashboard_cores">Núcleos</string>
     <string name="dashboard_permissions">Shizuku · Revisar acceso</string>
     <string name="dashboard_permissions_ready">Shizuku · Autorizado</string>
     <string name="dashboard_back_summary">Volver al resumen</string>

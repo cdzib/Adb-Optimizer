@@ -4,6 +4,7 @@ package com.optimizer.tools.feature.dashboard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import com.optimizer.tools.R
 import com.optimizer.tools.core.ui.AdbOptimizerTheme
 import com.optimizer.tools.core.ui.DesignGroup
+import com.optimizer.tools.core.ui.DesignInfoRow
 import com.optimizer.tools.core.ui.DesignRow
 import com.optimizer.tools.core.ui.DesignScreenPadding
 import com.optimizer.tools.core.ui.DesignSectionLabel
@@ -299,173 +301,260 @@ internal fun DashboardCategoryContent(
     modifier: Modifier = Modifier,
 ) {
     val unavailable = stringResource(R.string.dashboard_unavailable)
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Icon(category.icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-            Text(stringResource(category.label), style = MaterialTheme.typography.titleMedium)
-        }
-        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), shape = MaterialTheme.shapes.large) {
-            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                when (category) {
-                    DashboardCategory.DEVICE -> {
-                        DeviceInfoRow(stringResource(R.string.dashboard_manufacturer), device.manufacturer.ifBlank { unavailable })
-                        DeviceInfoRow(stringResource(R.string.dashboard_model), device.model.ifBlank { unavailable })
-                        DeviceInfoRow(
-                            stringResource(R.string.dashboard_type),
-                            stringResource(if (device.isTv) R.string.dashboard_tv_type else R.string.dashboard_phone_type),
-                        )
-                        DeviceInfoRow(
-                            stringResource(R.string.dashboard_connection),
-                            if (target ==
-                                AppTarget.LOCAL
-                            ) {
-                                stringResource(R.string.dashboard_local)
-                            } else {
-                                device.id
-                            },
-                        )
-                        device.hardwareInfo?.let { HardwareDiagnosticRows(it) }
-                    }
-
-                    DashboardCategory.DISPLAY -> {
-                        DisplayDiagnosticRows(device.displayInfo)
-                    }
-
-                    DashboardCategory.SENSORS -> {
-                        SensorDiagnosticRows(device.sensors)
-                    }
-
-                    DashboardCategory.NETWORK -> {
-                        NetworkDiagnosticRows(device.networkInterfaces)
-                    }
-
-                    DashboardCategory.SYSTEM -> {
-                        DeviceInfoRow(stringResource(R.string.dashboard_android), device.androidVersion.ifBlank { unavailable })
-                        DeviceInfoRow(stringResource(R.string.dashboard_sdk), device.sdk.toString())
-                        DeviceInfoRow(
-                            stringResource(R.string.dashboard_access),
-                            stringResource(
-                                when {
-                                    device.hasRoot -> R.string.dashboard_root
-                                    target == AppTarget.REMOTE -> R.string.dashboard_adb
-                                    shizukuStatus == ShizukuLocalStatus.READY -> R.string.dashboard_shizuku
-                                    else -> R.string.dashboard_basic
-                                },
-                            ),
-                        )
-                        DeviceInfoRow(
-                            stringResource(R.string.dashboard_uptime),
-                            metrics?.let { formatUptime(it.uptimeSeconds) } ?: unavailable,
-                        )
-                        DeviceInfoRow(
-                            stringResource(R.string.dashboard_temperature),
-                            metrics?.temperatureC?.let { "%.1f °C".format(it) } ?: unavailable,
-                        )
-                        DeviceInfoRow(
-                            stringResource(R.string.dashboard_thermal),
-                            metrics?.let { "${it.maxThermalStatus}/6" } ?: unavailable,
-                        )
-                        device.hardwareInfo?.let { SystemDiagnosticRows(it) }
-                    }
-
-                    DashboardCategory.CPU -> {
-                        Text(
-                            stringResource(
-                                if (target ==
-                                    AppTarget.LOCAL
-                                ) {
-                                    R.string.diagnostics_cpu_estimate
-                                } else {
-                                    R.string.dashboard_cpu_usage
-                                },
-                            ),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            metrics?.let { "${it.cpuBusyPercent.toInt()}%" } ?: unavailable,
-                            style = MaterialTheme.typography.headlineLarge,
-                        )
-                        if (metrics !=
-                            null
-                        ) {
-                            LinearProgressIndicator(
-                                progress = { (metrics.cpuBusyPercent / 100f).coerceIn(0f, 1f) },
-                                modifier = Modifier.fillMaxWidth(),
+    val hardware = device.hardwareInfo
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        when (category) {
+            DashboardCategory.DEVICE -> {
+                DetailInfoSection(
+                    label = R.string.dashboard_identity,
+                    icon = Icons.Filled.Smartphone,
+                    tone = DesignTone.Neutral,
+                    rows =
+                        buildList {
+                            add(R.string.diagnostics_brand to (hardware?.brand ?: device.manufacturer))
+                            add(R.string.diagnostics_product to (hardware?.product ?: device.model))
+                            add(
+                                R.string.dashboard_type to
+                                    stringResource(
+                                        if (device.isTv) R.string.dashboard_tv_type else R.string.dashboard_phone_type,
+                                    ),
                             )
-                        }
-                        DeviceInfoRow(stringResource(R.string.dashboard_abi), device.abi.ifBlank { unavailable })
-                        DeviceInfoRow(stringResource(R.string.dashboard_load), metrics?.let { "%.2f".format(it.load1) } ?: unavailable)
-                        DeviceInfoRow(stringResource(R.string.dashboard_processes), metrics?.backgroundProcesses?.toString() ?: unavailable)
-                        CpuDiagnosticRows(device.hardwareInfo, metrics?.cpuFrequencies.orEmpty())
-                    }
-
-                    DashboardCategory.BATTERY -> {
-                        Text(
-                            stringResource(R.string.dashboard_battery_level),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(batteryText(metrics), style = MaterialTheme.typography.headlineLarge)
-                        metrics?.batteryPercent?.takeIf { it in 0..100 }?.let { level ->
-                            LinearProgressIndicator(progress = { level / 100f }, modifier = Modifier.fillMaxWidth())
-                        }
-                        BatteryDiagnosticRows(metrics?.batteryDiagnostics)
-                    }
-
-                    DashboardCategory.MEMORY -> {
-                        DeviceInfoRow(
-                            stringResource(R.string.dashboard_ram_used),
-                            metrics?.takeIf { it.totalRamKb > 0 }?.let { formatKb(it.usedRamKb) } ?: unavailable,
-                        )
-                        if (metrics != null &&
-                            metrics.totalRamKb > 0
-                        ) {
-                            LinearProgressIndicator(
-                                progress = { metrics.ramRatio.coerceIn(0f, 1f) },
-                                modifier = Modifier.fillMaxWidth(),
+                            add(
+                                R.string.dashboard_connection to
+                                    if (target == AppTarget.LOCAL) {
+                                        stringResource(R.string.dashboard_local)
+                                    } else {
+                                        device.id
+                                    },
                             )
-                        }
-                        DeviceInfoRow(
-                            stringResource(R.string.dashboard_ram_total),
-                            metrics?.takeIf { it.totalRamKb > 0 }?.let { formatKb(it.totalRamKb) } ?: unavailable,
-                        )
-                        DeviceInfoRow(
-                            stringResource(R.string.dashboard_ram_free),
-                            metrics?.takeIf { it.totalRamKb > 0 }?.let { formatKb(it.freeRamKb) } ?: unavailable,
-                        )
-                        DeviceInfoRow(
-                            stringResource(R.string.dashboard_ram_cached),
-                            metrics?.takeIf { it.totalRamKb > 0 }?.let { formatKb(it.cachedKb) } ?: unavailable,
-                        )
-                        metrics?.lowMemoryThresholdKb?.let {
-                            DeviceInfoRow(
-                                stringResource(R.string.diagnostics_memory_threshold),
-                                formatKb(it),
+                            hardware?.supportsUsbHost?.let {
+                                add(
+                                    R.string.diagnostics_usb_host to
+                                        stringResource(if (it) R.string.diagnostics_yes else R.string.diagnostics_no),
+                                )
+                            }
+                        },
+                )
+                DetailInfoSection(
+                    label = R.string.dashboard_system,
+                    icon = Icons.Filled.Layers,
+                    tone = DesignTone.Green,
+                    rows =
+                        buildList {
+                            add(R.string.dashboard_android to device.androidVersion.ifBlank { unavailable })
+                            add(R.string.dashboard_sdk to device.sdk.toString())
+                            add(R.string.dashboard_abi to device.abi.ifBlank { unavailable })
+                            add(R.string.dashboard_access to stringResource(accessLabel(device, target, shizukuStatus)))
+                            add(
+                                R.string.dashboard_uptime to
+                                    (metrics?.let { formatUptime(it.uptimeSeconds) } ?: unavailable),
                             )
-                        }
-                        metrics?.isLowMemory?.let {
-                            DeviceInfoRow(
-                                stringResource(R.string.diagnostics_low_memory),
-                                stringResource(if (it) R.string.diagnostics_yes else R.string.diagnostics_no),
-                            )
-                        }
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                        DeviceInfoRow(
-                            stringResource(R.string.dashboard_storage),
-                            metrics?.takeIf { it.storageTotalKb > 0 }?.let { formatKb(it.storageUsedKb) } ?: unavailable,
-                        )
-                        DeviceInfoRow(
-                            stringResource(R.string.dashboard_storage_free),
-                            metrics?.takeIf { it.storageTotalKb > 0 }?.let { formatKb(it.storageAvailableKb) } ?: unavailable,
-                        )
-                        DeviceInfoRow(
-                            stringResource(R.string.dashboard_storage_total),
-                            metrics?.takeIf { it.storageTotalKb > 0 }?.let { formatKb(it.storageTotalKb) } ?: unavailable,
-                        )
-                    }
+                        },
+                )
+                if (hardware != null) {
+                    DetailSection(R.string.dashboard_hardware) { HardwareDiagnosticRows(hardware) }
+                    DetailSection(R.string.dashboard_build_details) { SystemDiagnosticRows(hardware) }
                 }
             }
+
+            DashboardCategory.DISPLAY -> {
+                DetailSection(R.string.dashboard_display) { DisplayDiagnosticRows(device.displayInfo) }
+            }
+
+            DashboardCategory.SENSORS -> {
+                DetailSection(R.string.dashboard_sensors) { SensorDiagnosticRows(device.sensors) }
+            }
+
+            DashboardCategory.NETWORK -> {
+                DetailSection(R.string.dashboard_network) { NetworkDiagnosticRows(device.networkInterfaces) }
+            }
+
+            DashboardCategory.SYSTEM -> {
+                DetailInfoSection(
+                    label = R.string.dashboard_system,
+                    icon = Icons.Filled.Layers,
+                    tone = DesignTone.Green,
+                    rows =
+                        buildList {
+                            add(R.string.dashboard_android to device.androidVersion.ifBlank { unavailable })
+                            add(R.string.dashboard_sdk to device.sdk.toString())
+                            add(R.string.dashboard_access to stringResource(accessLabel(device, target, shizukuStatus)))
+                            add(
+                                R.string.dashboard_uptime to
+                                    (metrics?.let { formatUptime(it.uptimeSeconds) } ?: unavailable),
+                            )
+                            add(
+                                R.string.dashboard_temperature to
+                                    (metrics?.temperatureC?.let { "%.1f °C".format(it) } ?: unavailable),
+                            )
+                            add(
+                                R.string.dashboard_thermal to
+                                    (metrics?.let { "${it.maxThermalStatus}/6" } ?: unavailable),
+                            )
+                        },
+                )
+                if (hardware != null) {
+                    DetailSection(R.string.dashboard_hardware) { HardwareDiagnosticRows(hardware) }
+                    DetailSection(R.string.dashboard_build_details) { SystemDiagnosticRows(hardware) }
+                }
+            }
+
+            DashboardCategory.CPU -> {
+                Text(
+                    stringResource(
+                        if (target == AppTarget.LOCAL) {
+                            R.string.diagnostics_cpu_estimate
+                        } else {
+                            R.string.dashboard_cpu_usage
+                        },
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    metrics?.let { "${it.cpuBusyPercent.toInt()}%" } ?: unavailable,
+                    style = MaterialTheme.typography.headlineLarge,
+                )
+                if (metrics != null) {
+                    LinearProgressIndicator(
+                        progress = { (metrics.cpuBusyPercent / 100f).coerceIn(0f, 1f) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                DetailInfoSection(
+                    label = R.string.dashboard_processor,
+                    icon = Icons.Filled.Memory,
+                    tone = DesignTone.Red,
+                    rows =
+                        buildList {
+                            add(R.string.dashboard_abi to device.abi.ifBlank { unavailable })
+                            add(R.string.dashboard_load to (metrics?.let { "%.2f".format(it.load1) } ?: unavailable))
+                            add(
+                                R.string.dashboard_processes to
+                                    (metrics?.backgroundProcesses?.toString() ?: unavailable),
+                            )
+                            hardware?.let {
+                                add(R.string.diagnostics_soc to it.socModel)
+                                add(R.string.diagnostics_soc_manufacturer to it.socManufacturer)
+                                add(
+                                    R.string.diagnostics_abis to
+                                        it.supportedAbis.takeIf { abis -> abis.isNotEmpty() }?.joinToString(),
+                                )
+                            }
+                        },
+                )
+                DetailSection(R.string.dashboard_cores) { CpuCoreRows(metrics?.cpuFrequencies.orEmpty()) }
+            }
+
+            DashboardCategory.BATTERY -> {
+                Text(
+                    stringResource(R.string.dashboard_battery_level),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(batteryText(metrics), style = MaterialTheme.typography.headlineLarge)
+                metrics?.batteryPercent?.takeIf { it in 0..100 }?.let { level ->
+                    LinearProgressIndicator(progress = { level / 100f }, modifier = Modifier.fillMaxWidth())
+                }
+                DetailSection(R.string.dashboard_battery) {
+                    BatteryDiagnosticRows(metrics?.batteryDiagnostics)
+                }
+            }
+
+            DashboardCategory.MEMORY -> {
+                DetailInfoSection(
+                    label = R.string.dashboard_memory,
+                    icon = Icons.Filled.Storage,
+                    tone = DesignTone.Cyan,
+                    rows =
+                        buildList {
+                            add(
+                                R.string.dashboard_ram_used to
+                                    (metrics?.takeIf { it.totalRamKb > 0 }?.let { formatKb(it.usedRamKb) } ?: unavailable),
+                            )
+                            add(
+                                R.string.dashboard_ram_total to
+                                    (metrics?.takeIf { it.totalRamKb > 0 }?.let { formatKb(it.totalRamKb) } ?: unavailable),
+                            )
+                            add(
+                                R.string.dashboard_ram_free to
+                                    (metrics?.takeIf { it.totalRamKb > 0 }?.let { formatKb(it.freeRamKb) } ?: unavailable),
+                            )
+                            add(
+                                R.string.dashboard_ram_cached to
+                                    (metrics?.takeIf { it.totalRamKb > 0 }?.let { formatKb(it.cachedKb) } ?: unavailable),
+                            )
+                            metrics?.lowMemoryThresholdKb?.let {
+                                add(R.string.diagnostics_memory_threshold to formatKb(it))
+                            }
+                            metrics?.isLowMemory?.let {
+                                add(
+                                    R.string.diagnostics_low_memory to
+                                        stringResource(if (it) R.string.diagnostics_yes else R.string.diagnostics_no),
+                                )
+                            }
+                        },
+                )
+                DetailInfoSection(
+                    label = R.string.dashboard_storage,
+                    icon = Icons.Filled.Storage,
+                    tone = DesignTone.Cyan,
+                    rows =
+                        buildList {
+                            val storage = metrics?.takeIf { it.storageTotalKb > 0 }
+                            add(R.string.dashboard_storage to (storage?.let { formatKb(it.storageUsedKb) } ?: unavailable))
+                            add(
+                                R.string.dashboard_storage_free to
+                                    (storage?.let { formatKb(it.storageAvailableKb) } ?: unavailable),
+                            )
+                            add(
+                                R.string.dashboard_storage_total to
+                                    (storage?.let { formatKb(it.storageTotalKb) } ?: unavailable),
+                            )
+                        },
+                )
+            }
+        }
+    }
+}
+
+private fun accessLabel(
+    device: DeviceInfo,
+    target: AppTarget,
+    shizukuStatus: ShizukuLocalStatus,
+): Int =
+    when {
+        device.hasRoot -> R.string.dashboard_root
+        target == AppTarget.REMOTE -> R.string.dashboard_adb
+        shizukuStatus == ShizukuLocalStatus.READY -> R.string.dashboard_shizuku
+        else -> R.string.dashboard_basic
+    }
+
+@Composable
+private fun DetailSection(
+    label: Int,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    DesignSectionLabel(stringResource(label))
+    DesignGroup(content = content)
+}
+
+@Composable
+private fun DetailInfoSection(
+    label: Int,
+    icon: ImageVector,
+    tone: DesignTone,
+    rows: List<Pair<Int, String?>>,
+) {
+    DetailSection(label) {
+        rows.forEachIndexed { index, (titleRes, value) ->
+            DesignInfoRow(
+                icon = icon,
+                title = stringResource(titleRes),
+                value = value,
+                tone = tone,
+                isFirst = index == 0,
+            )
         }
     }
 }

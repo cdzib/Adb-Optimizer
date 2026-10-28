@@ -49,6 +49,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -236,6 +237,45 @@ fun DesignRow(
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
                     modifier = Modifier.size(18.dp),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Fila de solo lectura: icono tonal, etiqueta y valor alineado a la derecha.
+ * Es el equivalente de `.row` con `.value` en el prototipo de escritorio.
+ */
+@Composable
+fun DesignInfoRow(
+    icon: ImageVector,
+    title: String,
+    value: String?,
+    subtitle: String? = null,
+    tone: DesignTone = DesignTone.Neutral,
+    isFirst: Boolean = false,
+) {
+    Column {
+        if (!isFirst) DesignDivider()
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            DesignIconBadge(icon, tone)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                DesignRowTitle(title)
+                if (subtitle != null) DesignRowSubtitle(subtitle)
+            }
+            if (value != null) {
+                Text(
+                    value,
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, fontWeight = FontWeight.Medium),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.End,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
