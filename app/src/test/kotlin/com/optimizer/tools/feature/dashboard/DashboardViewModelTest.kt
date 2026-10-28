@@ -178,6 +178,47 @@ class DashboardViewModelTest {
         }
 
     @Test
+    fun `auto refresh replaces cpu and ram values with the new reading`() =
+        runViewModelTest {
+            val environment =
+                FakeDashboardEnvironment(
+                    localDeviceInfo = phone,
+                    localMetricsValue = metrics.copy(cpuBusyPercent = 12f, usedRamKb = 3_000),
+                )
+            val viewModel = DashboardViewModel(environment)
+            runCurrent()
+            viewModel.setTarget(AppTarget.LOCAL)
+            environment.settingsFlow.value =
+                AppSettings(
+                    autoRefreshMetrics = true,
+                    metricsRefreshSeconds = 10,
+                )
+            runCurrent()
+            assertEquals(
+                12f,
+                viewModel.state.value.metrics
+                    ?.cpuBusyPercent,
+            )
+
+            environment.localMetricsValue = metrics.copy(cpuBusyPercent = 87f, usedRamKb = 6_500)
+            repeat(10) {
+                environment.ticksFlow.emit(Unit)
+                runCurrent()
+            }
+
+            assertEquals(
+                87f,
+                viewModel.state.value.metrics
+                    ?.cpuBusyPercent,
+            )
+            assertEquals(
+                6_500L,
+                viewModel.state.value.metrics
+                    ?.usedRamKb,
+            )
+        }
+
+    @Test
     fun `power action asks for the selected device and runs only on confirmation`() =
         runViewModelTest {
             val environment =
