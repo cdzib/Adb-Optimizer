@@ -15,11 +15,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.optimizer.tools.R
 import com.optimizer.tools.core.ui.AdbOptimizerTheme
+import com.optimizer.tools.core.ui.DesignGroup
+import com.optimizer.tools.core.ui.DesignRow
+import com.optimizer.tools.core.ui.DesignTone
 import com.optimizer.tools.domain.model.KnownDevice
 import com.optimizer.tools.domain.model.ThemeMode
 import com.optimizer.tools.domain.model.deduplicateKnownDevices
@@ -39,61 +41,53 @@ internal fun KnownDevicesSection(
     val uniqueDevices = remember(devices) { deduplicateKnownDevices(devices) }
     var selectedDevice by remember { mutableStateOf<KnownDevice?>(null) }
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(stringResource(R.string.devices_recent), style = MaterialTheme.typography.titleSmall)
         if (uniqueDevices.isEmpty()) {
             Text(
                 stringResource(R.string.devices_recent_empty),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 4.dp),
             )
         }
-        uniqueDevices.forEach { device ->
-            key(device.identityKey ?: device.address) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    shape = MaterialTheme.shapes.large,
-                ) {
-                    Row(
-                        Modifier.fillMaxWidth().padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        KnownDeviceIcon(device)
-                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(
-                                device.displayName,
-                                style = MaterialTheme.typography.titleSmall,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                            Text(
-                                stringResource(device.typeLabel()),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            if (connecting && connectTarget?.removeSuffix(" (TLS)") == device.address) {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                                    Text(
-                                        stringResource(R.string.devices_reconnecting),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.primary,
+        if (uniqueDevices.isNotEmpty()) {
+            DesignGroup {
+                uniqueDevices.forEachIndexed { index, device ->
+                    key(device.identityKey ?: device.address) {
+                        DesignRow(
+                            icon =
+                                when (device.isTv) {
+                                    true -> Icons.Filled.Tv
+                                    false -> Icons.Filled.Smartphone
+                                    null -> Icons.Filled.Devices
+                                },
+                            title = device.displayName,
+                            subtitle =
+                                buildString {
+                                    append(stringResource(device.typeLabel()))
+                                    append(" · ").append(device.address)
+                                    if (connecting && connectTarget?.removeSuffix(" (TLS)") == device.address) {
+                                        append(" · ").append(stringResource(R.string.devices_reconnecting))
+                                    } else if (connectedDevices.any { it.id == device.address }) {
+                                        append(" · ").append(stringResource(R.string.devices_connected))
+                                    }
+                                },
+                            tone =
+                                when {
+                                    connectedDevices.any { it.id == device.address } -> DesignTone.Green
+                                    device.isTv == true -> DesignTone.Amber
+                                    else -> DesignTone.Cyan
+                                },
+                            isFirst = index == 0,
+                            trailing = {
+                                IconButton(onClick = { selectedDevice = device }) {
+                                    Icon(
+                                        Icons.Filled.MoreVert,
+                                        contentDescription = stringResource(R.string.known_device_actions, device.displayName),
                                     )
                                 }
-                            } else if (connectedDevices.any { it.id == device.address }) {
-                                Text(
-                                    stringResource(R.string.devices_connected),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
-                            }
-                        }
-                        IconButton(onClick = { selectedDevice = device }) {
-                            Icon(
-                                Icons.Filled.MoreVert,
-                                contentDescription = stringResource(R.string.known_device_actions, device.displayName),
-                            )
-                        }
+                            },
+                            onClick = { selectedDevice = device },
+                        )
                     }
                 }
             }

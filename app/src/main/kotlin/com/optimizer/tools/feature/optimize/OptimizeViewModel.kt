@@ -93,6 +93,10 @@ class OptimizeViewModel(
 
     fun optimize() = runSelected()
 
+    fun refresh() {
+        viewModelScope.launch { rebuild() }
+    }
+
     private fun runSelected() {
         val snapshot = _state.value
         val device = snapshot.deviceInfo ?: return emitFail("error.notConnected", uiText(R.string.optimize_error_device_read))
@@ -103,7 +107,7 @@ class OptimizeViewModel(
                 }
 
                 AppTarget.LOCAL -> {
-                    if (environment.localShizukuStatus() != ShizukuLocalStatus.READY) {
+                    if (!environment.localPrivilegeReady()) {
                         return emitFail("error.unknown", uiText(R.string.optimize_error_shizuku))
                     }
                     environment.localEngine()
@@ -143,7 +147,7 @@ class OptimizeViewModel(
             device = environment.remoteDevice()
             shizukuStatus = _state.value.shizukuStatus
         } else {
-            shizukuStatus = environment.localShizukuStatus()
+            shizukuStatus = environment.localPrivilegeStatus()
             device = environment.localDevice()
             engine = environment.localEngine()
         }

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="console_title">Consola</string>
+    <string name="console_subtitle">Comandos adb shell sin salir de la app</string>
+    <string name="console_clear">Limpiar salida</string>
+    <string name="console_command">Comando</string>
+    <string name="console_run">Ejecutar</string>
+    <string name="console_running">Ejecutando…</string>
+    <string name="console_timeout">Límite de 60 s por comando</string>
+    <string name="console_history">Historial</string>
+    <string name="console_exit">Salida %1$d · %2$d ms</string>
+    <string name="console_empty_output">Sin salida.</string>
+    <string name="console_no_device_title">Sin destino</string>
+    <string name="console_no_device">Conecta un dispositivo por ADB o autoriza Shizuku para ejecutar comandos.</string>
+    <string name="console_error_run">No se pudo ejecutar el comando.</string>
+    <string name="console_error_no_device">No hay un dispositivo disponible para ejecutar comandos.</string>
+    <string name="console_message_exit">El comando terminó con código %1$d.</string>
+</resources>

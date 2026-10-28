@@ -12,8 +12,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.optimizer.tools.R
 import com.optimizer.tools.core.ui.AdbOptimizerTheme
 import com.optimizer.tools.domain.model.ThemeMode
@@ -27,7 +29,16 @@ internal fun ConnectionSelectionContent(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.connection_select_title), style = MaterialTheme.typography.headlineSmall)
+            Text(
+                stringResource(R.string.connection_select_title),
+                style =
+                    MaterialTheme.typography.headlineSmall.copy(
+                        fontSize = 22.sp,
+                        lineHeight = 27.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = (-0.2).sp,
+                    ),
+            )
             Text(
                 stringResource(R.string.connection_select_body),
                 style = MaterialTheme.typography.bodyMedium,

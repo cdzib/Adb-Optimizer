@@ -39,6 +39,11 @@ internal class AppContainerOptimizeEnvironment(
     override suspend fun localDevice(): DeviceInfo? = runCatching { container.localDevice.readInfo() }.getOrNull()
 
     override fun localShizukuStatus(): ShizukuLocalStatus = container.shizukuLocalAccess.status()
+
+    override fun localPrivilegeReady(): Boolean = container.localPrivilegeReady()
+
+    override fun localPrivilegeStatus(): ShizukuLocalStatus =
+        if (container.localPrivilegeReady()) ShizukuLocalStatus.READY else container.shizukuLocalAccess.status()
 }
 
 private class RecipeEngineOptimizeEngine(

@@ -29,7 +29,7 @@ class DozeViewModel(
     val state: StateFlow<DozeState> = _state.asStateFlow()
 
     fun onEnter() {
-        _state.update { it.copy(connected = environment.activeDevice() != null) }
+        _state.update { it.copy(connected = environment.hasDevice()) }
         refresh()
     }
 

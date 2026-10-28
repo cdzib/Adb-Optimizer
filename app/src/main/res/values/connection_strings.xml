@@ -114,4 +114,8 @@
     <string name="connection_error_timeout">No se pudo conectar con %1$s en %2$d s. Verifica que la TV tenga la depuracion inalambrica activa y la misma red.</string>
 
     <string name="devices_success_connected">Conectado con %1$s</string>
+    <string name="devices_remote_chip">Remoto</string>
+    <string name="devices_remote_control">Control remoto</string>
+    <string name="devices_mirror">Espejo</string>
+    <string name="devices_tools_for_device">Herramientas de este equipo</string>
 </resources>

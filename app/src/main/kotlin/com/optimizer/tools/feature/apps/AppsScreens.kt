@@ -18,15 +18,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.InstallMobile
 import androidx.compose.material.icons.filled.MoreVert
@@ -47,12 +45,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,11 +60,19 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.optimizer.tools.R
+import com.optimizer.tools.app.tv.LocalTelevisionUi
+import com.optimizer.tools.app.tv.TvAppsGrid
 import com.optimizer.tools.core.ui.AppColors
 import com.optimizer.tools.core.ui.AppIcon
+import com.optimizer.tools.core.ui.DesignChip
+import com.optimizer.tools.core.ui.DesignDivider
+import com.optimizer.tools.core.ui.DesignSearchField
+import com.optimizer.tools.core.ui.ScreenHeader
+import com.optimizer.tools.core.ui.ScreenIconButton
 import com.optimizer.tools.core.ui.Translate
 import com.optimizer.tools.core.ui.UiText
 import com.optimizer.tools.core.ui.formatBytes
@@ -117,225 +121,258 @@ internal fun AppsScreen(
     onAdvancedAction: (String, String) -> Unit,
     onConfirmAdvancedAction: () -> Unit,
     onDismissAdvancedAction: () -> Unit,
+    onConnect: () -> Unit,
 ) {
     val visible = visibleApps(state)
     val busy = state.busy
-    var searchOpen by remember { mutableStateOf(false) }
     var filtersOpen by remember { mutableStateOf(false) }
     val searchFocus = remember { FocusRequester() }
-    LaunchedEffect(searchOpen) {
-        if (searchOpen) searchFocus.requestFocus()
-    }
     val filtersActive = state.sort != AppSort.NAME || state.filter != setOf(AppFilter.USER)
 
     Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize().padding(horizontal = 18.dp)) {
-            Spacer(Modifier.height(10.dp))
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (searchOpen) {
-                    OutlinedTextField(
-                        value = state.query,
-                        onValueChange = onQuery,
-                        placeholder = { Text(t("apps.search")) },
-                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-                        trailingIcon = {
-                            IconButton(onClick = {
-                                onQuery("")
-                                searchOpen = false
-                            }) {
-                                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.apps_close_search))
-                            }
-                        },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f).focusRequester(searchFocus),
-                    )
-                } else {
-                    Column(Modifier.weight(1f)) {
-                        Text(t("apps.title"), style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            stringResource(R.string.apps_count, visible.size, state.apps.size),
-                            style = MaterialTheme.typography.bodySmall,
+        if (LocalTelevisionUi.current) {
+            TvAppsGrid(
+                state = state,
+                onDetails = onDetails,
+                onReload = onReload,
+                onAction = onOpen,
+                onInspect = onInspect,
+            )
+        } else {
+            Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+                ScreenHeader(
+                    title = t("apps.title"),
+                    subtitle = stringResource(R.string.apps_count, visible.size, state.apps.size),
+                    actions = {
+                        ScreenIconButton(
+                            Icons.Filled.FilterList,
+                            stringResource(R.string.apps_filters_sort),
+                            { filtersOpen = true },
+                            highlighted = filtersActive,
                         )
-                    }
-                    IconButton(onClick = { searchOpen = true }) {
-                        Icon(Icons.Filled.Search, contentDescription = t("apps.search"))
-                    }
-                    IconButton(onClick = { filtersOpen = true }) {
-                        Box {
-                            Icon(Icons.Filled.FilterList, contentDescription = stringResource(R.string.apps_filters_sort))
-                            if (filtersActive) {
-                                Box(
-                                    Modifier
-                                        .align(Alignment.TopEnd)
-                                        .size(8.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary),
-                                )
-                            }
-                        }
-                    }
-                    IconButton(onClick = onReload, enabled = !state.loading) {
                         if (state.loading) {
                             CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
                         } else {
-                            Icon(Icons.Filled.Refresh, contentDescription = t("apps.reload"))
+                            ScreenIconButton(Icons.Filled.Refresh, t("apps.reload"), onReload)
                         }
-                    }
+                    },
+                )
+                DesignSearchField(
+                    value = state.query,
+                    onValueChange = onQuery,
+                    placeholder = t("apps.search"),
+                    modifier = Modifier.focusRequester(searchFocus),
+                )
+                Spacer(Modifier.height(10.dp))
+                val systemCount = state.apps.count { it.isSystem }
+                val userCount = state.apps.size - systemCount
+                // Cada chip sustituye el filtro por un conjunto exacto; onFilter alterna.
+                val selectFilter: (Set<AppFilter>) -> Unit = { desired ->
+                    val current = state.filter
+                    (current - desired).forEach(onFilter)
+                    (desired - current).forEach(onFilter)
                 }
-            }
-
-            if (apkInstallProgress != null || apkInstallMessage != null) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        apkInstallProgress?.let { Text(it.resolve(), style = MaterialTheme.typography.bodySmall) }
-                        apkInstallMessage?.let { Text(it.resolve(), style = MaterialTheme.typography.bodySmall) }
-                    }
-                }
-            }
-
-            if (state.message != null) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                ) {
-                    Row(Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(state.message.resolve(), style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
-                        TextButton(onClick = onDismissMessage) { Text(stringResource(R.string.apps_ok)) }
-                    }
-                }
-            }
-
-            if (state.selection.isNotEmpty()) {
                 Row(
                     Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(stringResource(R.string.apps_selection_count, state.selection.size), style = MaterialTheme.typography.labelSmall)
-                    TextButton(onClick = onSelectAll) { Text(stringResource(R.string.apps_select_all)) }
-                    TextButton(onClick = onClear) { Text(stringResource(R.string.apps_select_none)) }
-                    if (state.target == AppTarget.REMOTE) {
-                        TextButton(onClick = { onBatch(AppAction.FORCE_STOP) }) { Text(stringResource(R.string.apps_force_stop)) }
-                        TextButton(onClick = { onBatch(AppAction.UNINSTALL) }) { Text(stringResource(R.string.apps_uninstall)) }
-                    }
+                    DesignChip(
+                        text = stringResource(R.string.apps_filter_all_count, state.apps.size),
+                        selected = state.filter.isEmpty(),
+                        onClick = { selectFilter(emptySet()) },
+                    )
+                    DesignChip(
+                        text = stringResource(R.string.apps_filter_user_count, userCount),
+                        selected = state.filter == setOf(AppFilter.USER),
+                        onClick = { selectFilter(setOf(AppFilter.USER)) },
+                    )
+                    DesignChip(
+                        text = stringResource(R.string.apps_filter_system_count, systemCount),
+                        selected = state.filter == setOf(AppFilter.SYSTEM),
+                        onClick = { selectFilter(setOf(AppFilter.SYSTEM)) },
+                    )
                 }
-            }
+                Spacer(Modifier.height(12.dp))
 
-            when {
-                state.loading && state.apps.isEmpty() -> {
+                if (apkInstallProgress != null || apkInstallMessage != null) {
                     Card(
-                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Column(
-                            Modifier.fillMaxWidth().padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            CircularProgressIndicator(Modifier.size(28.dp), strokeWidth = 2.dp)
-                            Text(stringResource(R.string.apps_loading), style = MaterialTheme.typography.bodyMedium)
+                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            apkInstallProgress?.let { Text(it.resolve(), style = MaterialTheme.typography.bodySmall) }
+                            apkInstallMessage?.let { Text(it.resolve(), style = MaterialTheme.typography.bodySmall) }
                         }
                     }
                 }
 
-                visible.isEmpty() -> {
-                    val hasSearchOrFilters = state.query.isNotBlank() || filtersActive
-                    Card(
-                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                if (!state.privileged) {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.12f))
+                            .padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        Column(
-                            Modifier.fillMaxWidth().padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                        Text(
+                            stringResource(R.string.apps_read_only_title),
+                            style = MaterialTheme.typography.titleSmall,
+                        )
+                        Text(
+                            stringResource(R.string.apps_read_only_body),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        TextButton(onClick = onConnect) { Text(stringResource(R.string.apps_read_only_connect)) }
+                    }
+                }
+
+                if (state.message != null) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    ) {
+                        Row(Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text(state.message.resolve(), style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+                            TextButton(onClick = onDismissMessage) { Text(stringResource(R.string.apps_ok)) }
+                        }
+                    }
+                }
+
+                if (state.selection.isNotEmpty()) {
+                    Row(
+                        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            stringResource(R.string.apps_selection_count, state.selection.size),
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                        TextButton(onClick = onSelectAll) { Text(stringResource(R.string.apps_select_all)) }
+                        TextButton(onClick = onClear) { Text(stringResource(R.string.apps_select_none)) }
+                        if (state.target == AppTarget.REMOTE) {
+                            TextButton(onClick = { onBatch(AppAction.FORCE_STOP) }) { Text(stringResource(R.string.apps_force_stop)) }
+                            TextButton(onClick = { onBatch(AppAction.UNINSTALL) }) { Text(stringResource(R.string.apps_uninstall)) }
+                        }
+                    }
+                }
+
+                when {
+                    state.loading && state.apps.isEmpty() -> {
+                        Card(
+                            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         ) {
-                            Icon(
-                                if (hasSearchOrFilters) Icons.Filled.Search else Icons.Filled.Apps,
-                                contentDescription = null,
-                                modifier = Modifier.size(32.dp),
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                            Text(
-                                stringResource(
-                                    if (hasSearchOrFilters) {
-                                        R.string.apps_no_results
-                                    } else {
-                                        R.string.apps_empty
-                                    },
-                                ),
-                                style = MaterialTheme.typography.titleSmall,
-                            )
-                            Text(
-                                stringResource(
-                                    if (hasSearchOrFilters) {
-                                        R.string.apps_no_results_hint
-                                    } else {
-                                        R.string.apps_empty_hint
-                                    },
-                                ),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            TextButton(onClick = {
-                                if (hasSearchOrFilters) {
-                                    onQuery("")
-                                    onSort(AppSort.NAME)
-                                    if (AppFilter.USER !in state.filter) onFilter(AppFilter.USER)
-                                    state.filter.filterNot { it == AppFilter.USER }.forEach(onFilter)
-                                } else {
-                                    onReload()
-                                }
-                            }) {
-                                Text(
-                                    stringResource(
-                                        if (hasSearchOrFilters) {
-                                            R.string.apps_clear_filters
-                                        } else {
-                                            R.string.apps_refresh_list
-                                        },
-                                    ),
-                                )
+                            Column(
+                                Modifier.fillMaxWidth().padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                CircularProgressIndicator(Modifier.size(28.dp), strokeWidth = 2.dp)
+                                Text(stringResource(R.string.apps_loading), style = MaterialTheme.typography.bodyMedium)
                             }
                         }
                     }
-                }
 
-                else -> {
-                    LazyColumn(
-                        Modifier.weight(1f),
-                        contentPadding =
-                            androidx.compose.foundation.layout
-                                .PaddingValues(top = 8.dp, bottom = 88.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        items(visible, key = { "${state.target}:${it.packageName}" }) { app ->
-                            AppCard(
-                                app = app,
-                                selected = app.packageName in state.selection,
-                                busy = busy?.endsWith(":${app.packageName}") == true || busy == "batch",
-                                local = state.target == AppTarget.LOCAL,
-                                actions = actions,
-                                sdk = device?.sdk ?: 0,
-                                t = t,
-                                onToggle = onToggle,
-                                onDetails = onDetails,
-                                onInspect = onInspect,
-                                onAction = onOpen,
-                                onAdvancedAction = onAdvancedAction,
-                            )
+                    visible.isEmpty() -> {
+                        val hasSearchOrFilters = state.query.isNotBlank() || filtersActive
+                        Card(
+                            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        ) {
+                            Column(
+                                Modifier.fillMaxWidth().padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(10.dp),
+                            ) {
+                                Icon(
+                                    if (hasSearchOrFilters) Icons.Filled.Search else Icons.Filled.Apps,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(32.dp),
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                                Text(
+                                    stringResource(
+                                        if (hasSearchOrFilters) {
+                                            R.string.apps_no_results
+                                        } else {
+                                            R.string.apps_empty
+                                        },
+                                    ),
+                                    style = MaterialTheme.typography.titleSmall,
+                                )
+                                Text(
+                                    stringResource(
+                                        if (hasSearchOrFilters) {
+                                            R.string.apps_no_results_hint
+                                        } else {
+                                            R.string.apps_empty_hint
+                                        },
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                TextButton(onClick = {
+                                    if (hasSearchOrFilters) {
+                                        onQuery("")
+                                        onSort(AppSort.NAME)
+                                        if (AppFilter.USER !in state.filter) onFilter(AppFilter.USER)
+                                        state.filter.filterNot { it == AppFilter.USER }.forEach(onFilter)
+                                    } else {
+                                        onReload()
+                                    }
+                                }) {
+                                    Text(
+                                        stringResource(
+                                            if (hasSearchOrFilters) {
+                                                R.string.apps_clear_filters
+                                            } else {
+                                                R.string.apps_refresh_list
+                                            },
+                                        ),
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    else -> {
+                        LazyColumn(
+                            Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(MaterialTheme.colorScheme.surface),
+                            contentPadding =
+                                androidx.compose.foundation.layout
+                                    .PaddingValues(bottom = 88.dp),
+                            verticalArrangement = Arrangement.spacedBy(0.dp),
+                        ) {
+                            itemsIndexed(visible, key = { _, app -> "${state.target}:${app.packageName}" }) { index, app ->
+                                if (index > 0) DesignDivider()
+                                AppCard(
+                                    app = app,
+                                    selected = app.packageName in state.selection,
+                                    busy = busy?.endsWith(":${app.packageName}") == true || busy == "batch",
+                                    local = state.target == AppTarget.LOCAL,
+                                    canModify = state.privileged,
+                                    actions = actions,
+                                    sdk = device?.sdk ?: 0,
+                                    t = t,
+                                    onToggle = onToggle,
+                                    onDetails = onDetails,
+                                    onInspect = onInspect,
+                                    onAction = onOpen,
+                                    onAdvancedAction = onAdvancedAction,
+                                )
+                            }
                         }
                     }
                 }
             }
         }
-        if (state.target == AppTarget.REMOTE) {
+        if (state.target == AppTarget.REMOTE && !LocalTelevisionUi.current) {
             FloatingActionButton(
                 onClick = { if (!apkInstallRunning) onOpenHostAppPicker() },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
@@ -369,6 +406,7 @@ internal fun AppsScreen(
     state.detail?.let { app ->
         AppDetailSheet(
             app = app,
+            canModify = state.privileged,
             loading = state.detailsLoading,
             onDismiss = onDismissDetails,
             onAction = onOpen,
@@ -491,6 +529,7 @@ internal fun AppCard(
     selected: Boolean,
     busy: Boolean,
     local: Boolean,
+    canModify: Boolean,
     actions: List<dev.adboptimizer.core.model.ActionSpec>,
     sdk: Int,
     t: Translate,
@@ -502,91 +541,94 @@ internal fun AppCard(
 ) {
     var open by remember { mutableStateOf(false) }
 
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable { onDetails(app) },
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .background(
+                if (selected) {
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                } else {
+                    Color.Transparent
+                },
+            ).clickable { onDetails(app) }
+            .padding(start = 6.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        Checkbox(checked = selected, onCheckedChange = { onToggle(app.packageName) })
+        AppIcon(app = app, local = local)
+        Column(
+            Modifier.weight(1f).padding(start = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            Checkbox(checked = selected, onCheckedChange = { onToggle(app.packageName) })
-            AppIcon(app = app, local = local)
-            Column(
-                Modifier.weight(1f).padding(start = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                Text(
-                    app.displayName,
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    app.packageName,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = AppColors.muted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    if (app.isSystem) {
-                        Text(stringResource(R.string.apps_system), style = MaterialTheme.typography.labelSmall, color = AppColors.muted)
-                    }
-                    if (!app.enabled) {
-                        Text(stringResource(R.string.apps_disabled), style = MaterialTheme.typography.labelSmall, color = AppColors.warning)
-                    }
-                    if (app.versionCode > 0) {
-                        Text(
-                            "v${app.versionName.ifBlank { app.versionCode.toString() }}",
-                            style = MaterialTheme.typography.labelSmall,
-                        )
-                    }
-                    if (app.sizeBytes > 0) {
-                        Text(formatBytes(app.sizeBytes), style = MaterialTheme.typography.labelSmall)
+            Text(
+                app.displayName,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                buildString {
+                    append(app.packageName)
+                    if (app.sizeBytes > 0) append(" · ").append(formatBytes(app.sizeBytes))
+                    if (app.isSystem) append(" · ").append(stringResource(R.string.apps_system))
+                    if (!app.enabled) append(" · ").append(stringResource(R.string.apps_disabled))
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = AppColors.muted,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (busy) {
+            CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+            Spacer(Modifier.width(6.dp))
+        }
+        Box {
+            IconButton(onClick = { open = true }) {
+                Icon(Icons.Filled.MoreVert, contentDescription = t("apps.actions"))
+            }
+            DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+                if (!canModify) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.apps_read_only_hint), style = MaterialTheme.typography.labelSmall) },
+                        enabled = false,
+                        onClick = {},
+                    )
+                    HorizontalDivider()
+                }
+                menuAction(stringResource(R.string.apps_open), !busy) { onAction(app, AppAction.OPEN) }
+                menuAction(stringResource(R.string.apps_details), !busy) { onDetails(app) }
+                menuAction(stringResource(R.string.apps_inspect), !busy && canModify) { onInspect(app.packageName) }
+                menuAction(stringResource(R.string.apps_force_stop), !busy && canModify) { onAction(app, AppAction.FORCE_STOP) }
+                menuAction(
+                    stringResource(if (app.enabled) R.string.apps_disable else R.string.apps_enable),
+                    !busy && canModify,
+                ) {
+                    onAction(app, if (app.enabled) AppAction.DISABLE else AppAction.ENABLE)
+                }
+                menuAction(stringResource(R.string.apps_clear_data), !busy && canModify) { onAction(app, AppAction.CLEAR_DATA) }
+                menuAction(stringResource(R.string.apps_clear_cache), !busy && canModify) { onAction(app, AppAction.CLEAR_CACHE) }
+                HorizontalDivider()
+                menuAction(stringResource(R.string.apps_compile_aot), !busy && canModify) { onAction(app, AppAction.COMPILE_AOT) }
+                menuAction(
+                    stringResource(R.string.apps_restrict_standby),
+                    !busy && canModify,
+                ) { onAction(app, AppAction.RESTRICT_STANDBY) }
+                menuAction(stringResource(R.string.apps_restrict_background), !busy && canModify) {
+                    onAction(app, AppAction.RESTRICT_BACKGROUND)
+                }
+                menuAction(stringResource(R.string.apps_extract_apk), !busy) { onAction(app, AppAction.EXTRACT_APK) }
+                HorizontalDivider()
+                actions.filter { it.paramKind == ParamKind.PACKAGE && it.id !in NATIVE_ACTION_IDS }.forEach { action ->
+                    val minSdk = action.minSdk
+                    val supported = minSdk == null || sdk >= minSdk
+                    menuAction(t(action.titleKey), supported && !busy && canModify) {
+                        onAdvancedAction(action.id, app.packageName)
                     }
                 }
-            }
-            if (busy) {
-                CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                Spacer(Modifier.width(6.dp))
-            }
-            Box {
-                IconButton(onClick = { open = true }) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = t("apps.actions"))
-                }
-                DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-                    menuAction(stringResource(R.string.apps_open), !busy) { onAction(app, AppAction.OPEN) }
-                    menuAction(stringResource(R.string.apps_details), !busy) { onDetails(app) }
-                    menuAction(stringResource(R.string.apps_inspect), !busy) { onInspect(app.packageName) }
-                    menuAction(stringResource(R.string.apps_force_stop), !busy) { onAction(app, AppAction.FORCE_STOP) }
-                    menuAction(
-                        stringResource(if (app.enabled) R.string.apps_disable else R.string.apps_enable),
-                        !busy,
-                    ) {
-                        onAction(app, if (app.enabled) AppAction.DISABLE else AppAction.ENABLE)
-                    }
-                    menuAction(stringResource(R.string.apps_clear_data), !busy) { onAction(app, AppAction.CLEAR_DATA) }
-                    menuAction(stringResource(R.string.apps_clear_cache), !busy) { onAction(app, AppAction.CLEAR_CACHE) }
-                    HorizontalDivider()
-                    menuAction(stringResource(R.string.apps_compile_aot), !busy) { onAction(app, AppAction.COMPILE_AOT) }
-                    menuAction(stringResource(R.string.apps_restrict_standby), !busy) { onAction(app, AppAction.RESTRICT_STANDBY) }
-                    menuAction(stringResource(R.string.apps_restrict_background), !busy) {
-                        onAction(app, AppAction.RESTRICT_BACKGROUND)
-                    }
-                    menuAction(stringResource(R.string.apps_extract_apk), !busy) { onAction(app, AppAction.EXTRACT_APK) }
-                    HorizontalDivider()
-                    actions.filter { it.paramKind == ParamKind.PACKAGE && it.id !in NATIVE_ACTION_IDS }.forEach { action ->
-                        val minSdk = action.minSdk
-                        val supported = minSdk == null || sdk >= minSdk
-                        menuAction(t(action.titleKey), supported && !busy) {
-                            onAdvancedAction(action.id, app.packageName)
-                        }
-                    }
-                    HorizontalDivider()
-                    menuAction(stringResource(R.string.apps_uninstall), !busy, color = AppColors.danger) {
-                        onAction(app, AppAction.UNINSTALL)
-                    }
+                HorizontalDivider()
+                menuAction(stringResource(R.string.apps_uninstall), !busy, color = AppColors.danger) {
+                    onAction(app, AppAction.UNINSTALL)
                 }
             }
         }
@@ -610,6 +652,7 @@ internal fun menuAction(
 @Composable
 internal fun AppDetailSheet(
     app: ManagedApp,
+    canModify: Boolean,
     loading: Boolean,
     onDismiss: () -> Unit,
     onAction: (ManagedApp, AppAction) -> Unit,
@@ -673,17 +716,23 @@ internal fun AppDetailSheet(
             Text(stringResource(R.string.apps_actions), style = MaterialTheme.typography.labelSmall)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 TextButton(onClick = { onAction(app, AppAction.OPEN) }) { Text(stringResource(R.string.apps_open)) }
-                TextButton(onClick = { onAction(app, AppAction.FORCE_STOP) }) { Text(stringResource(R.string.apps_close)) }
-                TextButton(onClick = { onAction(app, AppAction.CLEAR_CACHE) }) { Text(stringResource(R.string.apps_cache)) }
+                TextButton(onClick = { onAction(app, AppAction.FORCE_STOP) }, enabled = canModify) {
+                    Text(stringResource(R.string.apps_close))
+                }
+                TextButton(onClick = { onAction(app, AppAction.CLEAR_CACHE) }, enabled = canModify) {
+                    Text(stringResource(R.string.apps_cache))
+                }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                TextButton(onClick = { onAction(app, AppAction.CLEAR_DATA) }) { Text(stringResource(R.string.apps_clear_data)) }
+                TextButton(onClick = { onAction(app, AppAction.CLEAR_DATA) }, enabled = canModify) {
+                    Text(stringResource(R.string.apps_clear_data))
+                }
                 TextButton(onClick = { onAction(app, AppAction.EXTRACT_APK) }) { Text(stringResource(R.string.apps_extract_apk)) }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 TextButton(onClick = {
                     onAction(app, if (app.enabled) AppAction.DISABLE else AppAction.ENABLE)
-                }) {
+                }, enabled = canModify) {
                     Text(stringResource(if (app.enabled) R.string.apps_disable else R.string.apps_enable))
                 }
                 TextButton(

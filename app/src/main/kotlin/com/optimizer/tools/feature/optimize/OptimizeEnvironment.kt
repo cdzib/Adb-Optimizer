@@ -22,4 +22,9 @@ interface OptimizeEnvironment {
     suspend fun localDevice(): DeviceInfo?
 
     fun localShizukuStatus(): ShizukuLocalStatus
+
+    fun localPrivilegeReady(): Boolean
+
+    /** READY si Shizuku o la sesión ADB local pueden ejecutar recetas. */
+    fun localPrivilegeStatus(): ShizukuLocalStatus
 }

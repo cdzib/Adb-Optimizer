@@ -32,7 +32,7 @@ class InspectorViewModel(
     val state: StateFlow<InspectorState> = _state.asStateFlow()
 
     fun onEnter(packageName: String) {
-        _state.update { it.copy(packageName = packageName, connected = environment.activeDevice() != null) }
+        _state.update { it.copy(packageName = packageName, connected = environment.hasDevice()) }
         load()
     }
 

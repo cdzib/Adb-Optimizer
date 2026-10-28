@@ -1,0 +1,17 @@
+<resources>
+    <string name="tv_apps_title">Aplicaciones</string>
+    <string name="tv_navigation_hint">D-pad: navegar · OK: seleccionar · Atrás: volver</string>
+    <string name="tv_status_local">Conectado · local</string>
+    <string name="tv_status_remote">Conectado · %1$s</string>
+    <string name="tv_status_disconnected">Sin conexión</string>
+    <string name="tv_apps_subtitle">%1$d apps · %2$d de sistema</string>
+    <string name="tv_apps_actions_for">Acciones de %1$s</string>
+    <string name="tv_apps_open_subtitle">Abrir en el equipo</string>
+    <string name="tv_apps_details_subtitle">Versión, tamaño y estado</string>
+    <string name="tv_apps_inspect_subtitle">Permisos y componentes</string>
+    <string name="tv_optimize_title">Optimizar</string>
+    <string name="tv_optimize_subtitle">Perfil: %1$s · %2$d recetas compatibles</string>
+    <string name="tv_optimize_apply">Aplicar %1$d</string>
+    <string name="tv_optimize_risk_review">%1$d requieren confirmación</string>
+    <string name="tv_settings_subtitle">Se guardan en este televisor</string>
+</resources>

@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.optimizer.tools.R
+import com.optimizer.tools.app.tv.LocalTelevisionUi
 import com.optimizer.tools.core.ui.resolve
 
 @Composable
@@ -48,7 +49,9 @@ internal fun TvLauncherScreen(
             Modifier.fillMaxWidth().padding(top = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TextButton(onClick = onBack) { Text(stringResource(R.string.action_back)) }
+            if (!LocalTelevisionUi.current) {
+                TextButton(onClick = onBack) { Text(stringResource(R.string.action_back)) }
+            }
             Text(stringResource(R.string.tv_launcher_title), style = MaterialTheme.typography.titleLarge)
         }
         Text(

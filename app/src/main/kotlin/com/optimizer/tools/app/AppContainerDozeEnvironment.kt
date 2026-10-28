@@ -4,14 +4,13 @@ import com.optimizer.tools.data.AppContainer
 import com.optimizer.tools.feature.doze.DozeAction
 import com.optimizer.tools.feature.doze.DozeEnvironment
 import com.optimizer.tools.feature.doze.DozeStatus
-import dev.adboptimizer.core.model.DeviceInfo
 import java.io.IOException
 
 /** Adaptador de composición para Doze y energía. */
 internal class AppContainerDozeEnvironment(
     private val container: AppContainer,
 ) : DozeEnvironment {
-    override fun activeDevice(): DeviceInfo? = container.device
+    override fun hasDevice(): Boolean = container.hasPrivilegedDevice()
 
     override suspend fun status(): DozeStatus = container.doze?.status() ?: throw IOException("No hay un dispositivo remoto conectado.")
 

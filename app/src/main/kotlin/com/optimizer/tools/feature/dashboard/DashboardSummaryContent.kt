@@ -2,22 +2,38 @@
 
 package com.optimizer.tools.feature.dashboard
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.optimizer.tools.R
 import com.optimizer.tools.core.ui.AdbOptimizerTheme
+import com.optimizer.tools.core.ui.DesignGroup
+import com.optimizer.tools.core.ui.DesignRow
+import com.optimizer.tools.core.ui.DesignScreenPadding
+import com.optimizer.tools.core.ui.DesignSectionLabel
+import com.optimizer.tools.core.ui.DesignStatTile
+import com.optimizer.tools.core.ui.DesignTone
+import com.optimizer.tools.core.ui.PillButton
+import com.optimizer.tools.core.ui.PillStyle
+import com.optimizer.tools.core.ui.ScreenHeader
+import com.optimizer.tools.core.ui.ScreenIconButton
 import com.optimizer.tools.core.ui.UiText
 import com.optimizer.tools.core.ui.formatKb
 import com.optimizer.tools.core.ui.formatUptime
@@ -57,157 +73,217 @@ internal fun DashboardSummaryContent(
     onOpenDetail: (DashboardCategory) -> Unit,
     footer: @Composable () -> Unit,
     health: (@Composable () -> Unit)? = null,
+    quickAccess: (@Composable () -> Unit)? = null,
+    localAdbReady: Boolean = false,
 ) {
     var showPermissions by rememberSaveable { mutableStateOf(false) }
 
-    Column(Modifier.fillMaxSize()) {
-        key(device.id, target) {
-            LazyColumn(
-                Modifier.weight(1f).fillMaxWidth(),
-                contentPadding = PaddingValues(vertical = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                if (health != null) {
-                    item { Column(Modifier.padding(horizontal = 24.dp)) { health() } }
-                }
-                if (target == AppTarget.LOCAL) {
-                    item {
-                        Column(Modifier.padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            if (target == AppTarget.LOCAL) {
-                                AssistChip(onClick = { showPermissions = !showPermissions }, label = {
-                                    Text(
-                                        stringResource(
-                                            if (shizukuStatus ==
-                                                ShizukuLocalStatus.READY
-                                            ) {
-                                                R.string.dashboard_permissions_ready
-                                            } else {
-                                                R.string.dashboard_permissions
-                                            },
-                                        ),
-                                    )
-                                })
-                                if (showPermissions) ShizukuStatusCard(shizukuStatus, onRequestShizuku, onRefreshShizuku)
-                            }
-                        }
-                    }
-                }
-                item {
-                    Column(Modifier.padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Text(
-                            stringResource(R.string.dashboard_glance),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                            DashboardSummaryValue(
-                                stringResource(R.string.dashboard_battery),
-                                batteryText(metrics),
-                                stringResource(R.string.dashboard_current_level),
-                                Modifier.weight(1f),
-                            )
-                            DashboardSummaryValue(
-                                stringResource(R.string.dashboard_ram_used),
-                                metrics?.takeIf { it.totalRamKb > 0 }?.let { formatKb(it.usedRamKb) }
-                                    ?: stringResource(R.string.dashboard_unavailable),
-                                metrics?.takeIf { it.totalRamKb > 0 }?.let {
-                                    stringResource(
-                                        R.string.dashboard_of_total,
-                                        formatKb(it.totalRamKb),
-                                    )
-                                }
-                                    ?: "—",
-                                Modifier.weight(1f),
-                            )
-                        }
-                        Text(
-                            stringResource(R.string.dashboard_explore),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                            shape = MaterialTheme.shapes.large,
-                        ) {
-                            DashboardCategory.entries.forEachIndexed { index, category ->
-                                Surface(onClick = { onOpenDetail(category) }, color = MaterialTheme.colorScheme.surface) {
-                                    Row(
-                                        Modifier.fillMaxWidth().padding(16.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                    ) {
-                                        Icon(category.icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                            Text(stringResource(category.label), style = MaterialTheme.typography.titleSmall)
-                                            Text(
-                                                stringResource(category.hint),
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            )
-                                        }
-                                        Icon(
-                                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                        )
-                                    }
-                                }
-                                if (index <
-                                    DashboardCategory.entries.lastIndex
-                                ) {
-                                    HorizontalDivider(
-                                        Modifier.padding(horizontal = 16.dp),
-                                        color = MaterialTheme.colorScheme.outlineVariant,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-                if (error != null || metrics == null) {
-                    item {
-                        Column(Modifier.padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(
-                                if (loading &&
-                                    metrics == null
-                                ) {
-                                    stringResource(R.string.dashboard_loading)
-                                } else {
-                                    error?.resolve()
-                                        ?: stringResource(R.string.dashboard_metrics_error)
-                                },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            if (!loading) OutlinedButton(onClick = onRefresh) { Text(stringResource(R.string.dashboard_retry)) }
-                        }
-                    }
-                }
-                item { Column(Modifier.padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) { footer() } }
+    key(device.id, target) {
+        LazyColumn(
+            Modifier.fillMaxSize(),
+            contentPadding = DesignScreenPadding,
+        ) {
+            item {
+                ScreenHeader(
+                    title = stringResource(R.string.nav_home),
+                    subtitle = device.displayName,
+                    actions = {
+                        ScreenIconButton(Icons.Filled.Refresh, stringResource(R.string.dashboard_refresh), onRefresh)
+                    },
+                )
             }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    DesignStatTile(
+                        label = stringResource(R.string.dashboard_battery),
+                        value = batteryText(metrics),
+                        hint = stringResource(R.string.dashboard_current_level),
+                        modifier = Modifier.weight(1f),
+                    )
+                    DesignStatTile(
+                        label = stringResource(R.string.dashboard_ram_used),
+                        value =
+                            metrics?.takeIf { it.totalRamKb > 0 }?.let { formatKb(it.usedRamKb) }
+                                ?: stringResource(R.string.dashboard_unavailable),
+                        hint =
+                            metrics?.takeIf { it.totalRamKb > 0 }?.let {
+                                stringResource(R.string.dashboard_of_total, formatKb(it.totalRamKb))
+                            } ?: "—",
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+            health?.let { banner ->
+                item { Column(Modifier.padding(top = 12.dp)) { banner() } }
+            }
+            if (quickAccess != null) {
+                item {
+                    DesignSectionLabel(stringResource(R.string.dashboard_quick_access))
+                    quickAccess()
+                }
+            }
+            item {
+                DesignSectionLabel(stringResource(R.string.dashboard_about_device))
+                DeviceSummaryCard(device, target)
+            }
+            if (target == AppTarget.LOCAL) {
+                item {
+                    if (localAdbReady) {
+                        DesignGroup(Modifier.padding(top = 8.dp)) {
+                            DesignRow(
+                                icon = Icons.Filled.Cable,
+                                title = stringResource(R.string.dashboard_local_adb_ready),
+                                subtitle = stringResource(R.string.dashboard_local_adb_ready_body),
+                                tone = DesignTone.Green,
+                                isFirst = true,
+                                showChevron = false,
+                                onClick = {},
+                            )
+                        }
+                        return@item
+                    }
+                    DesignGroup(Modifier.padding(top = 8.dp)) {
+                        DesignRow(
+                            icon = Icons.Filled.Refresh,
+                            title =
+                                stringResource(
+                                    if (shizukuStatus == ShizukuLocalStatus.READY) {
+                                        R.string.dashboard_permissions_ready
+                                    } else {
+                                        R.string.dashboard_permissions
+                                    },
+                                ),
+                            subtitle = stringResource(R.string.dashboard_shizuku_row_hint),
+                            tone =
+                                if (shizukuStatus == ShizukuLocalStatus.READY) {
+                                    DesignTone.Green
+                                } else {
+                                    DesignTone.Amber
+                                },
+                            isFirst = true,
+                            onClick = { showPermissions = !showPermissions },
+                        )
+                    }
+                    if (showPermissions) {
+                        Box(Modifier.padding(top = 8.dp)) {
+                            ShizukuStatusCard(shizukuStatus, onRequestShizuku, onRefreshShizuku)
+                        }
+                    }
+                }
+            }
+            item {
+                DesignSectionLabel(stringResource(R.string.dashboard_explore))
+                DesignGroup {
+                    DashboardCategory.entries.forEachIndexed { index, category ->
+                        DesignRow(
+                            icon = category.icon,
+                            title = stringResource(category.label),
+                            subtitle = stringResource(category.hint),
+                            tone = category.tone(),
+                            isFirst = index == 0,
+                            onClick = { onOpenDetail(category) },
+                        )
+                    }
+                }
+            }
+            if (error != null || metrics == null) {
+                item {
+                    Column(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            if (loading && metrics == null) {
+                                stringResource(R.string.dashboard_loading)
+                            } else {
+                                error?.resolve() ?: stringResource(R.string.dashboard_metrics_error)
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if (!loading) {
+                            PillButton(stringResource(R.string.dashboard_retry), onRefresh, style = PillStyle.Outline)
+                        }
+                    }
+                }
+            }
+            item { Column(Modifier.padding(top = 12.dp)) { footer() } }
+            item { Spacer(Modifier.height(8.dp)) }
         }
     }
 }
 
 @Composable
-private fun DashboardSummaryValue(
-    title: String,
-    value: String,
-    detail: String,
-    modifier: Modifier = Modifier,
+private fun DeviceSummaryCard(
+    device: DeviceInfo,
+    target: AppTarget,
 ) {
-    Card(
-        modifier,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = MaterialTheme.shapes.large,
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(title, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(value, style = MaterialTheme.typography.headlineSmall)
-            Text(detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Box(
+            Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                if (device.isTv) "TV" else "AD",
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+            )
         }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                device.displayName,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                stringResource(
+                    R.string.dashboard_android_line,
+                    device.androidVersion,
+                    device.sdk,
+                    device.abi,
+                    if (device.isTv) "TV" else "",
+                ).trim(),
+                style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                stringResource(
+                    if (target == AppTarget.REMOTE) {
+                        R.string.dashboard_session_remote
+                    } else {
+                        R.string.dashboard_session_local
+                    },
+                ),
+                style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+            )
+        }
+        Box(Modifier.size(8.dp).clip(RoundedCornerShape(50)).background(Color(0xFF4ADE80)))
     }
 }
+
+private fun DashboardCategory.tone(): DesignTone =
+    when (this) {
+        DashboardCategory.DEVICE -> DesignTone.Green
+        DashboardCategory.DISPLAY -> DesignTone.Cyan
+        DashboardCategory.SENSORS -> DesignTone.Amber
+        DashboardCategory.NETWORK -> DesignTone.Cyan
+        DashboardCategory.SYSTEM -> DesignTone.Green
+        DashboardCategory.CPU -> DesignTone.Red
+        DashboardCategory.BATTERY -> DesignTone.Amber
+        DashboardCategory.MEMORY -> DesignTone.Cyan
+    }
 
 @Composable
 private fun batteryText(metrics: DeviceMetrics?): String =

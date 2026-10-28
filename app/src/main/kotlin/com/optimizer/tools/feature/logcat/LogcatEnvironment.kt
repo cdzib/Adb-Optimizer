@@ -1,10 +1,8 @@
 package com.optimizer.tools.feature.logcat
 
-import dev.adboptimizer.core.model.DeviceInfo
-
 /** Puertos del visor de registro. */
 interface LogcatEnvironment {
-    fun activeDevice(): DeviceInfo?
+    fun hasDevice(): Boolean
 
     suspend fun read(
         limit: Int,

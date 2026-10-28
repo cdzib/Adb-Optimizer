@@ -2,23 +2,26 @@ package com.optimizer.tools.feature.dashboard
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DeveloperBoard
+import androidx.compose.material.icons.filled.PowerSettingsNew
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material.icons.filled.SettingsBackupRestore
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.optimizer.tools.R
 import com.optimizer.tools.core.ui.AdbOptimizerTheme
+import com.optimizer.tools.core.ui.DesignGroup
+import com.optimizer.tools.core.ui.DesignRow
+import com.optimizer.tools.core.ui.DesignTone
 import com.optimizer.tools.core.ui.resolve
 import com.optimizer.tools.domain.model.DevicePowerAction
 import com.optimizer.tools.domain.model.ThemeMode
@@ -46,32 +49,76 @@ internal fun DevicePowerContent(
     state: DashboardState,
     enabled: Boolean,
     onRequest: (DevicePowerAction) -> Unit,
+    showTitle: Boolean = true,
+    showDevice: Boolean = true,
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = MaterialTheme.shapes.large,
-    ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.power_title), style = MaterialTheme.typography.titleMedium)
-            state.device?.let {
-                Text(stringResource(R.string.power_device, "${it.displayName} · ${it.id}"), style = MaterialTheme.typography.bodySmall)
-            }
-            if (!enabled && state.target == AppTarget.LOCAL) {
-                Text(stringResource(R.string.power_shizuku_required), style = MaterialTheme.typography.bodySmall)
-            }
-            DevicePowerAction.entries.forEach { action ->
-                OutlinedButton(
-                    onClick = { onRequest(action) },
-                    enabled = enabled && !state.executingPowerAction,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-                ) { Text(stringResource(action.labelResource())) }
-            }
-            if (state.executingPowerAction) Text(stringResource(R.string.power_sending))
-            state.powerMessage?.let { Text(it.resolve(), style = MaterialTheme.typography.bodyMedium) }
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        if (showTitle) {
+            Text(stringResource(R.string.power_title), style = MaterialTheme.typography.titleSmall)
         }
+        if (showDevice) {
+            state.device?.let {
+                Text(
+                    stringResource(R.string.power_device, "${it.displayName} · ${it.id}"),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        if (!enabled && state.target == AppTarget.LOCAL) {
+            Text(
+                stringResource(R.string.power_shizuku_required),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.tertiary,
+            )
+        }
+        DesignGroup {
+            DevicePowerAction.entries.forEachIndexed { index, action ->
+                DesignRow(
+                    icon = action.icon(),
+                    title = stringResource(action.labelResource()),
+                    subtitle = stringResource(action.descriptionResource()),
+                    tone = action.tone(),
+                    isFirst = index == 0,
+                    showChevron = false,
+                    enabled = enabled && !state.executingPowerAction,
+                    onClick = { onRequest(action) },
+                )
+            }
+        }
+        if (state.executingPowerAction) {
+            Text(stringResource(R.string.power_sending), style = MaterialTheme.typography.bodySmall)
+        }
+        state.powerMessage?.let { Text(it.resolve(), style = MaterialTheme.typography.bodyMedium) }
     }
 }
+
+private fun DevicePowerAction.icon(): ImageVector =
+    when (this) {
+        DevicePowerAction.REBOOT -> Icons.Filled.RestartAlt
+        DevicePowerAction.SHUTDOWN -> Icons.Filled.PowerSettingsNew
+        DevicePowerAction.RECOVERY -> Icons.Filled.SettingsBackupRestore
+        DevicePowerAction.BOOTLOADER -> Icons.Filled.DeveloperBoard
+        DevicePowerAction.RESTART_SYSTEM_UI -> Icons.Filled.Refresh
+    }
+
+private fun DevicePowerAction.tone(): DesignTone =
+    when (this) {
+        DevicePowerAction.REBOOT -> DesignTone.Amber
+        DevicePowerAction.SHUTDOWN -> DesignTone.Red
+        DevicePowerAction.RECOVERY -> DesignTone.Amber
+        DevicePowerAction.BOOTLOADER -> DesignTone.Red
+        DevicePowerAction.RESTART_SYSTEM_UI -> DesignTone.Neutral
+    }
+
+private fun DevicePowerAction.descriptionResource(): Int =
+    when (this) {
+        DevicePowerAction.REBOOT -> R.string.power_reboot_hint
+        DevicePowerAction.SHUTDOWN -> R.string.power_shutdown_hint
+        DevicePowerAction.RECOVERY -> R.string.power_recovery_hint
+        DevicePowerAction.BOOTLOADER -> R.string.power_bootloader_hint
+        DevicePowerAction.RESTART_SYSTEM_UI -> R.string.power_restart_system_ui_hint
+    }
 
 @Composable
 internal fun DevicePowerConfirmation(

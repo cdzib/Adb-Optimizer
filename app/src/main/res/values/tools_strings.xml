@@ -1,0 +1,20 @@
+<resources>
+    <string name="tools_title">Herramientas</string>
+    <string name="tools_back">Volver</string>
+    <string name="tools_description">Utilidades para el destino activo. Las operaciones avanzadas pueden requerir ADB o Shizuku.</string>
+    <string name="tools_diagnostics">Diagnóstico</string>
+    <string name="tools_system">Sistema</string>
+    <string name="tools_apps">Aplicaciones</string>
+    <string name="tools_logcat_description">Consulta y filtra el registro del dispositivo</string>
+    <string name="tools_console_description">Ejecuta comandos y consulta su resultado</string>
+    <string name="tools_settings_description">Consulta y edita los ajustes de Android</string>
+    <string name="tools_doze_description">Gestiona el ahorro de batería y la inactividad</string>
+    <string name="tools_files_description">Explora y administra archivos del destino</string>
+    <string name="tools_profiles_description">Guarda y aplica configuraciones de aplicaciones</string>
+    <string name="tools_debloat_description">Revisa aplicaciones prescindibles antes de actuar</string>
+    <string name="tools_preferences_description">Preferencias de la app</string>
+    <string name="tools_subtitle">%1$d utilidades · %2$s</string>
+    <string name="tools_this_device">este equipo</string>
+    <string name="tools_search">Buscar herramienta</string>
+    <string name="tools_search_empty">Ninguna herramienta coincide con la búsqueda.</string>
+</resources>

@@ -87,4 +87,22 @@
     <string name="dashboard_error_connect">Conecta un dispositivo ADB para consultar sus datos.</string>
     <string name="dashboard_error_read">No se pudo leer el dispositivo seleccionado.</string>
     <string name="dashboard_error_no_metrics">No se recibieron métricas del dispositivo.</string>
+    <string name="dashboard_quick_access">Accesos rápidos</string>
+    <string name="dashboard_about_device">Del dispositivo</string>
+    <string name="dashboard_shizuku_row_hint">Permisos para optimizar y modificar ajustes</string>
+    <string name="dashboard_session_local">Sesión activa · este teléfono</string>
+    <string name="dashboard_session_remote">Sesión activa · equipo remoto</string>
+    <string name="dashboard_quick_optimize_body">Recetas disponibles para este equipo</string>
+    <string name="power_reboot_hint">Reinicia el equipo y pide confirmación</string>
+    <string name="power_shutdown_hint">Apaga el equipo por completo</string>
+    <string name="power_recovery_hint">Arranca en modo recuperación</string>
+    <string name="power_bootloader_hint">Arranca en el cargador de arranque</string>
+    <string name="power_restart_system_ui_hint">Reinicia solo la interfaz del sistema</string>
+    <string name="dashboard_power_options">Opciones de energía</string>
+    <string name="dashboard_power_options_body">Pantalla, reinicio y apagado</string>
+    <string name="dashboard_power_note">Las acciones se envían al equipo activo y siempre piden confirmación.</string>
+    <string name="dashboard_local_adb_ready">ADB local · Conectado</string>
+    <string name="dashboard_local_adb_ready_body">Sesión autorizada en 127.0.0.1:5555</string>
+    <string name="power_local_blocked_body">Las acciones de energía necesitan Shizuku autorizado o una sesión ADB local. Conéctala para habilitarlas.</string>
+    <string name="power_local_blocked_action">Abrir ADB local</string>
 </resources>

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -29,10 +30,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AddLink
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Smartphone
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -64,14 +66,26 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import com.optimizer.tools.R
 import com.optimizer.tools.core.ui.AppColors
+import com.optimizer.tools.core.ui.DesignChip
+import com.optimizer.tools.core.ui.DesignEmptyState
+import com.optimizer.tools.core.ui.DesignIconBadge
+import com.optimizer.tools.core.ui.DesignSectionLabel
+import com.optimizer.tools.core.ui.DesignTone
+import com.optimizer.tools.core.ui.PillButton
+import com.optimizer.tools.core.ui.PillStyle
 import com.optimizer.tools.core.ui.QrImage
+import com.optimizer.tools.core.ui.ScreenHeader
+import com.optimizer.tools.core.ui.ScreenIconButton
 import com.optimizer.tools.core.ui.Translate
 import com.optimizer.tools.domain.model.KnownDevice
 import dev.adboptimizer.core.adb.DiscoveredService
@@ -180,19 +194,33 @@ internal fun ConnectScreen(
             IconButton(onClick = goBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.connection_back))
             }
-            Text(
-                stringResource(
-                    if (step == ConnectionStep.CONNECT &&
-                        state.connectMode == ConnectMode.QR
-                    ) {
-                        R.string.connection_qr_header
-                    } else {
-                        R.string.connection_new
-                    },
-                ),
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.titleLarge,
-            )
+            Column(
+                Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(
+                    stringResource(
+                        if (step == ConnectionStep.CONNECT &&
+                            state.connectMode == ConnectMode.QR
+                        ) {
+                            R.string.connection_qr_header
+                        } else {
+                            R.string.connection_new
+                        },
+                    ),
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    stringResource(
+                        R.string.connection_step,
+                        if (step == ConnectionStep.SELECT) 1 else 2,
+                    ),
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             IconButton(onClick = { showUsbHelp = true }) {
                 Icon(Icons.Filled.Info, contentDescription = stringResource(R.string.connection_help))
             }
@@ -385,6 +413,9 @@ internal fun DevicesScreen(
     onConnectKnown: (KnownDevice) -> Unit,
     onForgetKnown: (KnownDevice) -> Unit,
     onCancelConnect: (() -> Unit)? = null,
+    onOpenRemote: (() -> Unit)? = null,
+    onOpenMirror: (() -> Unit)? = null,
+    onOpenTools: (() -> Unit)? = null,
 ) {
     Box(Modifier.fillMaxSize()) {
         MyDevicesContent(
@@ -396,6 +427,10 @@ internal fun DevicesScreen(
             onConnectKnown = onConnectKnown,
             onForgetKnown = onForgetKnown,
             onCancelConnect = onCancelConnect,
+            onAddDevice = onAddDevice,
+            onOpenRemote = onOpenRemote,
+            onOpenMirror = onOpenMirror,
+            onOpenTools = onOpenTools,
             modifier = Modifier.fillMaxSize(),
         )
         FloatingActionButton(
@@ -420,6 +455,10 @@ private fun MyDevicesContent(
     onForgetKnown: (KnownDevice) -> Unit,
     onCancelConnect: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    onAddDevice: () -> Unit = {},
+    onOpenRemote: (() -> Unit)? = null,
+    onOpenMirror: (() -> Unit)? = null,
+    onOpenTools: (() -> Unit)? = null,
 ) {
     val device = state.connected
     Column(
@@ -427,38 +466,57 @@ private fun MyDevicesContent(
             modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 104.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp),
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 104.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                stringResource(R.string.devices_eyebrow),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Text(stringResource(R.string.devices_title), style = MaterialTheme.typography.headlineSmall)
-            Text(
-                stringResource(R.string.devices_description),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        DeviceSelectionRow(
-            title = stringResource(R.string.devices_local),
-            subtitle =
-                stringResource(
-                    if (activeTarget ==
-                        AppTarget.LOCAL
-                    ) {
-                        R.string.devices_local_active
-                    } else {
-                        R.string.devices_local_available
-                    },
-                ),
-            selected = activeTarget == AppTarget.LOCAL,
-            onSelect = { onSelectTarget(AppTarget.LOCAL) },
-            icon = Icons.Filled.Smartphone,
+        ScreenHeader(
+            title = stringResource(R.string.nav_destination),
+            subtitle = stringResource(R.string.devices_description),
+            actions = {
+                ScreenIconButton(
+                    Icons.Filled.AddLink,
+                    stringResource(R.string.devices_add),
+                    onAddDevice,
+                    highlighted = true,
+                )
+            },
         )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            DesignChip(
+                text = stringResource(R.string.devices_local),
+                selected = activeTarget == AppTarget.LOCAL,
+                onClick = { onSelectTarget(AppTarget.LOCAL) },
+            )
+            if (state.connectedDevices.isEmpty()) {
+                DesignChip(
+                    text = stringResource(R.string.devices_remote_chip),
+                    selected = false,
+                    onClick = onAddDevice,
+                )
+            } else {
+                state.connectedDevices.forEach { connected ->
+                    DesignChip(
+                        text = connected.displayName.ifBlank { connected.id },
+                        selected = activeTarget == AppTarget.REMOTE && connected.id == device?.id,
+                        onClick = {
+                            onSelectDevice(connected.id)
+                            onSelectTarget(AppTarget.REMOTE)
+                        },
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.height(10.dp))
+        if (device != null) {
+            ActiveDeviceCard(
+                device = device,
+                onOpenRemote = onOpenRemote,
+                onOpenMirror = onOpenMirror,
+                onOpenTools = onOpenTools,
+            )
+            Spacer(Modifier.height(10.dp))
+        }
         if (state.connecting) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
@@ -476,6 +534,7 @@ private fun MyDevicesContent(
             }
         }
         if (state.connectedDevices.isNotEmpty()) {
+            DesignSectionLabel(stringResource(R.string.devices_remote_heading))
             ConnectedDevicesSection(
                 devices = state.connectedDevices,
                 activeTarget = activeTarget,
@@ -486,31 +545,18 @@ private fun MyDevicesContent(
                 },
                 onDisconnect = onDisconnectDevice,
             )
+            Spacer(Modifier.height(8.dp))
         } else if (!state.connecting) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            ) {
-                Column(
-                    Modifier.fillMaxWidth().padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Icon(
-                        Icons.Filled.Devices,
-                        contentDescription = null,
-                        modifier = Modifier.size(40.dp),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                    Text(stringResource(R.string.devices_empty_title), style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        stringResource(R.string.devices_empty_body),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+            DesignEmptyState(
+                icon = Icons.Filled.Devices,
+                title = stringResource(R.string.devices_empty_title),
+                body = stringResource(R.string.devices_empty_body),
+                actionLabel = stringResource(R.string.devices_add),
+                onAction = onAddDevice,
+            )
+            Spacer(Modifier.height(8.dp))
         }
+        DesignSectionLabel(stringResource(R.string.devices_recent))
         KnownDevicesSection(
             devices = state.known,
             connectedDevices = state.connectedDevices,
@@ -524,6 +570,105 @@ private fun MyDevicesContent(
             onDisconnect = onDisconnectDevice,
             connectTarget = state.connectTarget,
         )
+    }
+}
+
+/** Tarjeta del equipo remoto activo al estilo de la maqueta de Destino. */
+@Composable
+private fun ActiveDeviceCard(
+    device: dev.adboptimizer.core.model.DeviceInfo,
+    onOpenRemote: (() -> Unit)?,
+    onOpenMirror: (() -> Unit)?,
+    onOpenTools: (() -> Unit)?,
+) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Box(
+                Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    if (device.isTv) "TV" else "AD",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    device.displayName.ifBlank { device.id },
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                )
+                Text(
+                    "${device.id} · ${stringResource(R.string.devices_connected)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Box(
+                Modifier.size(8.dp).clip(RoundedCornerShape(50)).background(MaterialTheme.colorScheme.primary),
+            )
+        }
+        if (onOpenRemote != null || onOpenMirror != null) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (onOpenRemote != null) {
+                    PillButton(
+                        stringResource(R.string.devices_remote_control),
+                        onOpenRemote,
+                        style = PillStyle.Tonal,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                if (onOpenMirror != null) {
+                    PillButton(
+                        stringResource(R.string.devices_mirror),
+                        onOpenMirror,
+                        style = PillStyle.Outline,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+        }
+        if (onOpenTools != null) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Row(
+                Modifier.fillMaxWidth().clickable(onClick = onOpenTools).padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                DesignIconBadge(Icons.Filled.Tune, DesignTone.Neutral)
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        stringResource(R.string.devices_tools_for_device),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        stringResource(R.string.tools_description),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
     }
 }
 
@@ -784,7 +929,16 @@ internal fun QrPanel(
     val failed = state.connectTimedOut || state.qrStatus == QrStatus.ERROR || state.qrStatus == QrStatus.TIMEOUT
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(24.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.connection_qr_title), style = MaterialTheme.typography.headlineSmall)
+            Text(
+                stringResource(R.string.connection_qr_title),
+                style =
+                    MaterialTheme.typography.headlineSmall.copy(
+                        fontSize = 22.sp,
+                        lineHeight = 27.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = (-0.2).sp,
+                    ),
+            )
             Text(
                 stringResource(R.string.connection_qr_description),
                 style = MaterialTheme.typography.bodyMedium,
@@ -932,7 +1086,16 @@ internal fun UsbDebuggingHelpContent() {
         Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 28.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(stringResource(R.string.connection_usb_help_title), style = MaterialTheme.typography.titleLarge)
+        Text(
+            stringResource(R.string.connection_usb_help_title),
+            style =
+                MaterialTheme.typography.headlineSmall.copy(
+                    fontSize = 22.sp,
+                    lineHeight = 27.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = (-0.2).sp,
+                ),
+        )
         Text(
             stringResource(R.string.connection_usb_help_desc),
             style = MaterialTheme.typography.bodySmall,

@@ -4,47 +4,30 @@ package com.optimizer.tools.app
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
@@ -54,25 +37,36 @@ import com.optimizer.tools.R
 import com.optimizer.tools.app.navigation.AppNavGraph
 import com.optimizer.tools.app.navigation.HomeRoute
 import com.optimizer.tools.app.navigation.RemoteControlRoute
+import com.optimizer.tools.app.navigation.ToolsRoute
 import com.optimizer.tools.app.navigation.mainRoutes
 import com.optimizer.tools.app.navigation.toRoute
 import com.optimizer.tools.app.navigation.toScreen
+import com.optimizer.tools.app.tv.LocalTelevisionUi
+import com.optimizer.tools.app.tv.TvNavigationItem
+import com.optimizer.tools.app.tv.TvScaffold
+import com.optimizer.tools.core.ui.BottomNavBar
+import com.optimizer.tools.core.ui.BottomNavItem
 import com.optimizer.tools.core.ui.Translate
 import com.optimizer.tools.core.ui.resolve
 import com.optimizer.tools.domain.model.ShizukuLocalStatus
 import com.optimizer.tools.feature.apps.AppsViewModel
 import com.optimizer.tools.feature.connection.ConnectionEvent
 import com.optimizer.tools.feature.connection.ConnectionViewModel
+import com.optimizer.tools.feature.console.ConsoleViewModel
 import com.optimizer.tools.feature.dashboard.DashboardViewModel
+import com.optimizer.tools.feature.debloat.DebloatViewModel
 import com.optimizer.tools.feature.doze.DozeViewModel
 import com.optimizer.tools.feature.dpc.DpcViewModel
+import com.optimizer.tools.feature.files.FilesViewModel
 import com.optimizer.tools.feature.inspector.InspectorViewModel
 import com.optimizer.tools.feature.install.InstallEvent
 import com.optimizer.tools.feature.install.InstallViewModel
+import com.optimizer.tools.feature.localadb.presentation.LocalAdbViewModel
 import com.optimizer.tools.feature.logcat.LogcatViewModel
 import com.optimizer.tools.feature.mirror.MirrorViewModel
 import com.optimizer.tools.feature.optimize.OptimizeEvent
 import com.optimizer.tools.feature.optimize.OptimizeViewModel
+import com.optimizer.tools.feature.profiles.ProfilesViewModel
 import com.optimizer.tools.feature.remote.RemoteControlViewModel
 import com.optimizer.tools.feature.settings.SettingsViewModel
 import com.optimizer.tools.feature.settingsdb.SettingsDbViewModel
@@ -97,6 +91,12 @@ fun OptimizerApp(
     settingsDbViewModel: SettingsDbViewModel,
     inspectorViewModel: InspectorViewModel,
     dozeViewModel: DozeViewModel,
+    profilesViewModel: ProfilesViewModel,
+    debloatViewModel: DebloatViewModel,
+    filesViewModel: FilesViewModel,
+    consoleViewModel: ConsoleViewModel,
+    localAdbViewModel: LocalAdbViewModel,
+    localAdbReady: Boolean,
     dictionary: Map<String, String>,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -109,7 +109,6 @@ fun OptimizerApp(
     val currentScreen = currentDestination?.toScreen()
 
     val connectionState by connectionViewModel.state.collectAsStateWithLifecycle()
-    val dashboardState by dashboardViewModel.state.collectAsStateWithLifecycle()
     val shizukuStatus by shizukuViewModel.status.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
@@ -187,25 +186,47 @@ fun OptimizerApp(
         previousScreen = currentScreen
     }
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+    AdaptiveAppScaffold(
+        televisionItems =
+            listOfNotNull(
+                TvNavigationItem("home", stringResource(R.string.nav_home), Icons.Filled.Home, viewModel::goHome),
+                TvNavigationItem("apps", t("nav.apps"), Icons.Filled.Apps, viewModel::openApps),
+                if (Screen.OPTIMIZE in mainNavigationScreens(state.activeTarget, shizukuStatus == ShizukuLocalStatus.READY)) {
+                    TvNavigationItem("optimize", t("nav.optimize"), Icons.Filled.Bolt) { viewModel.navigateTo(Screen.OPTIMIZE) }
+                } else {
+                    null
+                },
+                TvNavigationItem("tools", stringResource(R.string.tools_title), Icons.Filled.Tune) {
+                    navController.navigate(ToolsRoute) { launchSingleTop = true }
+                },
+                TvNavigationItem("settings", stringResource(R.string.nav_settings), Icons.Filled.Settings) {
+                    viewModel.navigateTo(Screen.SETTINGS)
+                },
+            ),
+        selectedKey =
+            when {
+                currentDestination?.hasRoute<ToolsRoute>() == true -> "tools"
+                currentScreen == Screen.HOME -> "home"
+                currentScreen == Screen.APPS -> "apps"
+                currentScreen == Screen.OPTIMIZE -> "optimize"
+                currentScreen == Screen.SETTINGS -> "settings"
+                else -> null
+            },
+        televisionStatus =
+            when {
+                state.activeTarget == dev.adboptimizer.core.model.AppTarget.LOCAL -> {
+                    stringResource(R.string.tv_status_local)
+                }
+
+                connectionState.connected != null -> {
+                    stringResource(R.string.tv_status_remote, connectionState.connected?.displayName.orEmpty())
+                }
+
+                else -> {
+                    stringResource(R.string.tv_status_disconnected)
+                }
+            },
         snackbarHost = { SnackbarHost(snackbar) },
-        topBar = {
-            if (currentScreen != null && currentScreen.toRoute() in mainRoutes && currentScreen != Screen.CONNECT) {
-                DestinationIndicator(
-                    name =
-                        resolveActiveDestinationName(
-                            state.activeTarget,
-                            dashboardState.target,
-                            dashboardState.device,
-                            connectionState.connected,
-                            "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}".trim(),
-                        ) ?: stringResource(R.string.known_device_unknown),
-                    loading = dashboardState.loading,
-                    onRefresh = if (currentScreen == Screen.HOME) dashboardViewModel::refresh else null,
-                )
-            }
-        },
         bottomBar = {
             when {
                 currentScreen != null && currentScreen.toRoute() in mainRoutes -> {
@@ -255,52 +276,35 @@ fun OptimizerApp(
                 settingsDbViewModel = settingsDbViewModel,
                 inspectorViewModel = inspectorViewModel,
                 dozeViewModel = dozeViewModel,
+                profilesViewModel = profilesViewModel,
+                debloatViewModel = debloatViewModel,
+                filesViewModel = filesViewModel,
+                consoleViewModel = consoleViewModel,
+                localAdbViewModel = localAdbViewModel,
+                localAdbReady = localAdbReady,
             )
         }
     }
 }
 
 @Composable
-private fun DestinationIndicator(
-    name: String,
-    loading: Boolean,
-    onRefresh: (() -> Unit)?,
+private fun AdaptiveAppScaffold(
+    televisionItems: List<TvNavigationItem>,
+    selectedKey: String?,
+    televisionStatus: String,
+    snackbarHost: @Composable () -> Unit,
+    bottomBar: @Composable () -> Unit,
+    content: @Composable (PaddingValues) -> Unit,
 ) {
-    Surface(color = MaterialTheme.colorScheme.surface) {
-        Row(
-            Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 20.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(Icons.Filled.Devices, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.width(12.dp))
-            Column(
-                Modifier.weight(1f),
-                verticalArrangement =
-                    androidx.compose.foundation.layout.Arrangement
-                        .spacedBy(4.dp),
-            ) {
-                Text(
-                    stringResource(R.string.app_active_destination),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-                Text(
-                    name,
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            if (onRefresh != null) {
-                IconButton(onClick = onRefresh, enabled = !loading) {
-                    if (loading) {
-                        CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
-                    } else {
-                        Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.dashboard_refresh))
-                    }
-                }
-            }
-        }
+    if (LocalTelevisionUi.current) {
+        TvScaffold(televisionItems, selectedKey, televisionStatus, snackbarHost, content)
+    } else {
+        Scaffold(
+            containerColor = MaterialTheme.colorScheme.background,
+            snackbarHost = snackbarHost,
+            bottomBar = bottomBar,
+            content = content,
+        )
     }
 }
 
@@ -329,53 +333,43 @@ private fun MainNavigationBar(
     onOptimize: () -> Unit,
     onSettings: () -> Unit,
 ) {
-    NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
-        modules.forEach { module ->
+    val items =
+        modules.map { module ->
             when (module) {
                 Screen.HOME -> {
-                    NavItem(currentScreen == Screen.HOME, Icons.Filled.Home, stringResource(R.string.nav_home), onHome)
+                    BottomNavItem(stringResource(R.string.nav_home), Icons.Filled.Home, currentScreen == Screen.HOME, onHome)
                 }
 
                 Screen.APPS -> {
-                    NavItem(currentScreen == Screen.APPS, Icons.Filled.Apps, t("nav.apps"), onApps)
+                    BottomNavItem(t("nav.apps"), Icons.Filled.Apps, currentScreen == Screen.APPS, onApps)
                 }
 
                 Screen.CONNECT -> {
-                    NavItem(
-                        currentScreen == Screen.CONNECT,
-                        Icons.Filled.Devices,
+                    BottomNavItem(
                         stringResource(R.string.nav_destination),
+                        Icons.Filled.Devices,
+                        currentScreen == Screen.CONNECT,
                         onConnect,
                     )
                 }
 
                 Screen.OPTIMIZE -> {
-                    NavItem(currentScreen == Screen.OPTIMIZE, Icons.Filled.Bolt, t("nav.optimize"), onOptimize)
+                    BottomNavItem(t("nav.optimize"), Icons.Filled.Bolt, currentScreen == Screen.OPTIMIZE, onOptimize)
                 }
 
                 Screen.SETTINGS -> {
-                    NavItem(currentScreen == Screen.SETTINGS, Icons.Filled.Settings, stringResource(R.string.nav_settings), onSettings)
+                    BottomNavItem(
+                        stringResource(R.string.nav_settings),
+                        Icons.Filled.Settings,
+                        currentScreen == Screen.SETTINGS,
+                        onSettings,
+                    )
                 }
 
                 else -> {
-                    Unit
+                    null
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun RowScope.NavItem(
-    selected: Boolean,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    onClick: () -> Unit,
-) {
-    NavigationBarItem(
-        selected = selected,
-        onClick = onClick,
-        icon = { Icon(icon, contentDescription = label) },
-        label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-    )
+    BottomNavBar(items.filterNotNull())
 }

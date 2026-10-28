@@ -38,8 +38,8 @@ class LogcatViewModel(
     private var liveJob: Job? = null
 
     fun onEnter() {
-        _state.update { it.copy(connected = environment.activeDevice() != null) }
-        if (environment.activeDevice() != null) refresh()
+        _state.update { it.copy(connected = environment.hasDevice()) }
+        if (environment.hasDevice()) refresh()
     }
 
     /** Activa o pausa la lectura incremental. Pausar no descarta lo ya leido. */

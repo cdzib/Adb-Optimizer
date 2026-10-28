@@ -45,6 +45,7 @@ data class AppsState(
     val pendingAdvancedAction: PendingAdvancedAction? = null,
     val pendingBatch: AppAction? = null,
     val selection: Set<String> = emptySet(),
+    val privileged: Boolean = true,
     val message: UiText? = null,
 )
 
@@ -82,6 +83,7 @@ class AppsViewModel(
     }
 
     fun setTarget(target: AppTarget) {
+        val privileged = environment.privileged(target)
         if (target == AppTarget.REMOTE && environment.activeSessionId() == null) {
             _state.update { it.copy(message = uiText(R.string.apps_error_remote_needs_connection)) }
             return
@@ -89,6 +91,7 @@ class AppsViewModel(
         _state.update {
             it.copy(
                 target = target,
+                privileged = privileged,
                 deviceInfo = if (target == AppTarget.LOCAL) it.deviceInfo else null,
                 query = "",
                 selection = emptySet(),
@@ -135,6 +138,7 @@ class AppsViewModel(
                 _state.update {
                     it.copy(
                         loading = false,
+                        privileged = environment.privileged(target),
                         apps = list,
                         message =
                             result.exceptionOrNull()?.message?.asUiText()

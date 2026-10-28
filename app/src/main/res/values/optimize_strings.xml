@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="optimize_intro">Revisa los cambios disponibles y previsualízalos antes de aplicarlos.</string>
+    <string name="optimize_header_subtitle">Perfil: %1$s · %2$d recetas</string>
     <string name="optimize_selected_count">%1$d de %2$d disponibles</string>
     <string name="optimize_risk_advanced_title">Ajustes avanzados</string>
     <string name="optimize_risk_moderate_title">Ajustes moderados</string>
@@ -18,4 +19,8 @@
     <string name="optimize_error_remote_no_device">Conecta un dispositivo para seleccionar el destino remoto.</string>
     <string name="optimize_error_device_read">No se pudo leer el dispositivo.</string>
     <string name="optimize_error_shizuku">Inicia Shizuku y concede permiso para ejecutar optimizaciones locales.</string>
+    <string name="optimize_shizuku_required">Optimizar este teléfono requiere Shizuku autorizado. Conéctalo desde Inicio para habilitar las recetas locales.</string>
+    <string name="optimize_local_blocked_title">Falta una sesión con permisos</string>
+    <string name="optimize_local_blocked_body">Optimizar este teléfono necesita Shizuku autorizado o una sesión ADB local. Conéctala y vuelve: las recetas aparecerán aquí.</string>
+    <string name="optimize_local_blocked_action">Abrir ADB local</string>
 </resources>

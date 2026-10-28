@@ -290,6 +290,10 @@ private class FakeOptimizeEnvironment(
     override suspend fun localDevice(): DeviceInfo? = localDeviceInfo
 
     override fun localShizukuStatus(): ShizukuLocalStatus = localStatus
+
+    override fun localPrivilegeReady(): Boolean = localStatus == ShizukuLocalStatus.READY
+
+    override fun localPrivilegeStatus(): ShizukuLocalStatus = localStatus
 }
 
 private class FakeOptimizeEngine(

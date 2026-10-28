@@ -26,6 +26,31 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class AppsViewModelTest {
     @Test
+    fun `sin privilegios la lista queda en solo lectura pero sigue mostrando apps`() =
+        runViewModelTest {
+            val environment = FakeAppsEnvironment(canModify = false, apps = listOf(ManagedApp("com.example")))
+            val viewModel = AppsViewModel(environment)
+
+            viewModel.onEnter(AppTarget.LOCAL)
+            runCurrent()
+
+            assertEquals(false, viewModel.state.value.privileged)
+            assertEquals(1, viewModel.state.value.apps.size)
+        }
+
+    @Test
+    fun `con privilegios la lista permite cambios`() =
+        runViewModelTest {
+            val environment = FakeAppsEnvironment(canModify = true, apps = listOf(ManagedApp("com.example")))
+            val viewModel = AppsViewModel(environment)
+
+            viewModel.onEnter(AppTarget.LOCAL)
+            runCurrent()
+
+            assertEquals(true, viewModel.state.value.privileged)
+        }
+
+    @Test
     fun `settings enable system apps when the filter is untouched`() =
         runViewModelTest {
             val environment = FakeAppsEnvironment()
@@ -176,6 +201,7 @@ private class FakeAppsEnvironment(
     override val actions: List<ActionSpec> = emptyList(),
     var sessionId: String? = "192.0.2.10:5555",
     private val remoteAvailable: Boolean = true,
+    private val canModify: Boolean = true,
     private val apps: List<ManagedApp> = emptyList(),
     private val detail: ManagedApp? = null,
     private val actionResult: AppActionResult = AppActionResult(true, "ok"),
@@ -195,6 +221,8 @@ private class FakeAppsEnvironment(
     override fun activeSessionId(): String? = sessionId
 
     override fun hasRemoteApps(): Boolean = remoteAvailable
+
+    override fun privileged(target: AppTarget): Boolean = canModify
 
     override suspend fun localDevice(): DeviceInfo? = phone
 

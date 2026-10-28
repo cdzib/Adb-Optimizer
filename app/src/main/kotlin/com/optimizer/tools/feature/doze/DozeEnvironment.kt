@@ -1,10 +1,8 @@
 package com.optimizer.tools.feature.doze
 
-import dev.adboptimizer.core.model.DeviceInfo
-
 /** Puertos de la pantalla Doze y energia. */
 interface DozeEnvironment {
-    fun activeDevice(): DeviceInfo?
+    fun hasDevice(): Boolean
 
     suspend fun status(): DozeStatus
 

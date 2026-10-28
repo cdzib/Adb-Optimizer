@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AdbOptimizer · Rediseño de la app</title>
+<title>AdbOptimizer · Prototipo navegable</title>
 <style>
+
   :root{
     --bg:#0B0F14; --surface:#17212E; --surface2:#1A2432; --surface3:#101823;
     --line:#1F2B3A; --text:#E7EEF7; --muted:#8BA0B8; --outline:#64748B;
@@ -17,43 +18,48 @@
   html,body{margin:0;padding:0;background:#05080c;color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,system-ui,sans-serif;}
   a{color:var(--secondary)}
-  .page{max-width:1280px;margin:0 auto;padding:48px 28px 80px}
-  header.hero{max-width:920px;margin-bottom:36px}
+  .page{max-width:980px;min-height:100vh;margin:0 auto;padding:36px 24px 32px;
+    display:flex;flex-direction:column;gap:22px;
+    background:radial-gradient(900px 520px at 50% -10%,rgba(74,222,128,.08),transparent 65%)}
+  header.hero{flex:none;max-width:720px;margin:0 auto;text-align:center}
   .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--primary);font-weight:700}
-  h1{font-size:34px;line-height:1.15;margin:10px 0 12px;font-weight:700}
-  .lead{color:var(--muted);font-size:15px;line-height:1.6;margin:0}
-  .pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
-  .pill{font-size:12px;font-weight:600;padding:6px 12px;border-radius:var(--r-full);
+  h1{font-size:32px;line-height:1.15;margin:8px 0 10px;font-weight:700}
+  .lead{color:var(--muted);font-size:14px;line-height:1.6;margin:0 auto;max-width:640px}
+  .pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;justify-content:center}
+  .pill{font-size:11.5px;font-weight:600;padding:6px 11px;border-radius:var(--r-full);
     background:var(--surface);border:1px solid var(--line);color:var(--muted)}
   .pill.ok{color:var(--primary);border-color:rgba(74,222,128,.35);background:var(--primary-soft)}
-  .pill.warn{color:var(--tertiary);border-color:rgba(251,191,36,.35);background:var(--tertiary-soft)}
 
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:36px 28px;margin-top:12px}
-  .item{display:flex;flex-direction:column;gap:10px}
-  .cap{display:flex;align-items:baseline;gap:8px}
-  .cap b{font-size:14px}
-  .cap span{font-size:12px;color:var(--muted)}
+  .stage{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
 
   /* ---------- phone ---------- */
   .phone{position:relative;width:100%;max-width:340px;aspect-ratio:390/844;background:var(--bg);
-    border-radius:38px;border:1px solid #22303f;box-shadow:0 24px 60px rgba(0,0,0,.55), inset 0 0 0 6px #0d131a;
+    border-radius:38px;border:1px solid #22303f;box-shadow:0 24px 70px rgba(0,0,0,.65), inset 0 0 0 6px #0d131a;
     overflow:hidden;display:flex;flex-direction:column}
+  .phone.proto{height:min(760px,calc(100vh - 300px));min-height:560px;width:auto;max-width:none;flex:none}
   .status{height:34px;flex:none;display:flex;align-items:center;justify-content:space-between;
     padding:0 22px;font-size:11px;font-weight:600;color:var(--text)}
   .status .dotrow{display:flex;gap:5px;align-items:center;color:var(--muted)}
   .status i{display:block;width:14px;height:8px;border-radius:2px;background:var(--muted);opacity:.7}
   .status i.sig{width:12px;height:9px;border-radius:2px;background:var(--muted);opacity:.5}
+  .viewport{position:relative;flex:1;min-height:0}
+  .scr{position:absolute;inset:0;display:none;flex-direction:column;background:var(--bg)}
+  .scr.active{display:flex}
+  .scr.in{animation:slin .22s ease-out}
+  .scr.fade{animation:fd .16s ease-out}
+  @keyframes slin{from{transform:translateX(26px);opacity:0}to{transform:none;opacity:1}}
+  @keyframes fd{from{opacity:0}to{opacity:1}}
+
   .body{flex:1;overflow:hidden;padding:4px 16px 0;display:flex;flex-direction:column;min-height:0}
-  .body.tight{padding:4px 0 0}
   .appbar{flex:none;display:flex;align-items:center;gap:6px;padding:6px 0 10px}
   .appbar .titles{flex:1;min-width:0}
-  .appbar h2{font-size:21px;line-height:1.2;margin:0;font-weight:700;letter-spacing:-.01em}
-  .appbar p{margin:2px 0 0;font-size:11px;color:var(--muted)}
+  .appbar h2{font-size:22px;line-height:1.23;margin:0;font-weight:700;letter-spacing:-.2px}
+  .appbar p{margin:2px 0 0;font-size:12px;color:var(--muted);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .iconbtn{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--muted);flex:none}
   .iconbtn.primary{color:var(--primary)}
-  .search{flex:none;display:flex;align-items:center;gap:10px;height:48px;padding:0 14px;margin:2px 0 12px;
+  .search{flex:none;display:flex;align-items:center;gap:10px;height:46px;padding:0 14px;margin:2px 0 12px;
     background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);color:var(--muted);font-size:13px}
-  .search.ghost{background:transparent;border-color:transparent;padding:0}
   .chips{flex:none;display:flex;gap:8px;margin-bottom:12px;overflow:hidden}
   .chip{font-size:12px;font-weight:600;padding:7px 12px;border-radius:var(--r-full);border:1px solid var(--line);
     color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap}
@@ -62,12 +68,11 @@
   .chip .n{font-size:10px;color:var(--muted)}
   .chip.on .n{color:var(--text)}
 
-  .content{flex:1;overflow:hidden;min-height:0;display:flex;flex-direction:column;gap:10px;padding-bottom:10px}
-  .scroll{flex:1;overflow:hidden;min-height:0}
+  .scroll{flex:1;overflow-y:auto;min-height:0;scrollbar-width:none}
+  .scroll::-webkit-scrollbar{display:none}
 
   .card{background:var(--surface);border-radius:var(--r-lg);padding:14px}
   .card.tight{padding:0;overflow:hidden}
-  .card-title{font-size:13px;font-weight:700;margin:0 0 10px}
   .muted{color:var(--muted)}
   .small{font-size:11px}
   .tiny{font-size:10px}
@@ -76,9 +81,10 @@
   .row + .row{border-top:1px solid var(--line)}
   .row .ico{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex:none}
   .row .txt{flex:1;min-width:0}
-  .row .txt b{display:block;font-size:13.5px;font-weight:600;letter-spacing:-.01em}
-  .row .txt span{display:block;font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .chev{color:#4d6076}
+  .row .txt b{display:block;font-size:14px;font-weight:600;letter-spacing:-.01em}
+  .row .txt span{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.35;
+    overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .chev{color:#4d6076;display:grid;place-items:center}
 
   .i-green{background:var(--primary-soft);color:var(--primary)}
   .i-cyan{background:var(--secondary-soft);color:var(--secondary)}
@@ -94,61 +100,177 @@
     font-size:13px;font-weight:600;border:1px solid var(--line);color:var(--text);background:transparent}
   .btn.solid{background:var(--primary);border-color:var(--primary);color:#052e16}
   .btn.tonal{background:var(--primary-soft);border-color:rgba(74,222,128,.3);color:var(--primary)}
+  .btn.danger{background:var(--danger-soft);border-color:rgba(248,113,113,.4);color:var(--danger)}
+  .btn.off{opacity:.4;pointer-events:none}
 
-  .nav{flex:none;display:flex;justify-content:space-around;align-items:center;height:58px;border-top:1px solid var(--line);
-    background:#0d141c;padding:0 6px}
-  .nav .tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9.5px;color:var(--muted);width:56px}
+  .nav{flex:none;display:flex;justify-content:space-around;align-items:center;height:58px;
+    border-top:1px solid var(--line);background:#0d141c;padding:0 6px}
+  .nav .tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9.5px;
+    color:var(--muted);width:56px}
   .nav .tab.on{color:var(--primary)}
   .nav .tab .pillnav{width:44px;height:26px;border-radius:var(--r-full);display:grid;place-items:center}
   .nav .tab.on .pillnav{background:var(--primary-soft)}
 
-  .logrow{display:flex;gap:10px;padding:10px 12px;border-radius:10px;background:var(--surface);position:relative;overflow:hidden}
+  .logrow{display:flex;gap:10px;padding:10px 12px;border-radius:10px;background:var(--surface);
+    position:relative;overflow:hidden}
   .logrow::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tint)}
   .logrow .meta{display:flex;align-items:center;gap:7px;margin-bottom:3px}
   .logrow .time{font-size:9.5px;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-  .badge{width:17px;height:17px;border-radius:5px;display:grid;place-items:center;font-size:9px;font-weight:800;background:color-mix(in srgb,var(--tint) 18%,transparent);color:var(--tint)}
+  .badge{width:17px;height:17px;border-radius:5px;display:grid;place-items:center;font-size:9px;
+    font-weight:800;background:color-mix(in srgb,var(--tint) 18%,transparent);color:var(--tint)}
   .logrow .tag{font-size:10px;font-weight:700;color:var(--tint);font-family:ui-monospace,monospace}
-  .logrow .msg{font-size:11px;line-height:1.45;font-family:ui-monospace,monospace;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .logrow .msg{font-size:11px;line-height:1.45;font-family:ui-monospace,monospace;color:var(--text);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
   .kv{display:flex;align-items:center;gap:12px;padding:11px 14px}
   .kv + .kv{border-top:1px solid var(--line)}
   .kv .k{flex:1;min-width:0}
-  .kv .k b{display:block;font-family:ui-monospace,monospace;font-size:11.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .kv .k span{display:block;font-family:ui-monospace,monospace;font-size:10px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kv .k b{display:block;font-family:ui-monospace,monospace;font-size:11.5px;font-weight:600;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kv .k span{display:block;font-family:ui-monospace,monospace;font-size:10px;color:var(--muted);
+    margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-  .term{background:#050a0f;border-radius:var(--r-md);padding:12px;font-family:ui-monospace,monospace;font-size:10.5px;line-height:1.7;color:#c9d7e6;overflow:hidden}
+  .term{background:#050a0f;border-radius:var(--r-md);padding:12px;font-family:ui-monospace,monospace;
+    font-size:10.5px;line-height:1.7;color:#c9d7e6;overflow:hidden}
   .term .p{color:var(--primary)}
-  .term .o{color:var(--muted)}
 
-  .empty{align-items:center;justify-content:center;text-align:center;gap:8px;display:flex;flex-direction:column;padding:24px 20px}
-  .empty .circle{width:56px;height:56px;border-radius:50%;background:var(--primary-soft);display:grid;place-items:center;color:var(--primary)}
+  .empty{align-items:center;justify-content:center;text-align:center;gap:8px;display:flex;
+    flex-direction:column;padding:24px 20px}
+  .empty .circle{width:56px;height:56px;border-radius:50%;background:var(--primary-soft);
+    display:grid;place-items:center;color:var(--primary)}
   .empty b{font-size:13px}
   .empty span{font-size:11px;color:var(--muted);max-width:220px}
 
   .stat{display:flex;gap:10px}
   .stat > div{flex:1;background:var(--surface);border-radius:var(--r-md);padding:12px}
+  .dot-ok{width:8px;height:8px;border-radius:50%;background:var(--primary);flex:none;margin-left:auto}
+  .health{display:flex;align-items:center;gap:12px;background:var(--primary-soft);
+    border:1px solid rgba(74,222,128,.28);border-radius:16px;padding:14px;margin-bottom:10px}
+  .health b{font-size:16px;font-weight:700;color:var(--primary)}
+  .health span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+  .health-btn{margin-left:auto;height:38px;padding:0 18px;border-radius:999px;background:var(--primary);
+    color:#052e16;font-size:13px;font-weight:700;display:flex;align-items:center;flex:none}
+
+  .intro-line{font-size:13px;line-height:1.45;color:var(--muted);margin:2px 0 12px}
+  .pchip{font-size:12px;font-weight:600;padding:7px 12px;border-radius:999px;border:1px solid var(--line);
+    color:var(--muted);white-space:nowrap;background:transparent}
+  .pchip.on{background:var(--surface2);border-color:#2c3b4e;color:var(--text)}
+  .countline{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted);
+    margin:0 2px 10px}
+  .plan{display:flex;align-items:flex-start;gap:12px;background:var(--surface);border-radius:14px;padding:14px;margin-bottom:10px}
+  .plan.on{background:var(--surface2)}
+  .plan .cb{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--outline);
+    display:grid;place-items:center;color:#052e16;flex:none;margin-top:1px}
+  .plan.on .cb{background:var(--primary);border-color:var(--primary)}
+  .plan .txt{flex:1;min-width:0}
+  .plan .txt b{display:block;font-size:14px;font-weight:600}
+  .plan .txt span{display:block;font-size:12px;color:var(--muted);margin-top:2px;line-height:1.4}
+  .riskpill{font-size:10px;font-weight:700;padding:4px 9px;border-radius:999px;flex:none;margin-top:1px}
+  .riskpill.safe{color:var(--primary);background:var(--primary-soft)}
+  .riskpill.mod{color:var(--tertiary);background:var(--tertiary-soft)}
+  .riskpill.adv{color:var(--danger);background:var(--danger-soft)}
+  .applybar{display:flex;align-items:center;gap:12px;padding:6px 0 2px;flex:none}
+  .fab{width:52px;height:52px;border-radius:50%;background:var(--primary);color:#052e16;
+    display:grid;place-items:center;flex:none;margin-left:auto}
+
+  .wizard-title{font-size:24px;line-height:1.2;font-weight:700;margin:4px 0 6px;letter-spacing:-.3px}
+  .wizard-sub{font-size:14px;color:var(--muted);line-height:1.45;margin:0 0 18px}
+  .wcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px;
+    display:flex;align-items:center;gap:16px;margin-bottom:14px}
+  .wcard .ico{width:56px;height:56px;border-radius:18px;background:rgba(74,222,128,.1);
+    display:grid;place-items:center;color:var(--primary);flex:none}
+  .wcard .txt{flex:1;min-width:0}
+  .wcard b{display:block;font-size:14px;font-weight:600}
+  .wcard span{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+  .wsep{height:1px;background:var(--line);margin:18px 0}
+  .wlink{font-size:13px;font-weight:600;color:var(--secondary);padding:9px 0}
+  .wgroup{background:var(--surface);border-radius:16px;overflow:hidden;margin-bottom:12px}
+  .wrow{display:flex;align-items:center;gap:12px;padding:13px 14px}
+  .wrow + .wrow{border-top:1px solid var(--line)}
+  .wrow .txt{flex:1;min-width:0}
+  .wrow b{display:block;font-size:14px;font-weight:600}
+  .wrow span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+  .field{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:12px}
+  .field label{display:block;font-size:10px;letter-spacing:.04em;color:var(--muted)}
+  .field .val{font-size:14px;color:var(--text);margin-top:2px}
+  .field input{border:0;background:none;outline:none;padding:2px 0 0;margin:0;color:var(--text);
+    font-family:inherit;font-size:14px;width:100%}
+  .codebox input{width:100%;height:100%;border:0;background:none;outline:none;text-align:center;
+    color:var(--text);font-family:inherit;font-size:20px;font-weight:700}
+  .codebox{display:flex;gap:8px;margin:2px 0 14px}
+  .codebox i{flex:1;height:52px;border:1px solid var(--line);border-radius:12px;background:var(--surface);
+    display:grid;place-items:center;font-style:normal;font-size:20px;font-weight:700}
+  .wbtn{display:flex;align-items:center;justify-content:center;height:48px;border-radius:999px;
+    background:var(--primary);color:#052e16;font-size:14px;font-weight:700}
+  .wbtn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+  .qrbox{width:190px;height:190px;margin:4px auto 10px;border-radius:18px;background:#fff;border:8px solid #fff;
+    background-image:conic-gradient(#0B0F14 25%,#fff 0 50%,#0B0F14 0 75%,#fff 0);
+    background-size:16px 16px;box-shadow:0 0 0 1px var(--line)}
+  .qrcap{text-align:center;font-size:11px;color:var(--muted);margin:0 0 16px}
+
   .stat .label{font-size:10px;color:var(--muted)}
   .stat .value{font-size:19px;font-weight:700;margin-top:4px}
   .stat .hint{font-size:10px;color:var(--muted);margin-top:2px}
 
-  .appicon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:12px;font-weight:800;flex:none;
-    background:#22303f;color:#cfe0f2}
+  .appicon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;
+    font-size:12px;font-weight:800;flex:none;background:#22303f;color:#cfe0f2}
 
-  .tile{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border-radius:var(--r-md);padding:12px}
-  .tile .ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none}
-  .tile b{display:block;font-size:12.5px}
-  .tile span{display:block;font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.35}
+  .tog{width:38px;height:22px;border-radius:999px;background:#2a3647;position:relative;
+    flex:none;transition:background .15s}
+  .tog::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;
+    border-radius:50%;background:#8ba0b8;transition:left .15s,background .15s}
+  .tog.on{background:var(--primary)}
+  .tog.on::after{left:19px;background:#052e16}
+  .cb{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--outline);
+    display:grid;place-items:center;color:#052e16;flex:none}
+  .cb.on{background:var(--primary);border-color:var(--primary)}
 
-  /* notes */
-  .notes{margin-top:56px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
-  .note{background:var(--surface3);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px}
-  .note h3{margin:0 0 10px;font-size:15px}
-  .note ul{margin:0;padding-left:18px;color:var(--muted);font-size:13px;line-height:1.7}
-  .note ul b{color:var(--text)}
-  .note code{font-family:ui-monospace,monospace;font-size:12px;color:var(--secondary)}
-  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px;color:var(--muted);font-size:12px}
-  .legend b{color:var(--text)}
-  svg{display:block}
+  .overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;z-index:20}
+  .overlay.show{display:flex}
+  .overlay.center{align-items:center;padding:24px}
+  .sheet{width:100%;background:var(--surface);border-radius:22px 22px 0 0;padding:18px 16px 20px;
+    max-height:80%;overflow-y:auto}
+  .sheet.dlg{border-radius:20px}
+  .sheet h4{margin:0 0 6px;font-size:16px}
+  .sheet p{margin:0 0 14px;font-size:12.5px;color:var(--muted);line-height:1.5}
+  .sheet .acts{display:flex;gap:8px;margin-top:14px}
+  .sheet .acts .btn{flex:1}
+  .sheet .stack{display:flex;flex-direction:column;gap:8px}
+  .grab{width:36px;height:4px;border-radius:4px;background:#2c3b4e;margin:-8px auto 14px}
+  .inp{width:100%;height:44px;background:var(--surface3);border:1px solid var(--line);
+    border-radius:12px;color:var(--text);padding:0 12px;font-size:13px;font-family:inherit;outline:none}
+  .inp:focus{border-color:var(--primary)}
+  .toast{position:absolute;left:16px;right:16px;bottom:72px;background:#223044;
+    border:1px solid #2c3b4e;color:var(--text);font-size:12px;padding:11px 14px;border-radius:12px;
+    z-index:30;opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s}
+  .toast.show{opacity:1;transform:none}
+
+  .tap{cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+  .row.tap:active,.kv.tap:active,.iconbtn.tap:active,.tab.tap:active{background:rgba(255,255,255,.04)}
+  .btn.tap:active{transform:scale(.98)}
+  .iconbtn.tap:active{background:rgba(255,255,255,.07)}
+  .search input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--text);font:inherit}
+  .search input::placeholder{color:var(--muted)}
+  .chip.tap:active{background:var(--surface2)}
+  @media(hover:hover){
+    .row.tap:hover,.kv.tap:hover{background:rgba(255,255,255,.03)}
+    .btn.tap:hover{border-color:#2c3b4e}
+  }
+
+  .live{color:var(--primary);font-weight:700}
+  .ok-txt{color:var(--primary)}
+
+  .proto-actions{flex:none;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+  .ghost-btn{all:unset;cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);
+    padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface)}
+  .ghost-btn:hover{color:var(--text);border-color:#2c3b4e}
+  .proto-note{font-size:11px;color:var(--muted)}
+
+  @media(max-width:640px){
+    .page{padding:24px 16px 24px;gap:16px}
+    h1{font-size:26px}
+    .phone.proto{height:min(680px,calc(100vh - 330px));min-height:520px}
+  }
 </style>
 </head>
 <body>
@@ -170,484 +292,805 @@
   <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10.5 18.5h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
   <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z" fill="currentColor"/></symbol>
   <symbol id="i-refresh" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M20 12a8 8 0 11-2.34-5.66M20 4v5h-5"/></symbol>
+  <symbol id="i-power" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 3v9"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M7.2 6.2a8 8 0 1011.6 0"/></symbol>
   <symbol id="i-history" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 12a8 8 0 118 8 8 8 0 01-6.2-3M4 4v5h5"/><path d="M12 8v4.5l3 1.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7"/></symbol>
   <symbol id="i-edit" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 10.8v5.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="7.6" r="1.15" fill="currentColor"/></symbol>
+  <symbol id="i-display" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 21h6M12 17v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-sensors" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M8 8a5.6 5.6 0 000 8M16 8a5.6 5.6 0 010 8M5 5a9.9 9.9 0 000 14M19 5a9.9 9.9 0 010 14"/></symbol>
+  <symbol id="i-wifi" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M3.5 9.5a13 13 0 0117 0M6.5 12.8a8.7 8.7 0 0111 0M9.5 16a4.4 4.4 0 015 0"/><circle cx="12" cy="19" r="1.4" fill="currentColor"/></symbol>
+  <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1" fill="currentColor"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/></symbol>
+  <symbol id="i-memory" viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M7 10h10M7 14h6"/></symbol>
+  <symbol id="i-battery" viewBox="0 0 24 24"><rect x="2.5" y="7" width="17" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20.5 10v4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><rect x="5.5" y="10" width="7" height="4" rx="1" fill="currentColor"/></symbol>
 </svg>
 
 <div class="page">
   <header class="hero">
-    <div class="eyebrow">Propuesta de diseño · v1</div>
-    <h1>AdbOptimizer: una app más limpia, con Herramientas en su propio espacio</h1>
-    <p class="lead">Hoy Ajustes acumula <b>siete botones idénticos</b> para abrir herramientas que no son preferencias.
-      Esta propuesta separa <b>preferencias</b> de <b>herramientas</b>, agrupa las utilidades por intención y unifica
-      el lenguaje visual en todas las pantallas. Todo sobre el tema oscuro actual y la paleta verde/cian/ámbar.</p>
+    <div class="eyebrow">Prototipo navegable · alineado con la app</div>
+    <h1>AdbOptimizer</h1>
+    <p class="lead">Toca dentro del teléfono. Inicio reproduce <b>Explora tu equipo</b> con sus ocho categorías,
+      Optimizar usa el plan con checkboxes y riesgo reales, y <b>Nuevo dispositivo</b> es el asistente de dos pasos
+      con código o QR. La barra inferior cambia de pestaña y Atrás respeta la pila.</p>
     <div class="pills">
-      <span class="pill warn">Antes: 7 botones apilados</span>
-      <span class="pill ok">Después: 1 sección agrupada + pantalla propia</span>
-      <span class="pill">Grid 8dp · radios 12/16 · touch ≥ 48dp</span>
-      <span class="pill">Componentes: ToolTopBar / ToolSearchField / ToolEmptyState</span>
+      <span class="pill ok">5 pestañas estables</span>
+      <span class="pill">Explora tu equipo · 8 categorías</span>
+      <span class="pill">Nuevo dispositivo · 2 pasos</span>
+      <span class="pill">Tipografía 22/14/12</span>
+      <a class="pill ok" href="tv-prototype.html" style="text-decoration:none">Versión TV navegable →</a>
     </div>
   </header>
 
-  <div class="grid">
+  <div class="stage">
+    <div class="phone proto" id="phone">
+      <div class="status"><span id="clock">9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
+      <div class="viewport">
 
-    <!-- ============ 1. INICIO ============ -->
-    <div class="item">
-      <div class="cap"><b>Inicio</b><span>estado + accesos</span></div>
-      <div class="phone">
-        <div class="status"><span>9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
-        <div class="body">
-          <div class="appbar">
-            <div class="titles">
-              <h2>Inicio</h2>
-              <p>Google TV · conectado</p>
+        <!-- INICIO -->
+        <section class="scr" id="s-home" data-tab="home">
+          <div class="body">
+            <div class="appbar">
+              <div class="titles"><h2>Inicio</h2><p id="homeSub"></p></div>
+              <div class="iconbtn tap" data-refresh="1"><svg width="20" height="20"><use href="#i-refresh"/></svg></div>
             </div>
-            <div class="iconbtn"><svg width="20" height="20"><use href="#i-phone"/></svg></div>
-          </div>
-          <div class="scroll">
-            <div class="stat" style="margin-bottom:10px">
-              <div><div class="label">Batería</div><div class="value">—</div><div class="hint">No disponible en TV</div></div>
-              <div><div class="label">RAM en uso</div><div class="value">1.5 GB</div><div class="hint">de 1.9 GB</div></div>
-            </div>
-            <div class="section-label">Accesos rápidos</div>
-            <div class="card tight" style="margin-bottom:10px">
-              <div class="row"><div class="ico i-green"><svg width="18" height="18"><use href="#i-bolt"/></svg></div>
-                <div class="txt"><b>Optimizar</b><span>12 recetas para este equipo</span></div>
-                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-              <div class="row"><div class="ico i-cyan"><svg width="18" height="18"><use href="#i-grid"/></svg></div>
-                <div class="txt"><b>Herramientas</b><span>Registro, consola, archivos y más</span></div>
-                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-              <div class="row"><div class="ico i-amber"><svg width="18" height="18"><use href="#i-layers"/></svg></div>
-                <div class="txt"><b>Perfiles</b><span>Aplica un conjunto de apps de una vez</span></div>
-                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-            </div>
-            <div class="section-label">Del dispositivo</div>
-            <div class="card">
-              <div class="row" style="padding:0 0 10px;border:0">
-                <div class="appicon" style="background:var(--primary-soft);color:var(--primary)">TV</div>
-                <div class="txt"><b>Google TV · sdk_google_atv</b><span>Android 16 · arm64 · TV</span></div>
+            <div class="scroll">
+              <div class="stat" style="margin-bottom:10px">
+                <div><div class="label">Batería</div><div class="value">100%</div><div class="hint" id="homeBat">Nivel actual</div></div>
+                <div><div class="label">RAM en uso</div><div class="value">2.3 GB</div><div class="hint" id="homeRam">de 3.9 GB</div></div>
               </div>
-              <div class="small muted" style="line-height:1.6">Sesión activa. Puedes cerrar sesión desde Destino sin perder el historial.</div>
+              <div class="health">
+                <div><b>Buen estado</b><span>76/100</span></div>
+                <div class="health-btn">Optimizar</div>
+              </div>
+              <div class="section-label">Accesos rápidos</div>
+              <div class="card tight" style="margin-bottom:10px" id="homeQuick"></div>
+              <div class="section-label">Del dispositivo</div>
+              <div class="group" style="margin-bottom:12px" id="homeDev"></div>
+              <div class="section-label">Explora tu equipo</div>
+              <div class="group" id="homeExplore"></div>
             </div>
           </div>
-        </div>
-        <div class="nav">
-          <div class="tab on"><span class="pillnav"><svg width="18" height="18"><use href="#i-home"/></svg></span>Inicio</div>
-          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-grid"/></svg></span>Apps</div>
-          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-phone"/></svg></span>Destino</div>
-          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-bolt"/></svg></span>Optimizar</div>
-          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-sliders"/></svg></span>Ajustes</div>
-        </div>
-      </div>
-    </div>
+          <div class="nav-slot"></div>
+        </section>
 
-    <!-- ============ 2. APPS ============ -->
-    <div class="item">
-      <div class="cap"><b>Apps</b><span>búsqueda + acciones</span></div>
-      <div class="phone">
-        <div class="status"><span>9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
-        <div class="body">
-          <div class="appbar">
-            <div class="titles"><h2>Apps</h2><p>48 apps · 12 de sistema</p></div>
-            <div class="iconbtn primary"><svg width="20" height="20"><use href="#i-grid"/></svg></div>
+        <!-- APPS -->
+        <section class="scr" id="s-apps" data-tab="apps">
+          <div class="body">
+            <div class="appbar">
+              <div class="titles"><h2>Apps instaladas</h2><p id="appsSub"></p></div>
+              <div class="iconbtn primary"><svg width="20" height="20"><use href="#i-grid"/></svg></div>
+            </div>
+            <div class="search"><svg width="16" height="16"><use href="#i-search"/></svg><input id="appsQ" placeholder="Buscar app" autocomplete="off"></div>
+            <div class="chips" id="appsChips"></div>
+            <div class="scroll card tight" id="appsList"></div>
           </div>
-          <div class="search"><svg width="16" height="16"><use href="#i-search"/></svg>Buscar app</div>
-          <div class="chips">
-            <div class="chip on">Todas <span class="n">48</span></div>
-            <div class="chip">Usuario <span class="n">36</span></div>
-            <div class="chip">Sistema <span class="n">12</span></div>
-          </div>
-          <div class="scroll card tight">
-            <div class="row"><div class="appicon" style="background:#1d2a3a;color:#8ec5ff">YT</div>
-              <div class="txt"><b>YouTube Music</b><span>com.google.android.youtube.tvmusic · 2.4 MB</span></div>
-              <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-            <div class="row"><div class="appicon" style="background:#2a1f1f;color:#ffb4b4">NF</div>
-              <div class="txt"><b>Netflix</b><span>com.netflix.ninja · 84 MB</span></div>
-              <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-            <div class="row"><div class="appicon" style="background:#1f2a22;color:#a7f3c4">SP</div>
-              <div class="txt"><b>Spotify</b><span>com.spotify.tv.android · 42 MB</span></div>
-              <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-            <div class="row"><div class="appicon" style="background:#241f2f;color:#d6c4ff">PL</div>
-              <div class="txt"><b>Plex</b><span>com.plexapp.android · 31 MB</span></div>
-              <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-            <div class="row"><div class="appicon" style="background:#2a2416;color:#ffd79a">TV</div>
-              <div class="txt"><b>Launcher de TV</b><span>com.google.android.tvlauncher · sistema</span></div>
-              <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-          </div>
-        </div>
-        <div class="nav">
-          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-home"/></svg></span>Inicio</div>
-          <div class="tab on"><span class="pillnav"><svg width="18" height="18"><use href="#i-grid"/></svg></span>Apps</div>
-          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-phone"/></svg></span>Destino</div>
-          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-bolt"/></svg></span>Optimizar</div>
-          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-sliders"/></svg></span>Ajustes</div>
-        </div>
-      </div>
-    </div>
+          <div class="nav-slot"></div>
+        </section>
 
+        <!-- DESTINO -->
+        <section class="scr" id="s-destino" data-tab="destino">
+          <div class="body">
+            <div class="appbar">
+              <div class="titles"><h2>Destino</h2><p>Elige el equipo a controlar</p></div>
+              <div class="iconbtn primary"><svg width="20" height="20"><use href="#i-phone"/></svg></div>
+            </div>
+            <div class="chips" id="destChips"></div>
+            <div class="scroll">
+              <div class="card" style="margin-bottom:10px" id="destCard"></div>
+              <div class="section-label">Dispositivos conocidos</div>
+              <div class="group" style="margin-bottom:10px" id="destKnown"></div>
+              <div class="btn tap" id="destAdd" style="height:42px">Añadir dispositivo</div>
+            </div>
+          </div>
+          <div class="nav-slot"></div>
+        </section>
 
-    <!-- ============ 2b. DESTINO ============ -->
-    <div class="item">
-      <div class="cap"><b>Destino</b><span>dónde trabajo: local o remoto</span></div>
-      <div class="phone">
-        <div class="status"><span>9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
-        <div class="body">
-          <div class="appbar">
-            <div class="titles"><h2>Destino</h2><p>Elige el equipo a controlar</p></div>
-            <div class="iconbtn primary"><svg width="20" height="20"><use href="#i-phone"/></svg></div>
+        <!-- OPTIMIZAR -->
+        <section class="scr" id="s-optimizar" data-tab="optimizar">
+          <div class="body" style="padding-top:8px">
+            <div class="appbar" style="padding:2px 0 8px"><div class="titles"><h2>Optimizar</h2><p id="optSub"></p></div></div>
+            <div class="scroll">
+              <p class="intro-line">Revisa los cambios disponibles y previsualízalos antes de aplicarlos.</p>
+              <div class="chips" id="optProfiles"></div>
+              <div class="countline"><span id="optCount"></span><span id="optRisk" style="color:var(--tertiary)"></span></div>
+              <div id="optList"></div>
+            </div>
+            <div class="applybar"><div class="small muted" style="flex:1" id="optSel"></div><div class="fab tap" id="optAll"></div></div>
           </div>
-          <div class="chips">
-            <div class="chip">Este teléfono</div>
-            <div class="chip on">Remoto · Google TV</div>
+          <div class="nav-slot"></div>
+        </section>
+
+        <!-- WIZARD NUEVO DISPOSITIVO -->
+        <section class="scr" id="s-wizard">
+          <div class="body">
+            <div class="appbar">
+              <div class="iconbtn tap" data-wiz-back><svg width="20" height="20"><use href="#i-back"/></svg></div>
+              <div class="titles"><h2 id="wizTitle">Nuevo dispositivo</h2><p id="wizSub"></p></div>
+              <div class="iconbtn"><svg width="18" height="18"><use href="#i-info"/></svg></div>
+            </div>
+            <div class="scroll" id="wizBody"></div>
           </div>
-          <div class="scroll">
-            <div class="card" style="margin-bottom:10px">
-              <div class="row" style="padding:0 0 12px;border:0">
-                <div class="appicon" style="background:var(--primary-soft);color:var(--primary)">TV</div>
-                <div class="txt"><b>Google TV · sdk_google_atv</b><span>192.168.1.40:5555 · conectado</span></div>
-                <span style="width:8px;height:8px;border-radius:50%;background:var(--primary)"></span>
+        </section>
+
+        <!-- AJUSTES -->
+        <section class="scr" id="s-ajustes" data-tab="ajustes">
+          <div class="body">
+            <div class="appbar"><div class="titles"><h2>Ajustes</h2><p>Preferencias de la app</p></div></div>
+            <div class="scroll">
+              <div class="section-label">Apariencia</div>
+              <div class="group" style="margin-bottom:12px">
+                <div class="row tap" id="setTheme"><div class="ico i-grey"><svg width="18" height="18"><use href="#i-moon"/></svg></div>
+                  <div class="txt"><b>Tema</b><span id="setThemeV">Seguir el sistema</span></div>
+                  <div class="chev"><svg width="16" height="16"><use href="#i-chevdown"/></svg></div></div>
               </div>
-              <div style="display:flex;gap:8px">
-                <div class="btn tonal" style="flex:1;height:38px">Control remoto</div>
-                <div class="btn" style="flex:1;height:38px">Espejo</div>
+              <div class="section-label">Apps</div>
+              <div class="group" style="margin-bottom:12px">
+                <div class="row tap" data-tog><div class="ico i-grey"><svg width="18" height="18"><use href="#i-grid"/></svg></div>
+                  <div class="txt"><b>Mostrar apps del sistema</b><span>Incluye apps de sistema en la lista</span></div><div class="tog" id="togSys"></div></div>
               </div>
-              <div class="row" style="padding:12px 0 0;border:0">
-                <div class="ico i-grey"><svg width="18" height="18"><use href="#i-term"/></svg></div>
-                <div class="txt"><b>Herramientas de este equipo</b><span>Registro, consola, archivos, debloater…</span></div>
-                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div>
+              <div class="section-label">Conexión y dispositivo</div>
+              <div class="group" style="margin-bottom:12px">
+                <div class="row tap" data-tog><div class="ico i-grey"><svg width="18" height="18"><use href="#i-phone"/></svg></div>
+                  <div class="txt"><b>Mantener pantalla encendida</b><span>Evita que se apague mientras usas la app</span></div><div class="tog"></div></div>
+                <div class="row tap" id="setRefresh"><div class="ico i-grey"><svg width="18" height="18"><use href="#i-refresh"/></svg></div>
+                  <div class="txt"><b>Actualizar métricas</b><span id="setRefreshV">Cada 30 segundos</span></div>
+                  <div class="chev"><svg width="16" height="16"><use href="#i-chevdown"/></svg></div></div>
+              </div>
+              <div class="section-label">Avanzado</div>
+              <div class="group">
+                <div class="row tap" data-go="dpc"><div class="ico i-grey"><svg width="18" height="18"><use href="#i-layers"/></svg></div>
+                  <div class="txt"><b>Administración (DPC)</b><span>Solo con un perfil de trabajo activo</span></div>
+                  <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
               </div>
             </div>
-
-            <div class="section-label">Dispositivos conocidos</div>
-            <div class="group" style="margin-bottom:10px">
-              <div class="row"><div class="ico i-cyan"><svg width="18" height="18"><use href="#i-phone"/></svg></div>
-                <div class="txt"><b>Pixel 7</b><span>192.168.1.22 · TLS</span></div>
-                <span class="tiny muted">Conectar</span></div>
-              <div class="row"><div class="ico i-amber"><svg width="18" height="18"><use href="#i-phone"/></svg></div>
-                <div class="txt"><b>TV del salón</b><span>192.168.1.51 · clásico</span></div>
-                <span class="tiny muted">Conectar</span></div>
-            </div>
-            <div class="btn" style="height:42px">Añadir dispositivo</div>
           </div>
-        </div>
-        <div class="nav">
-          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-home"/></svg></span>Inicio</div>
-          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-grid"/></svg></span>Apps</div>
-          <div class="tab on"><span class="pillnav"><svg width="18" height="18"><use href="#i-phone"/></svg></span>Destino</div>
-          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-bolt"/></svg></span>Optimizar</div>
-          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-sliders"/></svg></span>Ajustes</div>
-        </div>
+          <div class="nav-slot"></div>
+        </section>
+
+        <!-- HERRAMIENTAS -->
+        <section class="scr" id="s-tools">
+          <div class="body">
+            <div class="appbar"><div class="iconbtn tap" data-back><svg width="20" height="20"><use href="#i-back"/></svg></div>
+              <div class="titles"><h2>Herramientas</h2><p id="toolsSub"></p></div></div>
+            <div class="search"><svg width="16" height="16"><use href="#i-search"/></svg><input id="toolsQ" placeholder="Buscar herramienta" autocomplete="off"></div>
+            <div class="scroll" id="toolsList"></div>
+          </div>
+        </section>
+
+        <!-- REGISTRO -->
+        <section class="scr" id="s-log">
+          <div class="body">
+            <div class="appbar">
+              <div class="iconbtn tap" data-back><svg width="20" height="20"><use href="#i-back"/></svg></div>
+              <div class="titles"><h2>Registro</h2><p id="logSub"></p></div>
+              <div class="iconbtn primary tap" id="logPlay"></div>
+              <div class="iconbtn tap" id="logClear"><svg width="18" height="18"><use href="#i-refresh"/></svg></div>
+            </div>
+            <div class="search"><svg width="16" height="16"><use href="#i-search"/></svg><input id="logQ" placeholder="Buscar etiqueta o mensaje" autocomplete="off"></div>
+            <div class="chips" id="logChips"></div>
+            <div class="scroll" id="logList" style="display:flex;flex-direction:column;gap:8px"></div>
+          </div>
+        </section>
+
+        <!-- CONSOLA -->
+        <section class="scr" id="s-consola">
+          <div class="body">
+            <div class="appbar">
+              <div class="iconbtn tap" data-back><svg width="20" height="20"><use href="#i-back"/></svg></div>
+              <div class="titles"><h2>Consola</h2><p>shell como uid 2000</p></div>
+              <div class="iconbtn tap" id="conHist"><svg width="18" height="18"><use href="#i-history"/></svg></div>
+            </div>
+            <div class="scroll" id="conList" style="display:flex;flex-direction:column;gap:10px"></div>
+            <div class="chips" style="margin:8px 0 0" id="conChips"></div>
+            <div style="flex:none;display:flex;gap:8px;padding:8px 0 12px;align-items:center">
+              <div class="search" style="margin:0;flex:1"><input id="conIn" placeholder="Escribe un comando…" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+              <div class="iconbtn primary tap" id="conRun" style="background:var(--primary-soft)"><svg width="18" height="18"><use href="#i-play"/></svg></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- DOZE -->
+        <section class="scr" id="s-doze">
+          <div class="body">
+            <div class="appbar"><div class="iconbtn tap" data-back><svg width="20" height="20"><use href="#i-back"/></svg></div>
+              <div class="titles"><h2>Doze y energía</h2><p>Estado de reposo y acciones</p></div></div>
+            <div class="scroll">
+              <div class="card" style="margin-bottom:12px">
+                <div class="tiny muted">Estado de reposo profundo</div>
+                <div class="value" id="dozeState" style="font-size:22px;font-weight:700;margin:6px 0 4px">ACTIVE</div>
+                <div class="small muted" id="dozeHint">El equipo está despierto.</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div class="btn tonal tap" id="dozeForce">Forzar reposo profundo</div>
+                <div class="btn tap" id="dozeExit">Salir de reposo</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- AJUSTES DEL SISTEMA -->
+        <section class="scr" id="s-sysset">
+          <div class="body">
+            <div class="appbar">
+              <div class="iconbtn tap" data-back><svg width="20" height="20"><use href="#i-back"/></svg></div>
+              <div class="titles"><h2>Ajustes del sistema</h2><p id="sysSub"></p></div>
+              <div class="iconbtn tap" id="sysHist"><svg width="18" height="18"><use href="#i-history"/></svg></div>
+            </div>
+            <div class="card tap" id="sysQuick" style="padding:12px;margin-bottom:10px;flex:none">
+              <div style="display:flex;align-items:center;gap:8px">
+                <b style="font-size:12.5px">Ajustes rápidos</b><span class="tiny muted">Auto · 30 s · 128</span>
+                <span style="margin-left:auto;color:var(--muted)"><svg width="16" height="16"><use href="#i-chev"/></svg></span>
+              </div>
+            </div>
+            <div class="chips" id="sysChips"></div>
+            <div class="search"><svg width="16" height="16"><use href="#i-search"/></svg><input id="sysQ" placeholder="Buscar clave" autocomplete="off"></div>
+            <div class="scroll group" id="sysList"></div>
+          </div>
+        </section>
+
+        <!-- DEBLOATER -->
+        <section class="scr" id="s-debloat">
+          <div class="body">
+            <div class="appbar"><div class="iconbtn tap" data-back><svg width="20" height="20"><use href="#i-back"/></svg></div>
+              <div class="titles"><h2>Debloater</h2><p id="debSub"></p></div></div>
+            <div class="search"><svg width="16" height="16"><use href="#i-search"/></svg><input id="debQ" placeholder="Buscar app" autocomplete="off"></div>
+            <div class="scroll">
+              <div class="card tight" style="margin-bottom:10px" id="debList"></div>
+              <div class="card" style="border:1px solid rgba(251,191,36,.35)">
+                <div class="small" style="color:var(--tertiary);font-weight:700;margin-bottom:4px">Antes de continuar</div>
+                <div class="small muted" style="line-height:1.6">El launcher actual está protegido. Nada se ejecuta hasta confirmar y todo queda en el historial para deshacer.</div>
+              </div>
+            </div>
+            <div style="flex:none;padding:10px 0 12px"><div class="btn solid tap" id="debGo"></div></div>
+          </div>
+        </section>
+
+        <!-- ARCHIVOS -->
+        <section class="scr" id="s-files">
+          <div class="body">
+            <div class="appbar">
+              <div class="iconbtn tap" id="filesBack"><svg width="20" height="20"><use href="#i-back"/></svg></div>
+              <div class="titles"><h2>Archivos</h2><p id="filesPath" style="font-family:ui-monospace,monospace"></p></div>
+              <div class="iconbtn tap" id="filesRoot"><svg width="18" height="18"><use href="#i-folder"/></svg></div>
+            </div>
+            <div class="scroll group" id="filesList"></div>
+            <div class="card" style="margin:10px 0 12px;padding:12px;flex:none">
+              <div class="small muted" style="line-height:1.6">Las rutas protegidas del sistema no se pueden borrar: la app comprueba la ruta antes de tocar nada.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PERFILES -->
+        <section class="scr" id="s-profiles">
+          <div class="body">
+            <div class="appbar"><div class="iconbtn tap" data-back><svg width="20" height="20"><use href="#i-back"/></svg></div>
+              <div class="titles"><h2>Perfiles</h2><p>Aplica un conjunto de apps de una vez</p></div></div>
+            <div class="scroll"><div class="group" id="profList"></div></div>
+          </div>
+        </section>
+
+        <!-- ENERGÍA -->
+        <section class="scr" id="s-power">
+          <div class="body">
+            <div class="appbar"><div class="iconbtn tap" data-back><svg width="20" height="20"><use href="#i-back"/></svg></div>
+              <div class="titles"><h2>Opciones de energía</h2><p>Pantalla, reinicio y apagado</p></div></div>
+            <div class="scroll"><div class="group" id="powerList"></div>
+              <div class="small muted" style="line-height:1.6;margin:10px 4px">Las acciones siempre piden confirmación.</div></div>
+          </div>
+        </section>
+
+        <!-- DPC -->
+        <section class="scr" id="s-dpc">
+          <div class="body">
+            <div class="appbar"><div class="iconbtn tap" data-back><svg width="20" height="20"><use href="#i-back"/></svg></div>
+              <div class="titles"><h2>Administración (DPC)</h2><p>Perfil de trabajo</p></div></div>
+            <div class="scroll"><div class="card" style="margin-top:20px"><div class="empty">
+              <div class="circle"><svg width="26" height="26"><use href="#i-layers"/></svg></div>
+              <b>Sin perfil de trabajo activo</b><span>Esta sección se habilita cuando la app se ejecuta dentro de un perfil de trabajo.</span></div></div></div>
+          </div>
+        </section>
+
       </div>
+      <div class="overlay" id="ov"></div>
+      <div class="toast" id="toast"></div>
     </div>
 
-    <!-- ============ 3. HERRAMIENTAS (NUEVA) ============ -->
-    <div class="item">
-      <div class="cap"><b>Herramientas</b><span>nueva pantalla · agrupada por intención</span></div>
-      <div class="phone">
-        <div class="status"><span>9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
-        <div class="body">
-          <div class="appbar">
-            <div class="iconbtn"><svg width="20" height="20"><use href="#i-back"/></svg></div>
-            <div class="titles"><h2>Herramientas</h2><p>8 utilidades · Google TV</p></div>
-          </div>
-          <div class="search"><svg width="16" height="16"><use href="#i-search"/></svg>Buscar herramienta</div>
-          <div class="scroll">
-            <div class="section-label">Diagnóstico</div>
-            <div class="group" style="margin-bottom:12px">
-              <div class="row"><div class="ico i-green"><svg width="18" height="18"><use href="#i-log"/></svg></div>
-                <div class="txt"><b>Registro del sistema</b><span>Logcat con niveles y modo en vivo</span></div>
-                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-              <div class="row"><div class="ico i-cyan"><svg width="18" height="18"><use href="#i-term"/></svg></div>
-                <div class="txt"><b>Consola</b><span>Comandos ADB con historial</span></div>
-                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-              <div class="row"><div class="ico i-amber"><svg width="18" height="18"><use href="#i-moon"/></svg></div>
-                <div class="txt"><b>Doze y energía</b><span>Estado de reposo y acciones</span></div>
-                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-            </div>
-
-            <div class="section-label">Sistema</div>
-            <div class="group" style="margin-bottom:12px">
-              <div class="row"><div class="ico i-green"><svg width="18" height="18"><use href="#i-sliders"/></svg></div>
-                <div class="txt"><b>Ajustes del sistema</b><span>Global, seguro y sistema con deshacer</span></div>
-                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-              <div class="row"><div class="ico i-cyan"><svg width="18" height="18"><use href="#i-folder"/></svg></div>
-                <div class="txt"><b>Archivos</b><span>Explorar, copiar y borrar en el equipo</span></div>
-                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-              <div class="row"><div class="ico i-red"><svg width="18" height="18"><use href="#i-trash"/></svg></div>
-                <div class="txt"><b>Debloater</b><span>Revisar y desinstalar apps del sistema</span></div>
-                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-            </div>
-
-            <div class="section-label">Apps</div>
-            <div class="group">
-              <div class="row"><div class="ico i-amber"><svg width="18" height="18"><use href="#i-layers"/></svg></div>
-                <div class="txt"><b>Perfiles</b><span>Conjuntos de apps para aplicar de una vez</span></div>
-                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-            </div>
-          </div>
-        </div>
-
-      </div>
+    <div class="proto-actions">
+      <button class="ghost-btn" id="resetProto">Reiniciar prototipo</button>
+      <a class="ghost-btn" href="tv-prototype.html">Prototipo TV</a>
+      <span class="proto-note">Las acciones destructivas piden confirmación.</span>
     </div>
-
-    <!-- ============ 4. AJUSTES (LIMPIO) ============ -->
-    <div class="item">
-      <div class="cap"><b>Ajustes</b><span>solo preferencias · sin botones de herramientas</span></div>
-      <div class="phone">
-        <div class="status"><span>9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
-        <div class="body">
-          <div class="appbar"><div class="titles"><h2>Ajustes</h2><p>Preferencias de la app</p></div></div>
-          <div class="scroll">
-            <div class="section-label">Apariencia</div>
-            <div class="group" style="margin-bottom:12px">
-              <div class="row"><div class="ico i-grey"><svg width="18" height="18"><use href="#i-moon"/></svg></div>
-                <div class="txt"><b>Tema</b><span>Seguir el sistema</span></div>
-                <div class="chev"><svg width="16" height="16"><use href="#i-chevdown"/></svg></div></div>
-            </div>
-            <div class="section-label">Apps</div>
-            <div class="group" style="margin-bottom:12px">
-              <div class="row"><div class="ico i-grey"><svg width="18" height="18"><use href="#i-grid"/></svg></div>
-                <div class="txt"><b>Mostrar apps del sistema</b><span>Incluye apps de sistema en la lista</span></div>
-                <div style="width:38px;height:22px;border-radius:999px;background:#2a3647;position:relative"><span style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#8ba0b8"></span></div></div>
-            </div>
-            <div class="section-label">Conexión y dispositivo</div>
-            <div class="group" style="margin-bottom:12px">
-              <div class="row"><div class="ico i-grey"><svg width="18" height="18"><use href="#i-phone"/></svg></div>
-                <div class="txt"><b>Mantener pantalla encendida</b><span>Evita que se apague mientras usas la app</span></div>
-                <div style="width:38px;height:22px;border-radius:999px;background:#2a3647;position:relative"><span style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#8ba0b8"></span></div></div>
-              <div class="row"><div class="ico i-grey"><svg width="18" height="18"><use href="#i-refresh"/></svg></div>
-                <div class="txt"><b>Actualizar métricas</b><span>Cada 30 segundos</span></div>
-                <div class="chev"><svg width="16" height="16"><use href="#i-chevdown"/></svg></div></div>
-            </div>
-            <div class="section-label">Avanzado</div>
-            <div class="group">
-              <div class="row"><div class="ico i-grey"><svg width="18" height="18"><use href="#i-layers"/></svg></div>
-                <div class="txt"><b>Administración (DPC)</b><span>Solo con un perfil de trabajo activo</span></div>
-                <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-            </div>
-          </div>
-        </div>
-        <div class="nav">
-          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-home"/></svg></span>Inicio</div>
-          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-grid"/></svg></span>Apps</div>
-          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-phone"/></svg></span>Destino</div>
-          <div class="tab"><span class="pillnav"><svg width="18" height="18"><use href="#i-bolt"/></svg></span>Optimizar</div>
-          <div class="tab on"><span class="pillnav"><svg width="18" height="18"><use href="#i-sliders"/></svg></span>Ajustes</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ============ 5. REGISTRO ============ -->
-    <div class="item">
-      <div class="cap"><b>Registro del sistema</b><span>en vivo, con niveles</span></div>
-      <div class="phone">
-        <div class="status"><span>9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
-        <div class="body">
-          <div class="appbar">
-            <div class="iconbtn"><svg width="20" height="20"><use href="#i-back"/></svg></div>
-            <div class="titles"><h2>Registro</h2><p>EN VIVO · 812 líneas · 42 visibles</p></div>
-            <div class="iconbtn primary"><svg width="18" height="18"><use href="#i-play"/></svg></div>
-            <div class="iconbtn"><svg width="18" height="18"><use href="#i-refresh"/></svg></div>
-          </div>
-          <div class="search"><svg width="16" height="16"><use href="#i-search"/></svg>Buscar etiqueta o mensaje</div>
-          <div class="chips">
-            <div class="chip on"><span class="dot" style="background:#8ba0b8"></span>Todo <span class="n">812</span></div>
-            <div class="chip"><span class="dot" style="background:var(--secondary)"></span>D <span class="n">96</span></div>
-            <div class="chip"><span class="dot" style="background:var(--primary)"></span>I <span class="n">31</span></div>
-            <div class="chip"><span class="dot" style="background:var(--tertiary)"></span>W <span class="n">12</span></div>
-            <div class="chip"><span class="dot" style="background:var(--danger)"></span>E <span class="n">3</span></div>
-          </div>
-          <div class="scroll" style="display:flex;flex-direction:column;gap:8px">
-            <div class="logrow" style="--tint:var(--primary)"><div class="meta"><span class="time">03:04:05.678</span><span class="badge">I</span><span class="tag">ActivityManager</span></div><div class="msg">Start proc com.example.player</div></div>
-            <div class="logrow" style="--tint:var(--tertiary)"><div class="meta"><span class="time">03:04:06.001</span><span class="badge">W</span><span class="tag">PackageManager</span></div><div class="msg">Package no debuggable</div></div>
-            <div class="logrow" style="--tint:var(--danger)"><div class="meta"><span class="time">03:04:07.250</span><span class="badge">E</span><span class="tag">AndroidRuntime</span></div><div class="msg">FATAL EXCEPTION: main</div></div>
-            <div class="logrow" style="--tint:var(--secondary)"><div class="meta"><span class="time">03:04:07.981</span><span class="badge">D</span><span class="tag">SurfaceFlinger</span></div><div class="msg">Display 0: mode 1920x1080@60</div></div>
-            <div class="logrow" style="--tint:var(--primary)"><div class="meta"><span class="time">03:04:08.110</span><span class="badge">I</span><span class="tag">Doze</span></div><div class="msg">Stepped to deep: IDLE_PENDING</div></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ============ 6. CONSOLA ============ -->
-    <div class="item">
-      <div class="cap"><b>Consola</b><span>comandos con historial</span></div>
-      <div class="phone">
-        <div class="status"><span>9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
-        <div class="body">
-          <div class="appbar">
-            <div class="iconbtn"><svg width="20" height="20"><use href="#i-back"/></svg></div>
-            <div class="titles"><h2>Consola</h2><p>shell como uid 2000</p></div>
-            <div class="iconbtn"><svg width="18" height="18"><use href="#i-history"/></svg></div>
-          </div>
-          <div class="scroll" style="display:flex;flex-direction:column;gap:10px">
-            <div class="card" style="padding:12px">
-              <div class="tiny muted" style="margin-bottom:6px">pm list packages -3 | wc -l</div>
-              <div class="term" style="background:transparent;padding:0">36</div>
-            </div>
-            <div class="card" style="padding:12px">
-              <div class="tiny muted" style="margin-bottom:6px">dumpsys deviceidle get deep</div>
-              <div class="term" style="background:transparent;padding:0">ACTIVE</div>
-            </div>
-            <div class="card" style="padding:12px;border:1px solid rgba(74,222,128,.35)">
-              <div class="tiny" style="color:var(--primary);margin-bottom:6px">EN EJECUCIÓN</div>
-              <div class="term"><span class="p">$</span> settings get global low_power<br><span class="o">0</span><br><span class="p">$</span> <span style="opacity:.6">▍</span></div>
-            </div>
-            <div class="chips" style="margin:0">
-              <div class="chip">getprop</div><div class="chip">dumpsys battery</div><div class="chip">wm size</div>
-            </div>
-          </div>
-          <div style="flex:none;display:flex;gap:8px;padding:10px 0 12px">
-            <div class="search" style="margin:0;flex:1">Escribe un comando…</div>
-            <div class="iconbtn primary" style="background:var(--primary-soft)"><svg width="18" height="18"><use href="#i-play"/></svg></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ============ 7. AJUSTES DEL SISTEMA ============ -->
-    <div class="item">
-      <div class="cap"><b>Ajustes del sistema</b><span>presets + claves con deshacer</span></div>
-      <div class="phone">
-        <div class="status"><span>9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
-        <div class="body">
-          <div class="appbar">
-            <div class="iconbtn"><svg width="20" height="20"><use href="#i-back"/></svg></div>
-            <div class="titles"><h2>Ajustes del sistema</h2><p>48 claves visibles</p></div>
-            <div class="iconbtn"><svg width="18" height="18"><use href="#i-history"/></svg></div>
-          </div>
-          <div class="card" style="padding:12px;margin-bottom:10px">
-            <div style="display:flex;align-items:center;gap:8px">
-              <b style="font-size:12.5px">Ajustes rápidos</b>
-              <span class="tiny muted">Auto · 30 s · 128</span>
-              <span style="margin-left:auto;color:var(--muted)"><svg width="16" height="16"><use href="#i-chev"/></svg></span>
-            </div>
-          </div>
-          <div class="chips">
-            <div class="chip">Global</div><div class="chip on">Seguro</div><div class="chip">Sistema</div>
-          </div>
-          <div class="search"><svg width="16" height="16"><use href="#i-search"/></svg>Buscar clave</div>
-          <div class="scroll group">
-            <div class="kv"><div class="k"><b>android_id</b><span>9f2c1a77b4e1d0c3</span></div><span class="chev"><svg width="15" height="15"><use href="#i-edit"/></svg></span></div>
-            <div class="kv"><div class="k"><b>screen_brightness</b><span>128</span></div><span class="chev"><svg width="15" height="15"><use href="#i-edit"/></svg></span></div>
-            <div class="kv"><div class="k"><b>accessibility_display_inversion_enabled</b><span>null</span></div><span class="chev"><svg width="15" height="15"><use href="#i-edit"/></svg></span></div>
-            <div class="kv"><div class="k"><b>wifi_scan_always_enabled</b><span>0</span></div><span class="chev"><svg width="15" height="15"><use href="#i-edit"/></svg></span></div>
-            <div class="kv"><div class="k"><b>ui_night_mode</b><span>auto</span></div><span class="chev"><svg width="15" height="15"><use href="#i-edit"/></svg></span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ============ 8. DEBLOATER ============ -->
-    <div class="item">
-      <div class="cap"><b>Debloater</b><span>revisión antes de tocar nada</span></div>
-      <div class="phone">
-        <div class="status"><span>9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
-        <div class="body">
-          <div class="appbar">
-            <div class="iconbtn"><svg width="20" height="20"><use href="#i-back"/></svg></div>
-            <div class="titles"><h2>Debloater</h2><p>12 sugeridas · 3 seleccionadas</p></div>
-          </div>
-          <div class="search"><svg width="16" height="16"><use href="#i-search"/></svg>Buscar app</div>
-          <div class="scroll">
-            <div class="card tight" style="margin-bottom:10px">
-              <div class="row"><div class="appicon" style="background:#2a2416;color:#ffd79a">M</div>
-                <div class="txt"><b>Movies Anywhere</b><span>com.moviesanywhere · no usada en TV</span></div>
-                <div style="width:20px;height:20px;border-radius:5px;background:var(--primary);display:grid;place-items:center;color:#052e16"><svg width="12" height="12"><use href="#i-check"/></svg></div></div>
-              <div class="row"><div class="appicon" style="background:#1f2a22;color:#a7f3c4">G</div>
-                <div class="txt"><b>Google Play Games</b><span>com.google.android.play.games · duplicado</span></div>
-                <div style="width:20px;height:20px;border-radius:5px;background:var(--primary);display:grid;place-items:center;color:#052e16"><svg width="12" height="12"><use href="#i-check"/></svg></div></div>
-              <div class="row"><div class="appicon" style="background:#2a1f1f;color:#ffb4b4">S</div>
-                <div class="txt"><b>Samsung TV Plus</b><span>com.samsung.tvplus · sustituible</span></div>
-                <div style="width:20px;height:20px;border-radius:5px;border:1.5px solid var(--outline)"></div></div>
-            </div>
-            <div class="card" style="border:1px solid rgba(251,191,36,.35)">
-              <div class="small" style="color:var(--tertiary);font-weight:700;margin-bottom:4px">Antes de continuar</div>
-              <div class="small muted" style="line-height:1.6">El launcher actual está protegido. Nada se ejecuta hasta confirmar y todo queda en el historial para deshacer.</div>
-            </div>
-          </div>
-          <div style="flex:none;padding:10px 0 12px"><div class="btn solid">Revisar 3 apps</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ============ 9. ARCHIVOS ============ -->
-    <div class="item">
-      <div class="cap"><b>Archivos</b><span>rutas con guardas de seguridad</span></div>
-      <div class="phone">
-        <div class="status"><span>9:41</span><span class="dotrow"><i class="sig"></i><i></i></span></div>
-        <div class="body">
-          <div class="appbar">
-            <div class="iconbtn"><svg width="20" height="20"><use href="#i-back"/></svg></div>
-            <div class="titles"><h2>Archivos</h2><p>/sdcard/Download</p></div>
-            <div class="iconbtn"><svg width="18" height="18"><use href="#i-folder"/></svg></div>
-          </div>
-          <div class="scroll group">
-            <div class="row"><div class="ico i-amber"><svg width="18" height="18"><use href="#i-folder"/></svg></div>
-              <div class="txt"><b>AdbOptimizer</b><span>Carpeta · 3 elementos</span></div>
-              <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-            <div class="row"><div class="ico i-cyan"><svg width="18" height="18"><use href="#i-folder"/></svg></div>
-              <div class="txt"><b>Movies</b><span>Carpeta</span></div>
-              <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-            <div class="row"><div class="appicon">APK</div>
-              <div class="txt"><b>youtube-tv.apk</b><span>24.8 MB · 23 oct</span></div>
-              <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-            <div class="row"><div class="appicon">LOG</div>
-              <div class="txt"><b>registro-2026-10-27.txt</b><span>412 KB · hoy</span></div>
-              <div class="chev"><svg width="16" height="16"><use href="#i-chev"/></svg></div></div>
-          </div>
-          <div class="card" style="margin:10px 0 12px;padding:12px">
-            <div class="small muted" style="line-height:1.6">Las rutas protegidas del sistema no se pueden borrar: la app comprueba la ruta antes de tocar nada.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ================= NOTES ================= -->
-  <div class="notes">
-    <div class="note">
-      <h3>Qué se fusiona</h3>
-      <ul>
-        <li><b>7 botones idénticos</b> de Ajustes → una sola fila reutilizable (<code>ToolRow</code>) dentro de una pantalla propia.</li>
-        <li><b>Ajustes</b> queda solo con preferencias: tema, apps del sistema, pantalla, métricas, DPC.</li>
-        <li>Cada herramienta conserva su pantalla, pero todas comparten <code>ToolTopBar</code>, <code>ToolSearchField</code> y <code>ToolEmptyState</code>.</li>
-        <li>Orden por frecuencia de uso: <b>Diagnóstico → Sistema → Apps</b>, no por orden de creación.</li>
-      </ul>
-    </div>
-    <div class="note">
-      <h3>Navegación propuesta</h3>
-      <ul>
-        <li>La barra inferior <b>no cambia</b>: Inicio · Apps · <b>Destino</b> · Optimizar · Ajustes.</li>
-        <li><b>Destino</b> sigue siendo el lugar de conectar y elegir equipo, y ahora concentra Control remoto, Espejo y “Herramientas de este equipo”.</li>
-        <li><b>Herramientas</b> deja de ser pestaña: se entra desde Inicio (tarjeta + icono) y desde Destino. Una pulsación más, sin romper la navegación actual.</li>
-      </ul>
-    </div>
-    <div class="note">
-      <h3>Reglas visuales aplicadas</h3>
-      <ul>
-        <li>Grid de 8 dp, radios 12/16, touch targets ≥ 48 dp.</li>
-        <li>Jerarquía: título 21 sp, fila 13.5 sp, subtítulo 11 sp con <code>onSurfaceVariant</code>.</li>
-        <li>Color semántico: verde acción, cian diagnóstico, ámbar aviso, rojo destructivo.</li>
-        <li>Icono en contenedor tintado de 36 dp: identifica sin competir con el texto.</li>
-      </ul>
-    </div>
-    <div class="note">
-      <h3>Duplicación detectada</h3>
-      <ul>
-        <li><b>UI:</b> 7 bloques <code>OutlinedButton</code> copiados en <code>SettingsScreen</code>.</li>
-        <li><b>Boilerplate:</b> un <code>AppContainer*Environment</code> y un <code>factory()</code> por feature, casi idénticos.</li>
-        <li><b>Cabeceras:</b> varias pantallas repiten barra de título y estado vacío antes de usar <code>ToolChrome</code>.</li>
-        <li><b>Solape funcional:</b> Archivos vs “Extraer APK”; Consola vs Registro; Debloater vs deshabilitar app. Conviene enlazarlos en lugar de duplicarlos.</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="legend">
-    <span><b>Antes:</b> Ajustes con 7 botones apilados, herramientas mezcladas con preferencias.</span>
-    <span><b>Después:</b> herramientas agrupadas por intención, preferencias limpias y un solo lenguaje visual.</span>
   </div>
 </div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const I=(n,s=18)=>`<svg width="${s}" height="${s}"><use href="#i-${n}"/></svg>`;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const row=(c,ic,t,s,attr='',right=`<div class="chev">${I('chev',16)}</div>`)=>
+  `<div class="row tap" ${attr}><div class="ico i-${c}">${I(ic)}</div><div class="txt"><b>${t}</b><span>${s}</span></div>${right}</div>`;
+const empty=(t,s)=>`<div class="empty"><div class="circle">${I('search',24)}</div><b>${t}</b><span>${s}</span></div>`;
+const chip=(label,n,on,attr)=>`<div class="chip tap ${on?'on':''}" ${attr}>${label}${n!=null?` <span class="n">${n}</span>`:''}</div>`;
+
+/* ===== reloj ===== */
+function tickClock(){
+  const d=new Date();
+  $('#clock').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+tickClock(); setInterval(tickClock,30000);
+
+/* ===== navegación ===== */
+const TABS=['home','apps','destino','optimizar','ajustes'];
+let stack=['home'];
+const hooks={};
+
+function show(id,anim){
+  $$('.scr').forEach(s=>s.classList.remove('active','in','fade'));
+  const el=$('#s-'+id); el.classList.add('active'); if(anim) el.classList.add(anim);
+  closeOv();
+  hooks[id]&&hooks[id]();
+  Object.keys(liveTimers).forEach(k=>{ if(k!==id) stopLive(); });
+}
+function go(id){
+  if(!$('#s-'+id)) return;
+  if(TABS.includes(id)){ stack=[id]; show(id,'fade'); }
+  else { if(stack.at(-1)===id) return; stack.push(id); show(id,'in'); }
+}
+function back(){
+  if(stack.length>1){ stack.pop(); show(stack.at(-1),'fade'); }
+  else if(stack[0]!=='home'){ go('home'); }
+}
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]'); if(g){ go(g.dataset.go); return; }
+  if(e.target.closest('[data-back]')){ back(); return; }
+  const t=e.target.closest('[data-tog]'); if(t && !e.target.closest('#ov')){
+    $('.tog',t).classList.toggle('on');
+    if($('#togSys',t)) { renderApps(); toast($('#togSys').classList.contains('on')?'Apps del sistema visibles':'Apps del sistema ocultas'); }
+  }
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') back(); });
+$('#resetProto').onclick=()=>location.reload();
+
+/* barra inferior */
+const NAV=[['home','home','Inicio'],['apps','grid','Apps'],['destino','phone','Destino'],['optimizar','bolt','Optimizar'],['ajustes','sliders','Ajustes']];
+$$('.scr[data-tab]').forEach(s=>{
+  const on=s.dataset.tab;
+  $('.nav-slot',s).outerHTML=`<div class="nav">${NAV.map(([id,ic,l])=>`<div class="tab tap ${id===on?'on':''}" data-go="${id}"><span class="pillnav">${I(ic)}</span>${l}</div>`).join('')}</div>`;
+});
+
+/* ===== overlay / toast ===== */
+const ov=$('#ov'); let acts={};
+function closeOv(){ ov.className='overlay'; ov.innerHTML=''; acts={}; }
+ov.addEventListener('click',e=>{
+  if(e.target===ov||e.target.closest('[data-x]')) return closeOv();
+  const a=e.target.closest('[data-act]'); if(a&&acts[a.dataset.act]) acts[a.dataset.act]();
+});
+function ask({title,text,ok='Confirmar',danger=false},cb){
+  ov.className='overlay show center';
+  ov.innerHTML=`<div class="sheet dlg"><h4>${title}</h4><p>${text}</p><div class="acts"><div class="btn tap" data-x>Cancelar</div><div class="btn ${danger?'danger':'solid'} tap" data-act="ok">${ok}</div></div></div>`;
+  acts.ok=()=>{closeOv();cb();};
+}
+function sheet(html,handlers={}){
+  ov.className='overlay show'; ov.innerHTML=`<div class="sheet"><div class="grab"></div>${html}</div>`; acts=handlers;
+}
+let tt; function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('show'),1800); }
+
+/* ===== destino / estado global ===== */
+let target=null;
+let known=[{name:'Pixel 7',addr:'192.168.1.22',tag:'TLS',c:'cyan'},{name:'TV del salón',addr:'192.168.1.51',tag:'clásico',c:'amber'}];
+let destMode='local';
+function targetName(){ return target?target.name:'Este teléfono'; }
+
+hooks.destino=renderDest;
+function renderDest(){
+  $('#destChips').innerHTML=chip('Este teléfono',null,destMode==='local','data-mode="local"')+chip('Remoto · '+(target?target.name.split(' · ')[0]:'—'),null,destMode==='remote','data-mode="remote"');
+  const card=$('#destCard');
+  if(destMode==='local'||!target){
+    card.innerHTML=`<div class="row" style="padding:0 0 12px;border:0"><div class="appicon" style="background:var(--primary-soft);color:var(--primary)">${I('phone')}</div>
+      <div class="txt"><b>Este teléfono</b><span>Trabajando en local</span></div><span style="width:8px;height:8px;border-radius:50%;background:var(--primary)"></span></div>
+      <div class="row tap" data-go="tools" style="padding:12px 0 0"><div class="ico i-grey">${I('term')}</div><div class="txt"><b>Herramientas de este equipo</b><span>Registro, consola, archivos, debloater…</span></div><div class="chev">${I('chev',16)}</div></div>`;
+  } else {
+    card.innerHTML=`<div class="row" style="padding:0 0 12px;border:0"><div class="appicon" style="background:var(--primary-soft);color:var(--primary)">TV</div>
+      <div class="txt"><b>${esc(target.name)}</b><span>${esc(target.addr)} · conectado</span></div><span style="width:8px;height:8px;border-radius:50%;background:var(--primary)"></span></div>
+      <div style="display:flex;gap:8px"><div class="btn tonal tap" data-t="Control remoto abierto" style="flex:1;height:38px">Control remoto</div><div class="btn tap" data-t="Espejo iniciado" style="flex:1;height:38px">Espejo</div></div>
+      <div class="row tap" data-go="tools" style="padding:12px 0 0;border:0"><div class="ico i-grey">${I('term')}</div><div class="txt"><b>Herramientas de este equipo</b><span>Registro, consola, archivos, debloater…</span></div><div class="chev">${I('chev',16)}</div></div>
+      <div class="btn tap" id="destDisc" style="height:38px;margin-top:10px">Desconectar</div>`;
+  }
+  $('#destKnown').innerHTML=known.length?known.map((d,i)=>row(d.c,'phone',esc(d.name),`${esc(d.addr)} · ${d.tag}`,`data-conn="${i}"`,`<span class="tiny muted">Conectar</span>`)).join(''):`<div class="row"><div class="txt"><span>Sin dispositivos guardados</span></div></div>`;
+  refreshTarget();
+}
+$('#s-destino').addEventListener('click',e=>{
+  const m=e.target.closest('[data-mode]'); if(m){ destMode=m.dataset.mode; renderDest(); return; }
+  const t=e.target.closest('[data-t]'); if(t){ toast(t.dataset.t); return; }
+  const c=e.target.closest('[data-conn]'); if(c){
+    const d=known.splice(+c.dataset.conn,1)[0];
+    if(target) known.unshift({name:target.name,addr:target.addr.replace(':5555',''),tag:'clásico',c:'amber'});
+    target={name:d.name,addr:d.addr+':5555'}; destMode='remote'; renderDest(); toast('Conectado a '+d.name); return; }
+  if(e.target.closest('#destDisc')){ ask({title:'Desconectar',text:'Se cerrará la sesión con '+esc(target.name)+'. El historial se conserva.',ok:'Desconectar',danger:true},()=>{
+      known.unshift({name:target.name,addr:target.addr.replace(':5555',''),tag:'clásico',c:'amber'}); target=null; destMode='local'; renderDest(); toast('Desconectado'); }); }
+});
+$('#destAdd').onclick=()=>openWizard();
+
+/* ===== asistente nuevo dispositivo ===== */
+let wizStep='select', wizMode='code';
+function openWizard(){ wizStep='select'; wizMode='code'; go('wizard'); }
+hooks.wizard=renderWizard;
+function renderWizard(){
+  $('#wizTitle').textContent = wizStep==='select' ? 'Nuevo dispositivo' : (wizMode==='qr' ? 'Vincular teléfono' : 'Nuevo dispositivo');
+  $('#wizSub').textContent = wizStep==='select' ? 'PASO 1 DE 2' : 'PASO 2 DE 2';
+  const b=$('#wizBody');
+  if(wizStep==='select'){
+    b.innerHTML=`<div class="wizard-title">¿Qué quieres conectar?</div>
+      <p class="wizard-sub">Toca un equipo para empezar a vincular.</p>
+      <div class="wcard tap" data-wiz="tv"><div class="ico">${I('display',26)}</div>
+        <div class="txt"><b>Android TV / TV Box</b><span>Vinculación con código</span></div><div class="chev">${I('chev',18)}</div></div>
+      <div class="wcard tap" data-wiz="phone"><div class="ico">${I('phone',26)}</div>
+        <div class="txt"><b>Teléfono o tablet</b><span>Vinculación con QR</span></div><div class="chev">${I('chev',18)}</div></div>
+      <div class="wsep"></div>
+      <div style="font-size:14px;font-weight:600">¿Ya lo habías vinculado?</div>
+      <div class="wlink" data-wiz="network">Buscar en mi red</div>
+      <div class="wlink" data-wiz="manual">Conectar por dirección IP</div>`;
+    return;
+  }
+  if(wizMode==='code'){
+    b.innerHTML=`<div class="card" style="padding:16px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px">Vincula tu equipo</div>
+      <p class="wizard-sub" style="font-size:12px;margin-bottom:14px">Introduce los datos que aparecen en la pantalla de vinculación del equipo remoto.</p>
+      <div class="field"><label>Dirección IP</label><input id="wizIp" value="192.168.1.51" inputmode="decimal"></div>
+      <div class="field"><label>Puerto de vinculación</label><input id="wizPair" value="37123" inputmode="numeric"></div>
+      <div style="font-size:10px;letter-spacing:.04em;color:var(--muted);margin-bottom:6px">CÓDIGO DE 6 DÍGITOS</div>
+      <div class="codebox">${[4,8,1,9,2,6].map(n=>`<i><input maxlength="1" value="${n}" inputmode="numeric"></i>`).join('')}</div>
+      <div class="wlink" data-wiz="port">Añadir puerto de conexión (opcional)</div>
+      <div id="wizPortWrap" hidden><div class="field"><label>Puerto de conexión</label><input id="wizCport" placeholder="5555" inputmode="numeric"></div></div>
+      <div class="wbtn tap" data-wiz="pair">Vincular</div>
+    </div>
+    <p style="font-size:11px;color:var(--muted);line-height:1.5;margin:12px 2px 0">Ambos equipos deben estar en la misma Wi-Fi. El código caduca en pocos minutos.</p>`;
+    return;
+  }
+  if(wizMode==='qr'){
+    b.innerHTML=`<div class="wizard-title" style="font-size:22px">Escanea desde el otro dispositivo.</div>
+      <p class="wizard-sub">Este teléfono muestra el QR. El otro lo escanea.</p>
+      <div class="qrbox"></div><p class="qrcap">Código QR de vinculación</p>
+      <div class="wgroup">
+        <div class="wrow"><div class="txt"><b>En el equipo remoto</b><span>Depuración inalámbrica → Vincular con QR.</span></div></div>
+        <div class="wrow"><div class="txt"><b>Misma Wi-Fi</b><span>Mantén ambos equipos en la misma red.</span></div></div>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin:0 0 12px">Mantén esta pantalla abierta.</p>
+      <div class="wlink" style="text-align:center" data-wiz="code">¿No puede escanear? Usar código</div>
+      <div class="wbtn ghost tap" style="margin-top:8px" data-wiz="cancel">Cancelar vinculación</div>`;
+    return;
+  }
+  if(wizMode==='manual'){
+    b.innerHTML=`<div class="wizard-title" style="font-size:22px">Conectar por dirección IP</div>
+      <p class="wizard-sub">Ten a mano la IP y el puerto ADB del equipo.</p>
+      <div class="field"><label>Dirección IP</label><input id="wizMIp" placeholder="192.168.1.60" inputmode="decimal"></div>
+      <div class="field"><label>Puerto</label><input id="wizMPort" value="5555" inputmode="numeric"></div>
+      <div class="wbtn tap" data-wiz="manual-connect">Conectar</div>`;
+    return;
+  }
+  b.innerHTML=`<div class="wizard-title" style="font-size:22px">Dispositivos en la red</div>
+    <p class="wizard-sub">Descubre los puertos de depuración inalámbrica (mDNS). El equipo debe estar vinculado antes.</p>
+    <div class="wgroup">${known.map((d,i)=>`<div class="wrow"><div class="txt"><b>${esc(d.name)}</b><span>${esc(d.addr)} · ${d.tag}</span></div><div class="wlink" style="padding:0" data-known="${i}">Conectar</div></div>`).join('')||'<div class="wrow"><div class="txt"><span>Sin resultados todavía.</span></div></div>'}</div>
+    <div class="wbtn ghost tap" data-wiz="discover">Buscar dispositivos</div>
+    <div class="wlink" style="text-align:center;margin-top:10px" data-wiz="manual">Conectar por dirección IP</div>`;
+}
+$('#s-wizard').addEventListener('click',e=>{
+  if(e.target.closest('[data-wiz-back]')){
+    if(wizStep==='connect'){ wizStep='select'; renderWizard(); } else back();
+    return;
+  }
+  const d=e.target.closest('[data-wiz]');
+  if(d){
+    const v=d.dataset.wiz;
+    if(v==='tv'){ wizMode='code'; wizStep='connect'; renderWizard(); }
+    if(v==='phone'){ wizMode='qr'; wizStep='connect'; renderWizard(); }
+    if(v==='network'){ wizMode='network'; wizStep='connect'; renderWizard(); }
+    if(v==='manual'){ wizMode='manual'; wizStep='connect'; renderWizard(); }
+    if(v==='code'){ wizMode='code'; renderWizard(); }
+    if(v==='port'){ const w=$('#wizPortWrap'); if(w) w.hidden=!w.hidden; }
+    if(v==='pair'){
+      const ip=$('#wizIp')?.value.trim()||'';
+      const code=[...document.querySelectorAll('.codebox input')].map(i=>i.value).join('');
+      if(!ip||code.length<6) return toast('Completa la IP y el código');
+      toast('Vinculando con '+ip+'…');
+      setTimeout(()=>{ go('destino'); toast('TV vinculada'); },700);
+    }
+    if(v==='manual-connect'){
+      const ip=$('#wizMIp')?.value.trim()||'';
+      if(!ip) return toast('Escribe una IP');
+      toast('Conectando con '+ip+'…');
+      setTimeout(()=>{ go('destino'); toast('Dispositivo conectado'); },700);
+    }
+    if(v==='cancel'){ wizStep='select'; renderWizard(); }
+    if(v==='discover'){ toast('Buscando dispositivos en la red…'); }
+    return;
+  }
+  const k=e.target.closest('[data-known]');
+  if(k){
+    const d=known[+k.dataset.known]; if(!d) return;
+    target={name:d.name,addr:d.addr+':5555'}; destMode='remote'; go('destino'); renderDest(); toast('Conectado a '+d.name);
+  }
+});
+function refreshTarget(){
+  $('#homeSub').textContent=target?targetName()+' · conectado':'Este teléfono · local';
+  $('#toolsSub').textContent='7 utilidades · '+targetName();
+  $('#homeDev').innerHTML=`
+    <div class="row">
+      <div class="appicon" style="background:var(--primary-soft);color:var(--primary)">${target?'TV':'AD'}</div>
+      <div class="txt"><b>${target?esc(target.name):'Este teléfono'}</b>
+        <span>${target?esc(target.addr)+'<br>Sesión activa · remoto':'Android 17 · SDK 37 · arm64-v8a<br>Sesión activa · este teléfono'}</span></div>
+      <span class="dot-ok"></span>
+    </div>
+    <div class="row tap" data-go="ajustes">
+      <div class="ico i-amber">${I('refresh')}</div>
+      <div class="txt"><b>Shizuku · Revisar acceso</b><span>Permisos para optimizar y modificar ajustes</span></div>
+      <div class="chev">${I('chev',16)}</div>
+    </div>`;
+}
+
+/* ===== inicio ===== */
+const EXPLORE=[
+  {id:'dev',n:'Dispositivo',d:'Modelo, fabricante y tipo de equipo',c:'green',i:'phone',
+   rows:[['Marca','Google'],['Modelo','sdk_gphone16k_arm64'],['Tipo de equipo','Teléfono o tablet'],['USB host','Sí']]},
+  {id:'display',n:'Pantalla',d:'Resolución, densidad y frecuencia',c:'cyan',i:'display',
+   rows:[['Resolución','1344 × 2992 px'],['Densidad','560 dpi'],['Refresco','120 Hz']]},
+  {id:'sensors',n:'Sensores',d:'Inventario de sensores disponibles',c:'amber',i:'sensors',
+   rows:[['Sensores detectados','32'],['Acelerómetro','Sí'],['Luz ambiental','Sí']]},
+  {id:'network',n:'Red',d:'Interfaces activas y direcciones IP',c:'cyan',i:'wifi',
+   rows:[['Wi-Fi','wlan0 · 192.168.1.136'],['Datos','rmnet0 · activo']]},
+  {id:'system',n:'Sistema',d:'Android, acceso y tiempo encendido',c:'green',i:'layers',
+   rows:[['Android','17 · SDK 37'],['Acceso','Shizuku autorizado'],['Encendido','3 h 12 min']]},
+  {id:'cpu',n:'CPU',d:'Uso, carga y arquitectura',c:'red',i:'cpu',
+   rows:[['Uso','18 %'],['Carga','0.42 · 0.38 · 0.31'],['Arquitectura','arm64-v8a']]},
+  {id:'battery',n:'Batería',d:'Nivel de batería',c:'amber',i:'battery',
+   rows:[['Nivel','100 %'],['Temperatura','31.2 °C'],['Estado','Cargando']]},
+  {id:'memory',n:'Memoria',d:'RAM y almacenamiento',c:'cyan',i:'memory',
+   rows:[['RAM','2.1 GB de 3.9 GB'],['Almacenamiento','9.2 GB libres de 16 GB']]}
+];
+hooks.home=()=>{
+  $('#homeQuick').innerHTML=
+    row('green','bolt','Optimizar','Recetas disponibles para este equipo','data-go="optimizar"')+
+    row('cyan','term','Herramientas','Utilidades para el destino activo','data-go="tools"')+
+    row('amber','layers','Perfiles de apps','Snapshots de estado y vigilancia de cambios','data-go="profiles"')+
+    row('grey','power','Opciones de energía','Pantalla, reinicio y apagado','data-go="power"');
+  $('#homeExplore').innerHTML=EXPLORE.map(c=>row(c.c,c.i,c.n,c.d,`data-explore="${c.id}"`)).join('');
+  refreshTarget();
+};
+$('#s-home').addEventListener('click',e=>{
+  if(e.target.closest('[data-refresh]')){ toast('Métricas actualizadas'); return; }
+  const x=e.target.closest('[data-explore]'); if(!x) return;
+  const c=EXPLORE.find(v=>v.id===x.dataset.explore);
+  sheet(`<h4>${c.n}</h4><p>${c.d}</p><div class="group" style="background:var(--surface3)">
+    ${c.rows.map(([k,v])=>`<div class="row"><div class="txt"><b>${esc(k)}</b></div><span class="small muted">${esc(v)}</span></div>`).join('')}
+    </div><div class="acts"><div class="btn tap" data-x>Cerrar</div></div>`);
+});
+
+/* ===== apps ===== */
+let APPS=[
+ {n:'YouTube Music',p:'com.google.android.youtube.tvmusic',s:'2.4 MB',a:'YT',bg:'#1d2a3a',fg:'#8ec5ff'},
+ {n:'Netflix',p:'com.netflix.ninja',s:'84 MB',a:'NF',bg:'#2a1f1f',fg:'#ffb4b4'},
+ {n:'Spotify',p:'com.spotify.tv.android',s:'42 MB',a:'SP',bg:'#1f2a22',fg:'#a7f3c4'},
+ {n:'Plex',p:'com.plexapp.android',s:'31 MB',a:'PL',bg:'#241f2f',fg:'#d6c4ff'},
+ {n:'Launcher de TV',p:'com.google.android.tvlauncher',s:'sistema',a:'TV',bg:'#2a2416',fg:'#ffd79a',sys:1},
+ {n:'Servicios de Google Play',p:'com.google.android.gms',s:'sistema',a:'GP',bg:'#1d2a3a',fg:'#8ec5ff',sys:1}];
+let appsF='usr';
+hooks.apps=renderApps;
+function renderApps(){
+  const showSys=$('#togSys').classList.contains('on');
+  const q=$('#appsQ').value.toLowerCase();
+  const base=APPS.filter(a=>showSys||!a.sys||appsF==='sys');
+  const u=base.filter(a=>!a.sys).length, s=base.filter(a=>a.sys).length;
+  $('#appsSub').textContent=`${base.length} de ${APPS.length} apps`;
+  $('#appsChips').innerHTML=chip('Todas',base.length,appsF==='all','data-f="all"')+chip('Usuario',u,appsF==='usr','data-f="usr"')+chip('Sistema',APPS.filter(a=>a.sys).length,appsF==='sys','data-f="sys"');
+  const list=base.filter(a=>(appsF==='all'||(appsF==='usr'?!a.sys:a.sys))&&(a.n+a.p).toLowerCase().includes(q));
+  $('#appsList').innerHTML=list.length?list.map(a=>`<div class="row tap" data-app="${APPS.indexOf(a)}"><div class="appicon" style="background:${a.bg};color:${a.fg}">${a.a}</div><div class="txt"><b>${a.n}</b><span>${a.p} · ${a.s}</span></div><div class="chev">${I('chev',16)}</div></div>`).join(''):empty('Sin resultados','Prueba con otro nombre o paquete.');
+}
+$('#appsQ').oninput=renderApps;
+$('#s-apps').addEventListener('click',e=>{
+  const f=e.target.closest('[data-f]'); if(f){ appsF=f.dataset.f; renderApps(); return; }
+  const r=e.target.closest('[data-app]'); if(!r) return;
+  const i=+r.dataset.app, a=APPS[i];
+  sheet(`<div class="row" style="padding:0 0 12px;border:0"><div class="appicon" style="background:${a.bg};color:${a.fg}">${a.a}</div><div class="txt"><b>${a.n}</b><span>${a.p}</span></div></div>
+    <div class="stack"><div class="btn tonal tap" data-act="open">Abrir</div><div class="btn tap" data-act="stop">Forzar detención</div>
+    ${a.sys?`<div class="btn off">Protegida por el sistema</div>`:`<div class="btn danger tap" data-act="un">Desinstalar</div>`}</div>`,{
+    open:()=>{closeOv();toast('Abriendo '+a.n);}, stop:()=>{closeOv();toast(a.n+' detenida');},
+    un:()=>ask({title:'Desinstalar '+a.n,text:'Se eliminará la app y sus datos. Quedará en el historial.',ok:'Desinstalar',danger:true},()=>{ APPS.splice(i,1); renderApps(); toast(a.n+' desinstalada'); }) });
+});
+
+/* ===== optimizar ===== */
+const REC=[
+  {t:'Apagar animaciones',s:'Escalas de ventana, transición y animador a 0',risk:'safe',on:true},
+  {t:'Limitar la interfaz a 1080p',s:'Menos trabajo para la GPU en paneles 4K',risk:'mod',on:true},
+  {t:'Limpiar caché de apps',s:'Libera espacio temporal sin tocar datos',risk:'safe',on:true},
+  {t:'Restringir procesos en segundo plano',s:'Máximo dos procesos en caché',risk:'mod',on:false},
+  {t:'DNS privado',s:'Resolución más rápida y segura',risk:'safe',on:false},
+  {t:'Reducir densidad de pantalla',s:'Puede cambiar el tamaño de la interfaz del equipo',risk:'adv',on:false}
+];
+let OPT_PROFILE='phone';
+const RISK_TXT={safe:'Seguro',mod:'Moderado',adv:'Avanzado'};
+hooks.optimizar=renderOpt;
+function renderOpt(){
+  const sel=REC.filter(r=>r.on).length;
+  const risky=REC.filter(r=>r.on&&r.risk!=='safe').length;
+  $('#optSub').textContent=`Perfil: ${OPT_PROFILE==='phone'?'Teléfono':OPT_PROFILE==='tv'?'TV':'Sin perfil'} · ${REC.length} recetas`;
+  $('#optProfiles').innerHTML='';
+  $('#optCount').innerHTML=`<b style="color:var(--text)">${sel}</b> de ${REC.length} disponibles`;
+  $('#optRisk').textContent=risky?`${risky} ${risky===1?'requiere':'requieren'} confirmación`:'';
+  $('#optProfiles').innerHTML=[['phone','Teléfono'],['tv','TV'],['none','Sin perfil']]
+    .map(([id,l])=>`<div class="pchip tap ${OPT_PROFILE===id?'on':''}" data-prof="${id}">${l}</div>`).join('');
+  $('#optList').innerHTML=REC.map((r,i)=>`<div class="plan tap ${r.on?'on':''}" data-rec="${i}">
+    <div class="cb">${r.on?I('check',14):''}</div>
+    <div class="txt"><b>${esc(r.t)}</b><span>${esc(r.s)}</span></div>
+    <span class="riskpill ${r.risk}">${RISK_TXT[r.risk]}</span></div>`).join('');
+  $('#optSel').textContent=`${sel} de ${REC.length} seleccionadas`;
+  $('#optAll').innerHTML=I('bolt',22);
+  $('#optAll').classList.toggle('off',!sel);
+}
+$('#s-optimizar').addEventListener('click',e=>{
+  const p=e.target.closest('[data-prof]');
+  if(p){ OPT_PROFILE=p.dataset.prof; renderOpt(); return; }
+  const r=e.target.closest('[data-rec]');
+  if(r){ const x=REC[+r.dataset.rec]; x.on=!x.on; renderOpt(); return; }
+  if(e.target.closest('#optAll')){
+    const sel=REC.filter(x=>x.on);
+    if(!sel.length) return toast('Selecciona al menos una receta');
+    const risky=sel.filter(x=>x.risk!=='safe');
+    const apply=()=>{ toast(`${sel.length} recetas aplicadas y verificadas`); };
+    if(risky.length){
+      ask({title:'Revisar ajustes moderados',text:`Vas a aplicar ${risky.length} cambios que pueden alterar el equipo. Se leerán de vuelta y podrás deshacerlos desde el historial.`,ok:'Entiendo, aplicar'},apply);
+    } else {
+      ask({title:`Aplicar ${sel.length} recetas`,text:`Se ejecutarán en ${esc(targetName())}.`,ok:'Aplicar'},apply);
+    }
+  }
+});
+
+/* ===== ajustes ===== */
+const THEMES=['Seguir el sistema','Oscuro','Claro'], REFS=['Cada 15 segundos','Cada 30 segundos','Cada minuto']; let th=0,rf=1;
+$('#setTheme').onclick=()=>{th=(th+1)%3;$('#setThemeV').textContent=THEMES[th];};
+$('#setRefresh').onclick=()=>{rf=(rf+1)%3;$('#setRefreshV').textContent=REFS[rf];};
+
+/* ===== herramientas ===== */
+const TOOLS=[['Diagnóstico',[['green','log','Registro del sistema','Logcat con niveles y modo en vivo','log'],['cyan','term','Consola','Comandos ADB con historial','consola'],['amber','moon','Doze y energía','Estado de reposo y acciones','doze']]],
+ ['Sistema',[['green','sliders','Ajustes del sistema','Global, seguro y sistema con deshacer','sysset'],['cyan','folder','Archivos','Explorar, copiar y borrar en el equipo','files'],['red','trash','Debloater','Revisar y desinstalar apps del sistema','debloat']]],
+ ['Apps',[['amber','layers','Perfiles','Conjuntos de apps para aplicar de una vez','profiles']]]];
+hooks.tools=renderTools;
+function renderTools(){
+  const q=$('#toolsQ').value.toLowerCase(); let html='',n=0;
+  TOOLS.forEach(([g,items])=>{
+    const m=items.filter(i=>(i[2]+i[3]).toLowerCase().includes(q)); if(!m.length) return; n+=m.length;
+    html+=`<div class="section-label">${g}</div><div class="group" style="margin-bottom:12px">${m.map(i=>row(i[0],i[1],i[2],i[3],`data-go="${i[4]}"`)).join('')}</div>`;
+  });
+  $('#toolsList').innerHTML=n?html:empty('Sin resultados','No hay herramientas con ese nombre.');
+}
+$('#toolsQ').oninput=renderTools;
+
+/* ===== registro ===== */
+const TINT={D:'var(--secondary)',I:'var(--primary)',W:'var(--tertiary)',E:'var(--danger)'};
+let LOG=[['I','ActivityManager','Start proc com.example.player'],['W','PackageManager','Package no debuggable'],['E','AndroidRuntime','FATAL EXCEPTION: main'],['D','SurfaceFlinger','Display 0: mode 1920x1080@60'],['I','Doze','Stepped to deep: IDLE_PENDING']].map((l,i)=>({l:l[0],t:l[1],m:l[2],ts:`03:04:0${5+i}.${100+i*137}`}));
+const GEN=[['D','InputDispatcher','Focus changed to com.netflix.ninja'],['I','WifiService','RSSI -52 dBm'],['W','ConnectivityService','Network validation delayed'],['D','Choreographer','Skipped 3 frames'],['I','NetworkMonitor','Probe OK'],['E','BluetoothAdapter','Service disconnected']];
+let logLvl='all', live=true; const liveTimers={};
+hooks.log=()=>{ renderLog(); startLive(); };
+function stopLive(){ clearInterval(liveTimers.log); delete liveTimers.log; }
+function startLive(){ stopLive(); if(live) liveTimers.log=setInterval(()=>{addLog();},1600); }
+function addLog(){ const g=GEN[Math.floor(Math.random()*GEN.length)], d=new Date(); LOG.push({l:g[0],t:g[1],m:g[2],ts:d.toTimeString().slice(0,8)+'.'+String(d.getMilliseconds()).padStart(3,'0')}); if(LOG.length>300)LOG.shift(); renderLog(); }
+function renderLog(){
+  const q=$('#logQ').value.toLowerCase(), cnt=l=>LOG.filter(x=>x.l===l).length;
+  const vis=LOG.filter(x=>(logLvl==='all'||x.l===logLvl)&&(x.t+x.m).toLowerCase().includes(q));
+  $('#logSub').innerHTML=`<span class="${live?'live':''}">${live?'EN VIVO':'PAUSADO'}</span> · ${LOG.length} líneas · ${vis.length} visibles`;
+  $('#logPlay').innerHTML=live?`<svg width="18" height="18" viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>`:I('play');
+  $('#logChips').innerHTML=chip('<span class="dot" style="background:#8ba0b8"></span>Todo',LOG.length,logLvl==='all','data-lv="all"')+['D','I','W','E'].map(l=>chip(`<span class="dot" style="background:${TINT[l]}"></span>${l}`,cnt(l),logLvl===l,`data-lv="${l}"`)).join('');
+  const el=$('#logList');
+  el.innerHTML=vis.length?vis.slice(-40).map(x=>`<div class="logrow" style="--tint:${TINT[x.l]};flex:none"><div><div class="meta"><span class="time">${x.ts}</span><span class="badge">${x.l}</span><span class="tag">${x.t}</span></div><div class="msg">${esc(x.m)}</div></div></div>`).join(''):empty('Sin líneas','Ningún registro coincide con el filtro.');
+  el.scrollTop=el.scrollHeight;
+}
+$('#logQ').oninput=renderLog;
+$('#logPlay').onclick=()=>{live=!live; live?startLive():stopLive(); renderLog(); toast(live?'Modo en vivo':'Pausado');};
+$('#logClear').onclick=()=>ask({title:'Limpiar registro',text:'Se vaciará el búfer de logcat en pantalla.',ok:'Limpiar',danger:true},()=>{LOG=[];renderLog();toast('Registro limpio');});
+$('#logChips').addEventListener('click',e=>{const c=e.target.closest('[data-lv]'); if(c){logLvl=c.dataset.lv;renderLog();}});
+
+/* ===== consola ===== */
+let CON=[{c:'pm list packages -3 | wc -l',o:'36'},{c:'dumpsys deviceidle get deep',o:'ACTIVE'}];
+const OUT={'getprop':'[ro.product.model]: [sdk_google_atv]','dumpsys battery':'AC powered: true\nlevel: 100','wm size':'Physical size: 1920x1080','settings get global low_power':'0','whoami':'shell','date':new Date().toString().slice(0,24)};
+hooks.consola=renderCon;
+function renderCon(){
+  $('#conList').innerHTML=CON.map((x,i)=>`<div class="card" style="padding:12px;flex:none;${x.run?'border:1px solid rgba(74,222,128,.35)':''}">${x.run?`<div class="tiny" style="color:var(--primary);margin-bottom:6px">EN EJECUCIÓN</div>`:''}<div class="tiny muted" style="margin-bottom:6px">${esc(x.c)}</div><div class="term" style="background:transparent;padding:0;white-space:pre-wrap">${x.run?'<span class="p">$</span> <span style="opacity:.6">▍</span>':esc(x.o)}</div></div>`).join('');
+  $('#conChips').innerHTML=['getprop','dumpsys battery','wm size','whoami'].map(c=>chip(c,null,false,`data-cmd="${c}"`)).join('');
+  const el=$('#conList'); el.scrollTop=el.scrollHeight;
+}
+function runCon(){
+  const v=$('#conIn').value.trim(); if(!v) return; $('#conIn').value='';
+  const x={c:v,o:'',run:true}; CON.push(x); renderCon();
+  setTimeout(()=>{x.run=false;x.o=OUT[v]??'(sin salida)';renderCon();},450);
+}
+$('#conRun').onclick=runCon; $('#conIn').onkeydown=e=>{if(e.key==='Enter')runCon();};
+$('#conChips').addEventListener('click',e=>{const c=e.target.closest('[data-cmd]'); if(c){$('#conIn').value=c.dataset.cmd;$('#conIn').focus();}});
+$('#conHist').onclick=()=>{
+  const uniq=[...new Set(CON.map(x=>x.c))].reverse();
+  sheet(`<h4>Historial</h4><p>Toca un comando para reutilizarlo.</p><div class="group" style="background:var(--surface3)">${uniq.map((c,i)=>`<div class="kv tap" data-act="h${i}"><div class="k"><b>${esc(c)}</b></div></div>`).join('')}</div><div class="acts"><div class="btn danger tap" data-act="clr">Borrar historial</div></div>`,
+   Object.assign({clr:()=>{CON=[];closeOv();renderCon();toast('Historial borrado');}},Object.fromEntries(uniq.map((c,i)=>['h'+i,()=>{closeOv();$('#conIn').value=c;$('#conIn').focus();}]))));
+};
+
+/* ===== doze ===== */
+let doze='ACTIVE';
+hooks.doze=()=>{ $('#dozeState').textContent=doze; $('#dozeState').style.color=doze==='ACTIVE'?'var(--primary)':'var(--tertiary)'; $('#dozeHint').textContent=doze==='ACTIVE'?'El equipo está despierto.':'El equipo está en reposo profundo.'; };
+$('#dozeForce').onclick=()=>ask({title:'Forzar reposo profundo',text:'Las apps en segundo plano se detendrán hasta salir de reposo.',ok:'Forzar'},()=>{doze='IDLE';hooks.doze();toast('Reposo profundo activado');});
+$('#dozeExit').onclick=()=>{ if(doze==='ACTIVE') return toast('Ya está activo'); doze='ACTIVE'; hooks.doze(); toast('Equipo activo'); };
+
+/* ===== ajustes del sistema ===== */
+const SYS={Global:[['airplane_mode_on','0'],['stay_on_while_plugged_in','3'],['wifi_on','1'],['window_animation_scale','1.0']],Seguro:[['android_id','9f2c1a77b4e1d0c3'],['screen_brightness','128'],['accessibility_display_inversion_enabled','null'],['wifi_scan_always_enabled','0'],['ui_night_mode','auto']],Sistema:[['screen_off_timeout','60000'],['font_scale','1.0'],['sound_effects_enabled','1']]};
+let sysTab='Seguro', sysHist=[];
+hooks.sysset=renderSys;
+function renderSys(){
+  const q=$('#sysQ').value.toLowerCase();
+  $('#sysChips').innerHTML=Object.keys(SYS).map(k=>chip(k,null,sysTab===k,`data-st="${k}"`)).join('');
+  const l=SYS[sysTab].map((x,i)=>[x,i]).filter(([x])=>x[0].includes(q));
+  $('#sysSub').textContent=`${l.length} claves visibles`;
+  $('#sysList').innerHTML=l.length?l.map(([x,i])=>`<div class="kv tap" data-k="${i}"><div class="k"><b>${x[0]}</b><span>${esc(x[1])}</span></div><span class="chev">${I('edit',15)}</span></div>`).join(''):empty('Sin claves','Ninguna clave coincide.');
+}
+$('#sysQ').oninput=renderSys;
+$('#sysQuick').onclick=()=>toast('Ajustes rápidos: auto · 30 s · 128');
+$('#s-sysset').addEventListener('click',e=>{
+  const s=e.target.closest('[data-st]'); if(s){sysTab=s.dataset.st;renderSys();return;}
+  const k=e.target.closest('[data-k]'); if(!k) return; const x=SYS[sysTab][+k.dataset.k], tab=sysTab;
+  sheet(`<h4>${x[0]}</h4><p>Valor actual: <b style="color:var(--text)">${esc(x[1])}</b></p><input class="inp" value="${x[1]==='null'?'':esc(x[1])}"><div class="acts"><div class="btn tap" data-x>Cancelar</div><div class="btn solid tap" data-act="save">Guardar</div></div>`,
+   {save:()=>{const v=$('input',ov).value.trim()||'null'; sysHist.push({tab,key:x[0],old:x[1],ref:x}); x[1]=v; closeOv(); renderSys(); toast('Guardado · se puede deshacer');}});
+});
+$('#sysHist').onclick=()=>{
+  if(!sysHist.length) return sheet(`<h4>Historial</h4><p>Aún no hay cambios en esta sesión.</p><div class="acts"><div class="btn tap" data-x>Cerrar</div></div>`);
+  sheet(`<h4>Historial</h4><p>${sysHist.length} cambios</p><div class="group" style="background:var(--surface3)">${sysHist.slice().reverse().map(h=>`<div class="kv"><div class="k"><b>${h.key}</b><span>${esc(h.old)} → ${esc(h.ref[1])}</span></div></div>`).join('')}</div><div class="acts"><div class="btn tap" data-x>Cerrar</div><div class="btn solid tap" data-act="undo">Deshacer último</div></div>`,
+   {undo:()=>{const h=sysHist.pop(); h.ref[1]=h.old; closeOv(); renderSys(); toast('Cambio deshecho');}});
+};
+
+/* ===== debloater ===== */
+let DEB=[{n:'Movies Anywhere',p:'com.moviesanywhere · no usada en TV',a:'M',bg:'#2a2416',fg:'#ffd79a',on:1},{n:'Google Play Games',p:'com.google.android.play.games · duplicado',a:'G',bg:'#1f2a22',fg:'#a7f3c4',on:1},{n:'Samsung TV Plus',p:'com.samsung.tvplus · sustituible',a:'S',bg:'#2a1f1f',fg:'#ffb4b4',on:0}];
+hooks.debloat=renderDeb;
+function renderDeb(){
+  const q=$('#debQ').value.toLowerCase(), sel=DEB.filter(d=>d.on).length;
+  $('#debSub').textContent=`${DEB.length} sugeridas · ${sel} seleccionadas`;
+  const l=DEB.filter(d=>(d.n+d.p).toLowerCase().includes(q));
+  $('#debList').innerHTML=l.length?l.map(d=>`<div class="row tap" data-d="${DEB.indexOf(d)}"><div class="appicon" style="background:${d.bg};color:${d.fg}">${d.a}</div><div class="txt"><b>${d.n}</b><span>${d.p}</span></div><div class="cb ${d.on?'on':''}">${d.on?I('check',12):''}</div></div>`).join(''):empty('Nada que revisar','No quedan apps sugeridas.');
+  $('#debGo').textContent=sel?`Revisar ${sel} apps`:'Selecciona apps'; $('#debGo').classList.toggle('off',!sel);
+}
+$('#debQ').oninput=renderDeb;
+$('#s-debloat').addEventListener('click',e=>{
+  const r=e.target.closest('[data-d]'); if(r){DEB[+r.dataset.d].on^=1;renderDeb();return;}
+  if(e.target.closest('#debGo')){ const s=DEB.filter(d=>d.on);
+    ask({title:`Desinstalar ${s.length} apps`,text:s.map(d=>d.n).join(', ')+'. Todo queda en el historial para deshacer.',ok:'Desinstalar',danger:true},()=>{DEB=DEB.filter(d=>!d.on);renderDeb();toast(`${s.length} apps desinstaladas`);}); }
+});
+
+/* ===== archivos ===== */
+const ROOT='/sdcard/Download'; let cwd=ROOT;
+let FS={[ROOT]:[{n:'AdbOptimizer',d:1},{n:'Movies',d:1},{n:'youtube-tv.apk',s:'24.8 MB · 23 oct',t:'APK'},{n:'registro-2026-10-27.txt',s:'412 KB · hoy',t:'LOG'}],[ROOT+'/AdbOptimizer']:[{n:'perfiles.json',s:'2 KB · ayer',t:'JSON'},{n:'respaldo.zip',s:'8.1 MB · 20 oct',t:'ZIP'},{n:'notas.txt',s:'1 KB · 18 oct',t:'TXT'}],[ROOT+'/Movies']:[]};
+hooks.files=renderFiles;
+function renderFiles(){
+  $('#filesPath').textContent=cwd;
+  const l=FS[cwd]||[];
+  $('#filesList').innerHTML=l.length?l.map((f,i)=>f.d?row(i%2?'cyan':'amber','folder',esc(f.n),`Carpeta · ${(FS[cwd+'/'+f.n]||[]).length} elementos`,`data-f="${i}"`):`<div class="row tap" data-f="${i}"><div class="appicon">${f.t}</div><div class="txt"><b>${esc(f.n)}</b><span>${f.s}</span></div><div class="chev">${I('chev',16)}</div></div>`).join(''):empty('Carpeta vacía','No hay elementos en esta ruta.');
+}
+$('#filesBack').onclick=()=>{ if(cwd!==ROOT){cwd=cwd.slice(0,cwd.lastIndexOf('/'));renderFiles();} else back(); };
+$('#filesRoot').onclick=()=>{cwd=ROOT;renderFiles();};
+$('#filesList').addEventListener('click',e=>{
+  const r=e.target.closest('[data-f]'); if(!r) return; const i=+r.dataset.f, f=FS[cwd][i];
+  if(f.d){ if(!FS[cwd+'/'+f.n]) FS[cwd+'/'+f.n]=[]; cwd+='/'+f.n; return renderFiles(); }
+  sheet(`<h4>${esc(f.n)}</h4><p>${cwd}/${esc(f.n)} · ${f.s}</p><div class="stack"><div class="btn tonal tap" data-act="cp">Copiar ruta</div><div class="btn danger tap" data-act="rm">Borrar</div></div>`,
+   {cp:()=>{closeOv();toast('Ruta copiada');},
+    rm:()=>ask({title:'Borrar archivo',text:esc(f.n)+' se eliminará del equipo.',ok:'Borrar',danger:true},()=>{FS[cwd].splice(i,1);renderFiles();toast('Archivo borrado');})});
+});
+
+/* ===== perfiles ===== */
+const PROF=[['amber','Streaming','YouTube, Netflix, Plex · 3 apps'],['cyan','Mínimo','Solo apps esenciales · 8 apps'],['green','Gaming','Juegos y mando · 5 apps']];
+hooks.profiles=()=>{ $('#profList').innerHTML=PROF.map((p,i)=>row(p[0],'layers',p[1],p[2],`data-p="${i}"`,`<span class="tiny muted">Aplicar</span>`)).join(''); };
+$('#profList').addEventListener('click',e=>{const r=e.target.closest('[data-p]'); if(!r) return; const p=PROF[+r.dataset.p];
+  ask({title:'Aplicar perfil '+p[1],text:p[2]+'. Se ejecutará en '+esc(targetName())+'.',ok:'Aplicar'},()=>toast('Perfil '+p[1]+' aplicado'));});
+
+/* ===== energía ===== */
+const PW=[['grey','power','Apagar pantalla','Mantiene el equipo encendido','Apagar pantalla',0],['amber','refresh','Reiniciar','Reinicia el sistema','Reiniciar',0],['red','power','Apagar','Apaga por completo el equipo','Apagar',1]];
+hooks.power=()=>{ $('#powerList').innerHTML=PW.map((p,i)=>row(p[0],p[1],p[2],p[3],`data-pw="${i}"`)).join(''); };
+$('#powerList').addEventListener('click',e=>{const r=e.target.closest('[data-pw]'); if(!r) return; const p=PW[+r.dataset.pw];
+  ask({title:p[4],text:p[3]+' en '+esc(targetName())+'.',ok:p[4],danger:p[5]},()=>toast(p[4]+': orden enviada'));});
+
+/* ===== arranque ===== */
+show('home');
+</script>
 </body>
 </html>

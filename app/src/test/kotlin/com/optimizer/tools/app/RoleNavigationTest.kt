@@ -13,15 +13,10 @@ class RoleNavigationTest {
     }
 
     @Test
-    fun `local role hides optimization module until Shizuku is ready`() {
-        assertEquals(
-            listOf(Screen.HOME, Screen.APPS, Screen.CONNECT, Screen.SETTINGS),
-            mainNavigationScreens(AppTarget.LOCAL, shizukuReady = false),
-        )
-        assertEquals(
-            listOf(Screen.HOME, Screen.APPS, Screen.CONNECT, Screen.OPTIMIZE, Screen.SETTINGS),
-            mainNavigationScreens(AppTarget.LOCAL, shizukuReady = true),
-        )
+    fun `bottom bar keeps five destinations regardless of Shizuku`() {
+        val expected = listOf(Screen.HOME, Screen.APPS, Screen.CONNECT, Screen.OPTIMIZE, Screen.SETTINGS)
+        assertEquals(expected, mainNavigationScreens(AppTarget.LOCAL, shizukuReady = false))
+        assertEquals(expected, mainNavigationScreens(AppTarget.LOCAL, shizukuReady = true))
     }
 
     @Test

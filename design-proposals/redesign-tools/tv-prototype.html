@@ -1,0 +1,1237 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AdbOptimizer · Prototipo TV</title>
+<style>
+  :root{
+    --bg:#0B0F14; --surface:#17212E; --surface2:#1A2432; --surface3:#101823;
+    --line:#1F2B3A; --text:#E7EEF7; --muted:#8BA0B8; --outline:#64748B;
+    --primary:#4ADE80; --secondary:#22D3EE; --tertiary:#FBBF24; --danger:#F87171;
+    --primary-soft:rgba(74,222,128,.12); --secondary-soft:rgba(34,211,238,.12);
+    --tertiary-soft:rgba(251,191,36,.14); --danger-soft:rgba(248,113,113,.12);
+    --r-sm:8px; --r-md:12px; --r-lg:16px; --r-full:999px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#05080c;color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,system-ui,sans-serif}
+  a{color:var(--secondary)}
+  .page{max-width:1460px;margin:0 auto;padding:30px 24px 56px;
+    background:radial-gradient(1100px 520px at 50% -10%,rgba(74,222,128,.07),transparent 65%)}
+
+  header.hero{display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:22px}
+  .hero-copy{flex:1;min-width:300px}
+  .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--primary);font-weight:700}
+  h1{font-size:30px;line-height:1.15;margin:8px 0 10px;font-weight:700}
+  .lead{color:var(--muted);font-size:14px;line-height:1.6;margin:0;max-width:760px}
+  .pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .pill{font-size:11.5px;font-weight:600;padding:6px 11px;border-radius:var(--r-full);
+    background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+  .pill.ok{color:var(--primary);border-color:rgba(74,222,128,.35);background:var(--primary-soft)}
+  .pill.warn{color:var(--tertiary);border-color:rgba(251,191,36,.35);background:var(--tertiary-soft)}
+  .hero-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .ghost-btn{all:unset;cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);
+    padding:8px 14px;border-radius:var(--r-full);border:1px solid var(--line);background:var(--surface)}
+  .ghost-btn:hover{color:var(--text);border-color:#2c3b4e}
+  .ghost-btn.on{color:var(--primary);border-color:rgba(74,222,128,.4);background:var(--primary-soft)}
+
+  /* ---------- TV frame ---------- */
+  .protowrap{display:flex;align-items:flex-start;justify-content:center;gap:26px;flex-wrap:wrap}
+  .tvcol{flex:1;min-width:520px;display:flex;flex-direction:column;gap:12px}
+  .tvbezel{width:100%;padding:9px;border-radius:20px;border:1px solid #26313f;
+    background:linear-gradient(180deg,#0e141c,#080d13);box-shadow:0 30px 80px rgba(0,0,0,.7)}
+  .tv{position:relative;width:100%;aspect-ratio:16/9;background:var(--bg);border-radius:12px;
+    overflow:hidden;container-type:inline-size;border:1px solid #000}
+  .ui{position:absolute;inset:0;display:flex;flex-direction:column;font-size:1.55cqw;line-height:1.35}
+
+  .safearea{position:absolute;inset:2.6cqw 3cqw;border:1px dashed rgba(139,160,184,.12);
+    border-radius:.6cqw;pointer-events:none;z-index:1}
+
+  /* top bar */
+  .tvbar{flex:none;display:flex;align-items:center;gap:1.4cqw;padding:2cqw 3.2cqw 1.2cqw;position:relative;z-index:2}
+  .brand{display:flex;align-items:center;gap:.8cqw;font-weight:800;font-size:1.45cqw;letter-spacing:.01em}
+  .brand .dot{width:2.1cqw;height:2.1cqw;border-radius:.6cqw;background:var(--primary-soft);
+    display:grid;place-items:center;color:var(--primary)}
+  .brand .dot svg{width:1.4cqw;height:1.4cqw}
+  .chipstate{font-size:1.2cqw;font-weight:700;color:var(--primary);background:var(--primary-soft);
+    border-radius:var(--r-full);padding:.45cqw 1.1cqw;white-space:nowrap}
+  .chipstate.warn{color:var(--tertiary);background:var(--tertiary-soft)}
+  .clock{margin-left:auto;color:var(--muted);font-size:1.25cqw;font-weight:600;font-variant-numeric:tabular-nums}
+
+  .stage{flex:1;min-height:0;display:grid;grid-template-columns:15cqw minmax(0,1fr);gap:1.6cqw;
+    padding:0 3.2cqw 1.2cqw;position:relative;z-index:2}
+
+  /* left rail */
+  .rail{display:flex;flex-direction:column;gap:.55cqw;padding-top:.4cqw;min-width:0}
+  .rail .r{display:flex;align-items:center;gap:1cqw;padding:1.05cqw 1cqw;border-radius:1cqw;
+    color:var(--muted);font-size:1.4cqw;font-weight:600;background:transparent;border:0;cursor:pointer;
+    text-align:left;transition:background .15s,color .15s}
+  .rail .r.on{background:var(--surface2);color:var(--text)}
+  .rail .r.on svg{color:var(--primary)}
+  .rail .r svg{width:1.9cqw;height:1.9cqw;flex:none}
+
+  /* screens */
+  .panel{min-width:0;min-height:0;display:flex}
+  .scr{display:none;flex-direction:column;gap:1.05cqw;min-height:0;width:100%;overflow:hidden}
+  .scr.active{display:flex}
+
+  .h{display:flex;align-items:flex-end;gap:1.2cqw;flex:none;min-width:0}
+  .h h2{font-size:2.5cqw;margin:0;font-weight:700;letter-spacing:-.01em;line-height:1.1}
+  .h p{margin:0 0 .25cqw;font-size:1.25cqw;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .h .spacer{margin-left:auto}
+
+  .hero{border-radius:1.2cqw;padding:1.5cqw 1.8cqw;display:flex;align-items:center;gap:1.6cqw;flex-wrap:wrap;
+    background:linear-gradient(120deg,#16222f 0%,#132333 60%,#122a24 100%);border:1px solid var(--line);flex:none}
+  .hero .big{flex:none;width:5.2cqw;height:5.2cqw;border-radius:1.2cqw;background:var(--primary-soft);
+    color:var(--primary);display:grid;place-items:center;font-weight:800;font-size:1.8cqw}
+  .hero .info{flex:1;min-width:20cqw}
+  .hero .info b{display:block;font-size:1.85cqw;line-height:1.2}
+  .hero .info span{display:block;font-size:1.25cqw;color:var(--muted);margin-top:.35cqw}
+  .hero .actions{display:flex;gap:.9cqw;flex:none;margin-left:auto}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:.6cqw;height:4.4cqw;padding:0 1.9cqw;
+    border-radius:var(--r-full);font-size:1.3cqw;font-weight:700;border:1px solid var(--line);
+    color:var(--text);background:transparent;cursor:pointer;white-space:nowrap;font-family:inherit}
+  .btn svg{width:1.5cqw;height:1.5cqw}
+  .btn.solid{background:var(--primary);border-color:var(--primary);color:#052e16}
+  .btn.tonal{background:var(--primary-soft);border-color:rgba(74,222,128,.35);color:var(--primary)}
+  .btn.danger{background:var(--danger-soft);border-color:rgba(248,113,113,.4);color:var(--danger)}
+  .btn.off{opacity:.4}
+
+  .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.2cqw;flex:none}
+  .stat{background:var(--surface);border-radius:1cqw;padding:1.1cqw 1.4cqw}
+  .stat .l{font-size:1.05cqw;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;font-weight:700}
+  .stat .v{font-size:2.2cqw;font-weight:800;margin-top:.35cqw;line-height:1.1}
+  .stat .s{font-size:1.15cqw;color:var(--muted);margin-top:.2cqw}
+
+  .rowtitle{font-size:1.05cqw;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);margin:.3cqw .3cqw -.1cqw;flex:none}
+
+  .hist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.1cqw;flex:none}
+  .hist[hidden]{display:none}
+  .histrow{display:flex;align-items:center;gap:1cqw;background:var(--surface);border-radius:1cqw;
+    padding:1cqw 1.3cqw;border:1px solid transparent;cursor:pointer;font-family:inherit;color:var(--text);text-align:left;min-width:0}
+  .histrow .ico{width:2.8cqw;height:2.8cqw;border-radius:.7cqw;display:grid;place-items:center;flex:none}
+  .histrow .ico svg{width:1.5cqw;height:1.5cqw}
+  .histrow .t{flex:1;min-width:0}
+  .histrow b{display:block;font-size:1.22cqw;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .histrow span{display:block;font-size:1.05cqw;color:var(--muted);margin-top:.15cqw}
+  .histrow .undo{font-size:1.02cqw;font-weight:800;color:var(--secondary);flex:none}
+
+  .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1.1cqw;flex:none}
+  .tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.1cqw;flex:none}
+  .tile{background:var(--surface);border-radius:1cqw;padding:1.1cqw;display:flex;gap:1cqw;align-items:flex-start;
+    border:1px solid transparent;cursor:pointer;text-align:left;font-family:inherit;color:var(--text);min-width:0}
+  .tile .ico{width:3.4cqw;height:3.4cqw;border-radius:.8cqw;display:grid;place-items:center;flex:none}
+  .tile .ico svg{width:1.8cqw;height:1.8cqw}
+  .tile .txt{min-width:0}
+  .tile b{display:block;font-size:1.4cqw;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tile span{display:block;font-size:1.15cqw;color:var(--muted);margin-top:.25cqw;line-height:1.3}
+  .i-green{background:var(--primary-soft);color:var(--primary)}
+  .i-cyan{background:var(--secondary-soft);color:var(--secondary)}
+  .i-amber{background:var(--tertiary-soft);color:var(--tertiary)}
+  .i-red{background:var(--danger-soft);color:var(--danger)}
+  .i-grey{background:#1d2734;color:var(--muted)}
+
+  /* focus (10-foot) */
+  [data-f]{position:relative;outline:none}
+  [data-f].f{outline:.3cqw solid #fff;outline-offset:.26cqw;
+    box-shadow:0 0 0 .95cqw rgba(74,222,128,.18);z-index:3}
+  .tile.f,.app.f,.recipe.f,.setrow.f,.toolrow.f,.logrow.f{background:var(--surface2)}
+
+  /* apps */
+  .filterbar{display:flex;gap:.8cqw;flex:none}
+  .fchip{font-size:1.2cqw;font-weight:700;padding:.7cqw 1.3cqw;border-radius:var(--r-full);
+    border:1px solid var(--line);color:var(--muted);background:transparent;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .fchip.on{color:var(--text);background:var(--surface2);border-color:#2c3b4e}
+  .fchip .n{font-size:1.05cqw;color:var(--muted);margin-left:.5cqw}
+  .fchip.on .n{color:var(--text)}
+  .appgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1.1cqw;flex:none}
+  .app{background:var(--surface);border-radius:1cqw;padding:1.2cqw .8cqw;display:flex;flex-direction:column;
+    align-items:center;gap:.7cqw;border:1px solid transparent;cursor:pointer;font-family:inherit;color:var(--text);min-width:0}
+  .app .sq{width:4.4cqw;height:4.4cqw;border-radius:1.1cqw;display:grid;place-items:center;
+    font-weight:800;font-size:1.5cqw;flex:none}
+  .app b{font-size:1.2cqw;font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;
+    text-overflow:ellipsis;max-width:100%}
+  .app span{font-size:1.05cqw;color:var(--muted)}
+  .appnote{font-size:1.15cqw;color:var(--muted);flex:none}
+
+  /* recipes / rows */
+  .list{display:flex;flex-direction:column;gap:.75cqw;flex:none}
+  .recipe{display:flex;align-items:center;gap:1.4cqw;background:var(--surface);border-radius:1cqw;
+    padding:1cqw 1.45cqw;border:1px solid transparent;cursor:pointer;font-family:inherit;color:var(--text);text-align:left}
+  .recipe .t{flex:1;min-width:0}
+  .recipe b{display:block;font-size:1.45cqw;font-weight:700}
+  .recipe span{display:block;font-size:1.18cqw;color:var(--muted);margin-top:.25cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .risk{font-size:1cqw;font-weight:800;padding:.4cqw .9cqw;border-radius:var(--r-full);letter-spacing:.04em;flex:none}
+  .risk.safe{color:var(--primary);background:var(--primary-soft)}
+  .risk.mod{color:var(--tertiary);background:var(--tertiary-soft)}
+  .risk.done{color:var(--secondary);background:var(--secondary-soft)}
+
+  .banner{display:flex;align-items:center;gap:1.1cqw;border-radius:1cqw;padding:1.1cqw 1.4cqw;
+    background:var(--tertiary-soft);border:1px solid rgba(251,191,36,.3);flex:none}
+  .banner[hidden]{display:none}
+  .banner .ico{color:var(--tertiary);width:2.2cqw;height:2.2cqw;flex:none}
+  .banner b{display:block;font-size:1.35cqw}
+  .banner span{display:block;font-size:1.15cqw;color:var(--muted)}
+  .banner .btn{margin-left:auto;height:3.8cqw;font-size:1.15cqw}
+  .banner.info{background:var(--primary-soft);border-color:rgba(74,222,128,.28)}
+  .banner.info .ico{color:var(--primary)}
+
+  /* settings rows */
+  .setrow{display:flex;align-items:center;gap:1.4cqw;background:var(--surface);border-radius:1cqw;
+    padding:1.25cqw 1.5cqw;border:1px solid transparent;cursor:pointer;font-family:inherit;color:var(--text);text-align:left;width:100%}
+  .setrow .t{flex:1;min-width:0}
+  .setrow b{display:block;font-size:1.4cqw;font-weight:700}
+  .setrow span{display:block;font-size:1.18cqw;color:var(--muted);margin-top:.25cqw}
+  .toggle{width:4.6cqw;height:2.5cqw;border-radius:var(--r-full);background:#2a3647;position:relative;flex:none}
+  .toggle i{position:absolute;top:.3cqw;left:.3cqw;width:1.9cqw;height:1.9cqw;border-radius:50%;background:#8ba0b8}
+  .toggle.on{background:rgba(74,222,128,.4)}
+  .toggle.on i{left:2.4cqw;background:var(--primary)}
+  .value-pill{font-size:1.15cqw;color:var(--muted);border:1px solid var(--line);border-radius:var(--r-full);
+    padding:.4cqw 1cqw;flex:none}
+
+  /* secondary screens */
+  .appbar{display:flex;align-items:center;gap:1.1cqw;flex:none}
+  .appbar .titles{flex:1;min-width:0}
+  .appbar h2{font-size:2.3cqw;margin:0;font-weight:700;line-height:1.15}
+  .appbar p{margin:.2cqw 0 0;font-size:1.18cqw;color:var(--muted)}
+
+  .toolrow{display:flex;align-items:center;gap:1.2cqw;background:var(--surface);border-radius:1cqw;
+    padding:1.05cqw 1.4cqw;border:1px solid transparent;cursor:pointer;font-family:inherit;color:var(--text);text-align:left;width:100%}
+  .toolrow .ico{width:3.2cqw;height:3.2cqw;border-radius:.8cqw;display:grid;place-items:center;flex:none}
+  .toolrow .ico svg{width:1.7cqw;height:1.7cqw}
+  .toolrow .t{flex:1;min-width:0}
+  .toolrow b{display:block;font-size:1.32cqw;font-weight:700}
+  .toolrow span{display:block;font-size:1.12cqw;color:var(--muted);margin-top:.2cqw}
+  .scrolly{overflow-y:auto;scrollbar-width:none;min-height:0}
+  .scrolly::-webkit-scrollbar{display:none}
+  .stack{display:flex;flex-direction:column;gap:.85cqw;flex:1;min-height:0}
+
+  .logrow{display:grid;grid-template-columns:13cqw 2.2cqw minmax(0,1fr);align-items:center;gap:.9cqw;
+    padding:.85cqw 1.1cqw;border-radius:.8cqw;background:var(--surface);
+    border:0;border-left:.32cqw solid var(--tint);cursor:pointer;font-family:inherit;color:var(--text);text-align:left;width:100%}
+  .logrow .meta{display:flex;flex-direction:column;gap:.12cqw;min-width:0}
+  .logrow .time{font-size:1cqw;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .logrow .tag{font-size:1.02cqw;font-weight:700;color:var(--tint);font-family:ui-monospace,monospace;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .logrow .msg{flex:1;font-size:1.12cqw;font-family:ui-monospace,monospace;color:var(--text);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;align-self:center}
+  .lvl{font-size:.95cqw;font-weight:800;padding:.2cqw .55cqw;border-radius:.4cqw;
+    background:color-mix(in srgb,var(--tint) 18%,transparent);color:var(--tint);flex:none;align-self:center}
+
+  .term{background:#050a0f;border-radius:1cqw;padding:1.2cqw 1.4cqw;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:1.05cqw;line-height:1.65;color:#c9d7e6;overflow:hidden;flex:1;min-height:0;white-space:pre-wrap}
+  .term .p{color:var(--primary)}
+  .term .c{color:var(--secondary)}
+  .presets{display:flex;flex-direction:column;gap:.7cqw;flex:none}
+  .preset{display:flex;align-items:center;gap:1cqw;background:var(--surface);border-radius:.8cqw;
+    padding:.85cqw 1.2cqw;font-family:ui-monospace,monospace;font-size:1.1cqw;color:var(--text);
+    border:1px solid var(--line);cursor:pointer;text-align:left}
+  .preset .play{color:var(--primary);flex:none;width:1.5cqw;height:1.5cqw}
+
+  .profile{display:flex;align-items:center;gap:1.2cqw;background:var(--surface);border-radius:1cqw;
+    padding:1.15cqw 1.4cqw;border:1px solid transparent;cursor:pointer;font-family:inherit;color:var(--text);text-align:left;width:100%}
+  .profile .ico{width:3.4cqw;height:3.4cqw;border-radius:.9cqw;display:grid;place-items:center;flex:none}
+  .profile .ico svg{width:1.8cqw;height:1.8cqw}
+  .profile .t{flex:1;min-width:0}
+  .profile b{display:block;font-size:1.38cqw}
+  .profile span{display:block;font-size:1.12cqw;color:var(--muted);margin-top:.2cqw}
+
+  .kv{display:flex;align-items:center;gap:1.2cqw;background:var(--surface);border-radius:.9cqw;
+    padding:1.05cqw 1.3cqw;cursor:pointer;font-family:inherit;color:var(--text);text-align:left;width:100%}
+  .kv .k{flex:1;min-width:0}
+  .kv .k b{display:block;font-family:ui-monospace,monospace;font-size:1.16cqw;font-weight:600;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kv .k span{display:block;font-family:ui-monospace,monospace;font-size:1.02cqw;color:var(--muted);margin-top:.2cqw}
+  .kv .v{font-family:ui-monospace,monospace;font-size:1.12cqw;color:var(--secondary);flex:none}
+
+  .checkbox{width:2.3cqw;height:2.3cqw;border-radius:.5cqw;border:.18cqw solid var(--outline);
+    display:grid;place-items:center;color:#052e16;flex:none}
+  .checkbox svg{width:1.5cqw;height:1.5cqw;display:none}
+  .checkbox.on{background:var(--primary);border-color:var(--primary)}
+  .checkbox.on svg{display:block}
+
+  .footbtn{flex:none;margin-top:.2cqw}
+
+  /* footer hint */
+  .hint{flex:none;display:flex;align-items:center;gap:.8cqw;padding:.9cqw 3.2cqw;border-top:1px solid var(--line);
+    background:#0d141c;color:var(--muted);font-size:1.15cqw;position:relative;z-index:2}
+  .key{display:inline-grid;place-items:center;min-width:2cqw;height:1.75cqw;padding:0 .55cqw;border-radius:.4cqw;
+    background:#22303f;color:var(--text);font-size:1cqw;font-weight:700;border:1px solid #2f4157}
+  .hint .sep{opacity:.35}
+  .hint .grow{margin-left:auto;display:flex;align-items:center;gap:.8cqw}
+  .dotlive{width:.7cqw;height:.7cqw;border-radius:50%;background:var(--primary);box-shadow:0 0 0 .35cqw var(--primary-soft)}
+
+  /* dialog / toast */
+  .dialog{position:absolute;inset:0;background:rgba(3,6,10,.76);display:none;align-items:center;
+    justify-content:center;padding:3cqw;z-index:20}
+  .dialog.show{display:flex;animation:fd .14s ease-out}
+  @keyframes fd{from{opacity:0}to{opacity:1}}
+  .dlgcard{width:58cqw;background:#1b2735;border-radius:1.2cqw;padding:2.1cqw 2.4cqw;border:1px solid #2b3b4e;
+    box-shadow:0 3cqw 6cqw rgba(0,0,0,.6)}
+  .dlgcard h3{margin:0 0 .7cqw;font-size:1.85cqw}
+  .dlgcard p{margin:0 0 1.4cqw;font-size:1.25cqw;color:var(--muted);line-height:1.55}
+  .dlgnote{display:flex;gap:.9cqw;background:var(--tertiary-soft);border:1px solid rgba(251,191,36,.28);
+    border-radius:.8cqw;padding:.9cqw 1.1cqw;font-size:1.15cqw;color:var(--text);margin:0 0 1.4cqw;line-height:1.45}
+  .dlgnote svg{width:1.6cqw;height:1.6cqw;color:var(--tertiary);flex:none;margin-top:.1cqw}
+  .dlgacts{display:flex;gap:1cqw;justify-content:flex-end}
+  .dbtn{display:inline-flex;align-items:center;justify-content:center;height:4.2cqw;padding:0 2cqw;
+    border-radius:var(--r-full);font-size:1.25cqw;font-weight:700;border:1px solid var(--line);
+    color:var(--text);background:transparent;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .dbtn.solid{background:var(--primary);border-color:var(--primary);color:#052e16}
+  .dbtn.danger{background:var(--danger);border-color:var(--danger);color:#2b0505}
+  .dbtn.off{opacity:.42}
+
+  .toast{position:absolute;left:50%;bottom:7.4cqw;transform:translate(-50%,1cqw);background:#223044;
+    border:1px solid #2c3b4e;color:var(--text);font-size:1.22cqw;padding:.95cqw 1.6cqw;border-radius:.9cqw;
+    z-index:30;opacity:0;pointer-events:none;transition:.2s;max-width:72cqw;text-align:center}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  /* remote panel */
+  .remote{flex:none;width:300px;background:var(--surface3);border:1px solid var(--line);border-radius:18px;
+    padding:20px;display:flex;flex-direction:column;gap:18px;align-items:center}
+  .remote h3{margin:0;font-size:14px;align-self:flex-start}
+  .remote p{margin:0;font-size:11.5px;color:var(--muted);line-height:1.55;align-self:flex-start}
+  .dpad{width:190px;height:190px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);
+    gap:6px;flex:none}
+  .dpad button{all:unset;cursor:pointer;background:#22303f;border-radius:10px;display:grid;place-items:center;
+    color:#b8c8da;font-size:15px;font-weight:700;transition:background .1s,transform .1s}
+  .dpad button:active{background:#31445a;transform:scale(.96)}
+  .dpad .ok{background:var(--primary);color:#052e16;border-radius:50%;font-size:13px}
+  .dpad .ok:active{background:#3fce72}
+  .dpad .empty{background:transparent;pointer-events:none}
+  .drow{display:flex;gap:8px;width:100%}
+  .drow button{all:unset;cursor:pointer;flex:1;text-align:center;padding:10px 6px;border-radius:10px;
+    border:1px solid var(--line);background:var(--surface);font-size:11.5px;font-weight:700;color:var(--text)}
+  .drow button:active{background:var(--surface2)}
+
+  .remote-keys{display:flex;flex-direction:column;gap:7px;font-size:11.5px;color:var(--muted);align-self:flex-start;line-height:1.5}
+  .remote-keys kbd{font-family:inherit;font-size:10.5px;font-weight:700;color:var(--text);background:#22303f;
+    border:1px solid #2f4157;border-radius:5px;padding:1px 5px}
+  .remote-keys b{color:var(--text)}
+
+  .tvfoot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--muted)}
+  .statebox{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted)}
+  .switch{all:unset;cursor:pointer;width:36px;height:20px;border-radius:999px;background:#2a3647;position:relative}
+  .switch::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;
+    background:#8ba0b8;transition:left .15s,background .15s}
+  .switch.on{background:rgba(74,222,128,.35)}
+  .switch.on::after{left:19px;background:var(--primary)}
+
+  @media(max-width:1180px){
+    .tvcol{min-width:0;width:100%}
+    .remote{width:100%;max-width:520px;flex-direction:row;flex-wrap:wrap;justify-content:center}
+    .remote h3,.remote p,.remote-keys{flex-basis:100%;align-self:auto}
+  }
+  @media(max-width:700px){
+    .page{padding:20px 14px 40px}
+    h1{font-size:24px}
+    .dpad{width:150px;height:150px}
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M4 10.5L12 4l8 6.5V20a1 1 0 01-1 1h-5v-6h-4v6H5a1 1 0 01-1-1z"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M13 3L5 14h6l-1 7 8-11h-6l1-7z"/></symbol>
+  <symbol id="i-term" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 10l3 2.5L7 15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 15h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2.2" fill="var(--surface)" stroke="currentColor" stroke-width="2"/><circle cx="15" cy="12" r="2.2" fill="var(--surface)" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="17" r="2.2" fill="var(--surface)" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-log" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 6h16M4 12h16M4 18h10"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13M10 11v6M14 11v6"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z" fill="currentColor"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 3.5L21 20H3z"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 9v5"/><circle cx="12" cy="17" r="1.1" fill="currentColor"/></symbol>
+  <symbol id="i-power" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 3v9"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M7.2 6.2a8 8 0 1011.6 0"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h5" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 12a8 8 0 118 8 8 8 0 01-6.2-3M4 4v5h5"/><path d="M12 8v4.5l3 1.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+</svg>
+
+<div class="page">
+  <header class="hero">
+    <div class="hero-copy">
+      <div class="eyebrow">Prototipo navegable · Android TV</div>
+      <h1>AdbOptimizer en la TV, pantalla por pantalla</h1>
+      <p class="lead">El mismo motor, otra distancia de uso. Mueve el foco con las <b>flechas del teclado</b>
+        o con el mando en pantalla: <b>OK</b> abre, <b>Atrás</b> vuelve. No hay hover ni toques: todo estado
+        tiene equivalente en el D-pad y el foco siempre se ve.</p>
+      <div class="pills">
+        <span class="pill ok">D-pad + OK + Atrás</span>
+        <span class="pill">Área segura 48 dp</span>
+        <span class="pill">Texto mínimo 24 sp</span>
+        <span class="pill">Barra lateral</span>
+        <span class="pill warn">Fase 3 · validación física pendiente</span>
+      </div>
+    </div>
+    <div class="hero-tools">
+      <a class="ghost-btn" href="tv-redesign.html">Ver propuesta estática</a>
+      <a class="ghost-btn" href="app-redesign.html">Prototipo móvil</a>
+    </div>
+  </header>
+
+  <div class="protowrap">
+    <div class="tvcol">
+      <div class="tvbezel">
+        <div class="tv" id="tv">
+          <div class="ui">
+            <div class="safearea"></div>
+
+            <div class="tvbar">
+              <div class="brand"><span class="dot"><svg><use href="#i-bolt"/></svg></span>AdbOptimizer</div>
+              <span class="chipstate" id="chipState">Conectado · local</span>
+              <span class="clock" id="clock">21:40</span>
+            </div>
+
+            <div class="stage">
+              <nav class="rail" id="rail" aria-label="Navegación principal">
+                <div class="r on" data-f="nav-home" data-nav="home"><svg><use href="#i-home"/></svg>Inicio</div>
+                <div class="r" data-f="nav-apps" data-nav="apps"><svg><use href="#i-grid"/></svg>Apps</div>
+                <div class="r" data-f="nav-optimize" data-nav="optimize"><svg><use href="#i-bolt"/></svg>Optimizar</div>
+                <div class="r" data-f="nav-tools" data-nav="tools"><svg><use href="#i-term"/></svg>Herramientas</div>
+                <div class="r" data-f="nav-settings" data-nav="settings"><svg><use href="#i-sliders"/></svg>Ajustes</div>
+              </nav>
+
+              <div class="panel" id="panel">
+
+                <!-- ============ INICIO ============ -->
+                <section class="scr active scrolly" data-screen="home">
+                  <div class="h"><h2>Inicio</h2><p id="homeSub">Este televisor · conectado</p></div>
+                  <div class="hero">
+                    <div class="big">TV</div>
+                    <div class="info">
+                      <b id="homeDevice">Google TV · sdk_google_atv</b>
+                      <span id="homeDesc">Android 16 · 1080p · 3 apps con actualización pendiente</span>
+                    </div>
+                    <div class="actions">
+                      <button class="btn tonal" data-f="home-opt" data-nav="optimize"><svg><use href="#i-bolt"/></svg>Optimizar</button>
+                      <button class="btn" data-f="home-tools" data-nav="tools">Herramientas</button>
+                    </div>
+                  </div>
+                  <div class="banner" id="permBanner" hidden>
+                    <svg class="ico"><use href="#i-warn"/></svg>
+                    <div><b>Sin permiso para modificar el televisor</b><span>Solo lectura. Activa Shizuku o ADB local para aplicar cambios.</span></div>
+                    <button class="btn" data-f="home-guide" data-guide="1">Cómo activarlo</button>
+                  </div>
+                  <div class="stats">
+                    <div class="stat"><div class="l">RAM</div><div class="v">1.5 GB</div><div class="s">en uso de 1.9 GB</div></div>
+                    <div class="stat"><div class="l">Almacenamiento</div><div class="v">9.2 GB</div><div class="s">libres de 16 GB</div></div>
+                    <div class="stat"><div class="l">Apps</div><div class="v">48</div><div class="s">12 de sistema</div></div>
+                  </div>
+                  <div class="rowtitle">Accesos directos</div>
+                  <div class="grid4" id="homeTiles"></div>
+                  <div class="rowtitle" id="histTitle" style="margin-top:.35cqw">Historial reciente</div>
+                  <div class="hist" id="homeHist"></div>
+                </section>
+
+                <!-- ============ APPS ============ -->
+                <section class="scr" data-screen="apps">
+                  <div class="h"><h2>Apps</h2><p id="appsSub">48 apps · 12 de sistema</p></div>
+                  <div class="filterbar" id="appsFilters"></div>
+                  <div class="appgrid" id="appGrid"></div>
+                </section>
+
+                <!-- ============ OPTIMIZAR ============ -->
+                <section class="scr scrolly" data-screen="optimize">
+                  <div class="h"><h2>Optimizar</h2><p id="optSub">4 recetas compatibles · sin root</p></div>
+                  <div class="banner" id="optBanner" hidden>
+                    <svg class="ico"><use href="#i-warn"/></svg>
+                    <div><b>Requiere permiso ADB</b><span>Sin Shizuku o ADB local no se puede escribir en el sistema.</span></div>
+                    <button class="btn" data-f="opt-guide" data-guide="1">Cómo activarlo</button>
+                  </div>
+                  <div class="list" id="recipeList"></div>
+                </section>
+
+                <!-- ============ HERRAMIENTAS ============ -->
+                <section class="scr" data-screen="tools">
+                  <div class="h"><h2>Herramientas</h2><p>Todo se ejecuta en este televisor</p></div>
+                  <div class="stack" id="toolTiles"></div>
+                  <div class="appnote">Las utilidades que escriben en el sistema piden confirmación antes de ejecutar.</div>
+                </section>
+
+                <!-- ============ AJUSTES ============ -->
+                <section class="scr" data-screen="settings">
+                  <div class="h"><h2>Ajustes</h2><p>Preferencias de la app en este televisor</p></div>
+                  <div class="stack" id="settingsList"></div>
+                </section>
+
+                <!-- ============ REGISTRO ============ -->
+                <section class="scr" data-screen="log">
+                  <div class="appbar">
+                    <div class="titles"><h2>Registro</h2><p id="logSub">Logcat en vivo · 128 líneas</p></div>
+                    <button class="btn tonal" data-f="log-live" data-play="1" id="logLiveBtn">Pausar</button>
+                  </div>
+                  <div class="stack scrolly" id="logList"></div>
+                </section>
+
+                <!-- ============ CONSOLA ============ -->
+                <section class="scr" data-screen="console">
+                  <div class="appbar">
+                    <div class="titles"><h2>Consola</h2><p>shell como uid 2000 · historial de 6</p></div>
+                  </div>
+                  <div class="term" id="termOut"></div>
+                  <div class="presets" id="presets"></div>
+                </section>
+
+                <!-- ============ ARCHIVOS ============ -->
+                <section class="scr" data-screen="files">
+                  <div class="appbar">
+                    <div class="titles"><h2>Archivos</h2><p id="filesPath">/sdcard</p></div>
+                  </div>
+                  <div class="stack" id="filesList"></div>
+                </section>
+
+                <!-- ============ DEBLOATER ============ -->
+                <section class="scr" data-screen="debloat">
+                  <div class="appbar">
+                    <div class="titles"><h2>Debloater</h2><p id="debSub">3 sugerencias · sin launcher</p></div>
+                  </div>
+                  <div class="stack" id="debList"></div>
+                  <div class="banner info">
+                    <svg class="ico"><use href="#i-check"/></svg>
+                    <div><b>El launcher está protegido</b><span>Su paquete y sus dependencias no aparecen en esta lista.</span></div>
+                  </div>
+                  <button class="btn danger footbtn" data-f="deb-review" data-deb-review="1" id="debReview">Revisar 2 apps</button>
+                </section>
+
+                <!-- ============ PERFILES ============ -->
+                <section class="scr" data-screen="profiles">
+                  <div class="appbar">
+                    <div class="titles"><h2>Perfiles</h2><p>Conjuntos de apps para aplicar de una vez</p></div>
+                  </div>
+                  <div class="stack" id="profileList"></div>
+                </section>
+
+                <!-- ============ AJUSTES DEL SISTEMA ============ -->
+                <section class="scr" data-screen="sysset">
+                  <div class="appbar">
+                    <div class="titles"><h2>Ajustes del sistema</h2><p>Claves con lectura de vuelta y deshacer</p></div>
+                  </div>
+                  <div class="stack" id="sysList"></div>
+                  <div class="appnote">Los valores se leen del equipo, no se inventan en la app.</div>
+                </section>
+
+              </div>
+            </div>
+
+            <div class="hint" id="hint">
+              <span class="key">◀ ▶ ▲ ▼</span> mover <span class="sep">·</span>
+              <span class="key">OK</span> abrir <span class="sep">·</span>
+              <span class="key">Atrás</span> volver
+              <span class="grow"><span class="dotlive" id="permDot"></span><span id="permText">Permiso ADB activo</span></span>
+            </div>
+
+            <div class="dialog" id="dialog" role="dialog" aria-modal="true"></div>
+            <div class="toast" id="toast"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tvfoot">
+        <div class="statebox">
+          <button class="switch on" id="permSwitch" aria-label="Simular permiso ADB"></button>
+          <span>Simular permiso ADB (Shizuku)</span>
+        </div>
+        <div class="statebox" style="margin-left:auto">
+          <span>Reinicia el estado del prototipo</span>
+          <button class="ghost-btn" id="resetProto">Reiniciar</button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="remote">
+      <h3>Mando</h3>
+      <p>Haz clic en el mando o usa el teclado. El foco salta de la barra lateral al contenido con ◀ ▶.</p>
+      <div class="dpad">
+        <div class="empty"></div><button data-key="up" aria-label="Arriba">▲</button><div class="empty"></div>
+        <button data-key="left" aria-label="Izquierda">◀</button><button class="ok" data-key="ok" aria-label="OK">OK</button><button data-key="right" aria-label="Derecha">▶</button>
+        <div class="empty"></div><button data-key="down" aria-label="Abajo">▼</button><div class="empty"></div>
+      </div>
+      <div class="drow">
+        <button data-key="back">Atrás</button>
+        <button data-key="home">Inicio</button>
+      </div>
+      <div class="remote-keys">
+        <span><kbd>◀</kbd> <kbd>▶</kbd> <kbd>▲</kbd> <kbd>▼</kbd> mueven el foco</span>
+        <span><kbd>OK</kbd> o <kbd>Enter</kbd> activa lo enfocado</span>
+        <span><kbd>Atrás</kbd> o <kbd>Esc</kbd> cancela y vuelve</span>
+        <span><b>Regla:</b> nunca hay dos focos ni acciones solo por color.</span>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+'use strict';
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const I=(n,cls='')=>`<svg class="${cls}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+
+/* ================= estado ================= */
+const S={
+  stack:['home'], permission:true, focusId:null, last:{}, dlgActions:[], preDlg:null,
+  live:true, filter:'all', applied:new Set(['doze']), debloat:new Set(['movies','games']),
+  history:[{recipe:'doze',ago:'hace 12 min'}],
+  sysApps:false, keepAwake:false, refresh:0, theme:0, path:'/sdcard',
+  term:[{cmd:'whoami',out:'shell'},{cmd:'getprop ro.product.model',out:'sdk_google_atv'}]
+};
+const RAIL=['home','apps','optimize','tools','settings'];
+const RAIL_OF={home:'home',apps:'apps',optimize:'optimize',tools:'tools',settings:'settings',
+  log:'tools',console:'tools',files:'tools',debloat:'tools',profiles:'tools',sysset:'tools'};
+
+/* ================= datos ================= */
+const APPS=[
+  {id:'yt',n:'YouTube Music',p:'com.google.android.youtube.tvmusic',s:'2.4 MB',a:'YT',bg:'#1d2a3a',fg:'#8ec5ff',user:1},
+  {id:'nf',n:'Netflix',p:'com.netflix.ninja',s:'84 MB',a:'NF',bg:'#2a1f1f',fg:'#ffb4b4',user:1},
+  {id:'sp',n:'Spotify',p:'com.spotify.tv.android',s:'42 MB',a:'SP',bg:'#1f2a22',fg:'#a7f3c4',user:1},
+  {id:'plex',n:'Plex',p:'com.plexapp.android',s:'31 MB',a:'PL',bg:'#241f2f',fg:'#d6c4ff',user:1},
+  {id:'kodi',n:'Kodi',p:'org.xbmc.kodi',s:'96 MB',a:'KO',bg:'#1d2a3a',fg:'#9ecbff',user:1},
+  {id:'tw',n:'Twitch',p:'tv.twitch.android.app',s:'58 MB',a:'TW',bg:'#241f2f',fg:'#d6c4ff',user:1},
+  {id:'dplus',n:'Disney+',p:'com.disney.disneyplus',s:'61 MB',a:'D+',bg:'#1d2a3a',fg:'#9ecbff',user:1},
+  {id:'prime',n:'Prime Video',p:'com.amazon.amazonvideo.livingroom',s:'72 MB',a:'PV',bg:'#1d2a3a',fg:'#9ecbff',user:1},
+  {id:'appletv',n:'Apple TV',p:'com.apple.atve.androidtv.appletv',s:'48 MB',a:'A',bg:'#1f2a22',fg:'#d8e8da',user:1},
+  {id:'vlc',n:'VLC',p:'org.videolan.vlc',s:'39 MB',a:'VLC',bg:'#2a2416',fg:'#ffd79a',user:1},
+  {id:'emby',n:'Emby',p:'tv.emby.embyatv',s:'27 MB',a:'EM',bg:'#241f2f',fg:'#d6c4ff',user:1},
+  {id:'gtv',n:'Google TV',p:'com.google.android.apps.tv.launcherx',s:'sistema',a:'GT',bg:'#1f2a22',fg:'#a7f3c4',sys:1},
+  {id:'launcher',n:'Launcher de TV',p:'com.google.android.tvlauncher',s:'sistema',a:'TV',bg:'#2a2416',fg:'#ffd79a',sys:1,home:1},
+  {id:'gms',n:'Servicios de Google Play',p:'com.google.android.gms',s:'sistema',a:'GP',bg:'#1d2a3a',fg:'#8ec5ff',sys:1},
+  {id:'store',n:'Play Store',p:'com.android.vending',s:'sistema',a:'PS',bg:'#1f2a22',fg:'#a7f3c4',sys:1}
+];
+
+const RECIPES=[
+  {id:'anim',n:'Apagar animaciones',d:'Escala de ventana, transición y animador a 0',risk:'safe'},
+  {id:'res',n:'Limitar la interfaz a 1080p',d:'Menos trabajo para la GPU en paneles 4K',risk:'mod'},
+  {id:'doze',n:'Forzar reposo profundo',d:'Entra en Doze ahora; se despierta con el mando',risk:'mod'},
+  {id:'bg',n:'Limitar procesos en segundo plano',d:'Máximo dos procesos en caché',risk:'safe'},
+  {id:'cache',n:'Limpiar caché de apps',d:'Libera espacio temporal sin tocar datos ni sesiones',risk:'safe'},
+  {id:'updates',n:'Desactivar actualizaciones automáticas',d:'La tienda solo actualiza cuando lo pidas',risk:'mod'}
+];
+
+const TOOLS=[
+  {id:'log',n:'Registro',d:'Logcat en vivo',c:'green',i:'log'},
+  {id:'console',n:'Consola',d:'Comandos ADB',c:'cyan',i:'term'},
+  {id:'debloat',n:'Debloater',d:'Apps del sistema',c:'amber',i:'trash'},
+  {id:'profiles',n:'Perfiles',d:'Conjuntos de apps',c:'green',i:'layers'},
+  {id:'files',n:'Archivos',d:'Explorar y copiar',c:'cyan',i:'folder'},
+  {id:'sysset',n:'Ajustes del sistema',d:'Claves con deshacer',c:'grey',i:'sliders'}
+];
+
+const HOME_TILES=[
+  {n:'Debloater',d:'12 sugeridas',c:'amber',i:'trash',nav:'debloat'},
+  {n:'Perfiles',d:'3 conjuntos',c:'green',i:'layers',nav:'profiles'},
+  {n:'Registro',d:'Logcat en vivo',c:'cyan',i:'log',nav:'log'},
+  {n:'Ajustes',d:'Preferencias',c:'grey',i:'sliders',nav:'settings'}
+];
+
+const LOGS=[
+  ['21:40:58','ActivityManager','I','START u0 {act=android.intent.action.MAIN cmp=com.google.android.tvlauncher}'],
+  ['21:40:59','WindowManager','I','Relayout com.google.android.tvlauncher/TvLauncher'],
+  ['21:41:02','AdbOptimizer','I','Sesión local establecida · uid 2000'],
+  ['21:41:04','LowMemoryKiller','W','Kill com.example.background: 42 MB freed'],
+  ['21:41:07','PowerManagerService','I','Wakefulness: awake → dreaming'],
+  ['21:41:11','AdbOptimizer','I','settings put global window_animation_scale 0 → verificado'],
+  ['21:41:15','InputDispatcher','W','Dropped event: key event 20 (KEYCODE_DPAD_DOWN)']
+];
+
+const PROFILES=[
+  {n:'Streaming',d:'YouTube, Netflix, Plex · 3 apps',c:'amber',i:'play'},
+  {n:'Mínimo',d:'Solo apps esenciales · 8 apps',c:'cyan',i:'layers'},
+  {n:'Gaming',d:'Juegos y mando · 5 apps',c:'green',i:'bolt'}
+];
+
+const SYSKEYS=[
+  {k:'wifi_scan_always_enabled',v:'0'},
+  {k:'screen_brightness',v:'128'},
+  {k:'animator_duration_scale',v:'1.0'}
+];
+
+const PRESETS=[
+  'getprop ro.product.model',
+  'wm size',
+  'dumpsys battery',
+  'settings get global low_power'
+];
+
+const CONOUT={
+  'getprop ro.product.model':'sdk_google_atv',
+  'wm size':'Physical size: 1920x1080',
+  'dumpsys battery':'AC powered: true\nlevel: 100',
+  'settings get global low_power':'0'
+};
+
+/* ================= foco ================= */
+function scoped(){
+  const d=$('#dialog');
+  return d.classList.contains('show') ? d : $('#tv');
+}
+function focusables(){
+  return $$('[data-f]',scoped()).filter(el=>el.getClientRects().length&&!el.classList.contains('off'));
+}
+function setFocus(el,remember=true){
+  if(!el) return;
+  $$('#tv [data-f].f').forEach(e=>e.classList.remove('f'));
+  el.classList.add('f');
+  S.focusId=el.dataset.f;
+  if(remember){
+    const scr=el.closest('.scr');
+    if(scr) S.last[scr.dataset.screen]=el.dataset.f;
+  }
+  const sc=el.closest('.scrolly');
+  if(sc){
+    const r=el.getBoundingClientRect(), sr=sc.getBoundingClientRect();
+    if(r.top<sr.top) sc.scrollTop-=(sr.top-r.top)+8;
+    else if(r.bottom>sr.bottom) sc.scrollTop+=(r.bottom-sr.bottom)+8;
+  }
+}
+function focusFirst(id){
+  const scr=$(`.scr[data-screen="${id}"]`);
+  if(!scr) return;
+  const visible=$$('[data-f]',scr).filter(el=>el.getClientRects().length&&!el.classList.contains('off'));
+  const remembered=S.last[id]&&visible.find(el=>el.dataset.f===S.last[id]);
+  const el=remembered||visible.find(el=>!el.dataset.back)||visible[0];
+  setFocus(el);
+}
+function restoreFocus(){
+  const id=S.stack.at(-1);
+  const el=S.focusId&&scoped().querySelector(`[data-f="${S.focusId}"]`);
+  if(el&&el.getClientRects().length) setFocus(el);
+  else focusFirst(id);
+}
+function move(dir){
+  const list=focusables(); if(!list.length) return;
+  let cur=$('#tv [data-f].f');
+  if(!cur||!list.includes(cur)){ setFocus(list[0]); return; }
+
+  const a=cur.getBoundingClientRect();
+  const acx=a.left+a.width/2, acy=a.top+a.height/2;
+  let best=null, bestScore=Infinity;
+
+  for(const el of list){
+    if(el===cur) continue;
+    const b=el.getBoundingClientRect();
+    const bcx=b.left+b.width/2, bcy=b.top+b.height/2;
+    const dx=bcx-acx, dy=bcy-acy;
+    let primary=0, perp=0, overlap=0, ok=false;
+
+    if(dir==='left'&&dx<-1){ ok=true; primary=-dx; perp=Math.abs(dy); overlap=vOverlap(a,b); }
+    if(dir==='right'&&dx>1){ ok=true; primary=dx; perp=Math.abs(dy); overlap=vOverlap(a,b); }
+    if(dir==='up'&&dy<-1){ ok=true; primary=-dy; perp=Math.abs(dx); overlap=hOverlap(a,b); }
+    if(dir==='down'&&dy>1){ ok=true; primary=dy; perp=Math.abs(dx); overlap=hOverlap(a,b); }
+    if(!ok) continue;
+    /* cono de 45°: evita saltos diagonales que rompen la lectura del mando */
+    if(perp>primary*1.15+10) continue;
+
+    const score=primary+perp*1.9-overlap*1.1;
+    if(score<bestScore){ bestScore=score; best=el; }
+  }
+  /* al salir del contenido hacia la izquierda, vuelve a la sección activa del menú */
+  if(dir==='left'&&best&&best.closest('.rail')){
+    const on=$('#rail .r.on');
+    if(on&&on.getClientRects().length) best=on;
+  }
+  if(best) setFocus(best);
+}
+const vOverlap=(a,b)=>Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));
+const hOverlap=(a,b)=>Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left));
+
+/* ================= pantallas ================= */
+function chipFor(id){
+  if(!S.permission) return ['Conectado · solo lectura',true];
+  const map={home:'Conectado · local',apps:`${APPS.length} apps`,optimize:`${RECIPES.length} compatibles`,tools:'6 utilidades',
+    settings:'Preferencias',log:'En vivo',console:'shell · uid 2000',files:'Almacenamiento',
+    debloat:'3 sugerencias',profiles:'3 conjuntos',sysset:'3 claves'};
+  return [map[id]||'Conectado',false];
+}
+function renderChrome(){
+  const id=S.stack.at(-1);
+  const [txt,warn]=chipFor(id);
+  const c=$('#chipState'); c.textContent=txt; c.classList.toggle('warn',warn);
+  $$('#rail .r').forEach(r=>r.classList.toggle('on',r.dataset.nav===RAIL_OF[id]));
+  $('#permDot').style.background=S.permission?'var(--primary)':'var(--tertiary)';
+  $('#permText').textContent=S.permission?'Permiso ADB activo':'Solo lectura · sin permiso';
+}
+function show(id){
+  $$('.scr').forEach(s=>s.classList.toggle('active',s.dataset.screen===id));
+  renderChrome();
+  if(S.dlgActions.length) closeDialog(false);
+  try{ history.replaceState(null,'','#'+id); }catch(e){}
+}
+function go(id,{focus=true}={}){
+  if(RAIL.includes(id)) S.stack=[id];
+  else if(S.stack.at(-1)!==id) S.stack.push(id);
+  show(id);
+  renderChrome();
+  if(focus) setTimeout(()=>focusFirst(id),0);
+}
+function back(){
+  if($('#dialog').classList.contains('show')){ closeDialog(); return; }
+  if(S.stack.length>1){ S.stack.pop(); const id=S.stack.at(-1); show(id); setTimeout(()=>restoreFocus(),0); return; }
+  if(S.stack[0]!=='home'){ go('home'); return; }
+  toast('Ya estás en Inicio · Atrás no cierra la app');
+}
+
+/* ================= render ================= */
+function renderHome(){
+  $('#homeSub').textContent=S.permission?'Este televisor · conectado':'Este televisor · solo lectura';
+  $('#homeDevice').textContent='Google TV · sdk_google_atv';
+  $('#homeDesc').textContent=S.permission
+    ? 'Android 16 · 1080p · 3 apps con actualización pendiente'
+    : 'Android 16 · 1080p · modo lectura, sin cambios en el sistema';
+  $('#permBanner').hidden=S.permission;
+  $('#histTitle').hidden=!S.permission;
+  $('#homeHist').hidden=!S.permission;
+  $('#homeTiles').innerHTML=HOME_TILES.map((t,i)=>`
+    <div class="tile" data-f="ht-${i}" data-nav="${t.nav}">
+      <div class="ico i-${t.c}">${I(t.i)}</div>
+      <div class="txt"><b>${esc(t.n)}</b><span>${esc(t.d)}</span></div>
+    </div>`).join('');
+  const hist=S.history.slice(0,2).map((h,i)=>{
+    const r=RECIPES.find(x=>x.id===h.recipe); if(!r) return '';
+    return `<button class="histrow" data-f="hist-${i}" data-history="${i}">
+      <div class="ico i-cyan">${I('history')}</div>
+      <div class="t"><b>${esc(r.n)}</b><span>${esc(h.ago)} · aplicada</span></div>
+      <span class="undo">DESHACER</span>
+    </button>`;
+  }).join('');
+  $('#homeHist').innerHTML=hist||'<div class="histrow" style="grid-column:span 2;cursor:default"><div class="ico i-grey">'+I('history')+'</div><div class="t"><b>Sin cambios recientes</b><span>Las recetas aplicadas aparecerán aquí con deshacer.</span></div></div>';
+}
+
+function renderApps(){
+  const base=APPS.filter(a=>S.filter==='all'||(S.filter==='usr'?!a.sys:a.sys));
+  const u=APPS.filter(a=>!a.sys).length, sys=APPS.filter(a=>a.sys).length;
+  $('#appsSub').textContent=`${APPS.length} apps · ${sys} de sistema`;
+  $('#appsFilters').innerHTML=[['all','Todas',APPS.length],['usr','Usuario',u],['sys','Sistema',sys]]
+    .map(([id,l,n])=>`<button class="fchip ${S.filter===id?'on':''}" data-f="flt-${id}" data-filter="${id}">${l}<span class="n">${n}</span></button>`).join('');
+  $('#appGrid').innerHTML=base.map(a=>`
+    <div class="app" data-f="app-${a.id}" data-app="${a.id}" role="button" aria-label="${esc(a.n)}">
+      <div class="sq" style="background:${a.bg};color:${a.fg}">${a.a}</div>
+      <b>${esc(a.n)}</b><span>${a.sys?'sistema':a.s}</span>
+    </div>`).join('');
+  if(!base.length) $('#appGrid').innerHTML='<div class="appnote">Sin apps en este filtro.</div>';
+}
+
+function renderRecipes(){
+  const applied=S.applied.size;
+  $('#optSub').textContent=S.permission
+    ? `${RECIPES.length} recetas compatibles · ${applied} aplicadas · sin root`
+    : 'Sin permiso ADB';
+  $('#optBanner').hidden=S.permission;
+  $('#recipeList').innerHTML=RECIPES.map(r=>{
+    const on=S.applied.has(r.id);
+    const risk=on?'<span class="risk done">APLICADA</span>'
+      :`<span class="risk ${r.risk==='safe'?'safe':'mod'}">${r.risk==='safe'?'SEGURO':'MEDIO'}</span>`;
+    return `<button class="recipe" data-f="rec-${r.id}" data-recipe="${r.id}">
+      <div class="t"><b>${esc(r.n)}</b><span>${esc(on?'OK para deshacer y volver al valor anterior':r.d)}</span></div>
+      ${risk}</button>`;
+  }).join('');
+}
+
+function renderTools(){
+  $('#toolTiles').innerHTML=TOOLS.map(t=>`
+    <button class="toolrow" data-f="tool-${t.id}" data-open="${t.id}">
+      <div class="ico i-${t.c}">${I(t.i)}</div>
+      <div class="t"><b>${esc(t.n)}</b><span>${esc(t.d)}</span></div>
+      <span class="value-pill">Abrir</span>
+    </button>`).join('');
+}
+
+function renderSettings(){
+  const val=(id,label,value)=>`
+    <button class="setrow" data-f="set-${id}" data-cycle="${id}" id="row-${id}">
+      <div class="t"><b>${label}</b><span id="sub-${id}">${value}</span></div>
+      <span class="value-pill">Cambiar</span>
+    </button>`;
+  $('#settingsList').innerHTML=`
+    <button class="setrow" data-f="set-sysapps" data-tog="sysapps">
+      <div class="t"><b>Mostrar apps del sistema</b><span id="sub-sysapps">Incluye apps de sistema en la lista</span></div>
+      <span class="toggle ${S.sysApps?'on':''}"><i></i></span>
+    </button>
+    <button class="setrow" data-f="set-keep" data-tog="keep">
+      <div class="t"><b>Mantener pantalla encendida</b><span>Evita que la TV entre en reposo mientras se usa la app</span></div>
+      <span class="toggle ${S.keepAwake?'on':''}"><i></i></span>
+    </button>
+    ${val('refresh','Actualizar métricas',['Cada 15 segundos','Cada 30 segundos','Cada 60 segundos'][S.refresh])}
+    ${val('theme','Tema',['Seguir el sistema','Oscuro','Claro'][S.theme])}
+    <button class="setrow" data-f="set-about" data-about="1">
+      <div class="t"><b>Acerca de AdbOptimizer</b><span>Versión, licencia y permisos</span></div>
+      <span class="value-pill">Abrir</span>
+    </button>`;
+}
+
+function renderLog(){
+  $('#logSub').textContent=`Logcat ${S.live?'en vivo':'en pausa'} · ${LOGS.length} líneas`;
+  $('#logLiveBtn').textContent=S.live?'Pausar':'Reanudar';
+  const tint={I:'#22D3EE',W:'#FBBF24'};
+  $('#logList').innerHTML=LOGS.map((l,i)=>`
+    <button class="logrow" data-f="log-${i}" data-log="${i}" style="--tint:${tint[l[2]]||'#8BA0B8'}">
+      <span class="meta"><span class="time">${l[0]}</span><span class="tag">${l[1]}</span></span>
+      <span class="lvl">${l[2]}</span>
+      <span class="msg">${esc(l[3])}</span>
+    </button>`).join('');
+}
+
+function renderConsole(){
+  $('#termOut').innerHTML=S.term.map(t=>`<div><span class="p">shell@sdk_google_atv:~$ </span>${esc(t.cmd)}\n<span class="c">${esc(t.out)}</span></div>`).join('\n');
+  $('#presets').innerHTML=PRESETS.map((p,i)=>`
+    <button class="preset" data-f="preset-${i}" data-preset="${i}">${I('play','play')}${esc(p)}</button>`).join('');
+}
+
+function renderFiles(){
+  $('#filesPath').textContent=S.path;
+  const rows=[['AdbOptimizer',1],['Movies',1],['youtube-tv.apk',0,'24.8 MB · 23 oct'],['registro-2026-10-27.txt',0,'412 KB · hoy']];
+  $('#filesList').innerHTML=rows.map((r,i)=>`
+    <button class="toolrow" data-f="file-${i}" data-file="${i}">
+      <div class="ico i-cyan">${I(r[1]?'folder':'file')}</div>
+      <div class="t"><b>${esc(r[0])}</b><span>${r[1]?'Carpeta':(r[2]||'Archivo')}</span></div>
+      <span class="value-pill">${r[1]?'Abrir':'Ver'}</span>
+    </button>`).join('');
+}
+
+function renderDebloat(){
+  const items=[
+    {id:'movies',n:'Movies Anywhere',p:'no usada en TV'},
+    {id:'games',n:'Google Play Games',p:'duplicado'},
+    {id:'tvplus',n:'Samsung TV Plus',p:'sustituible'}
+  ];
+  $('#debSub').textContent=`${items.length} sugerencias · el launcher no aparece`;
+  $('#debList').innerHTML=items.map(a=>`
+    <button class="toolrow" data-f="deb-${a.id}" data-deb="${a.id}">
+      <span class="checkbox ${S.debloat.has(a.id)?'on':''}">${I('check')}</span>
+      <div class="t"><b>${esc(a.n)}</b><span>${esc(a.p)}</span></div>
+      <span class="risk ${S.debloat.has(a.id)?'mod':'safe'}">${S.debloat.has(a.id)?'SELECCIONADA':'LIBRE'}</span>
+    </button>`).join('');
+  const n=S.debloat.size;
+  const b=$('#debReview');
+  b.textContent=`Revisar ${n} ${n===1?'app':'apps'}`;
+  b.classList.toggle('off',n===0);
+  b.dataset.f='deb-review';
+  if(n===0) b.removeAttribute('data-f'); else b.setAttribute('data-f','deb-review');
+}
+
+function renderProfiles(){
+  $('#profileList').innerHTML=PROFILES.map((p,i)=>`
+    <button class="profile" data-f="prof-${i}" data-profile="${i}">
+      <div class="ico i-${p.c}">${I(p.i)}</div>
+      <div class="t"><b>${esc(p.n)}</b><span>${esc(p.d)}</span></div>
+      <span class="value-pill">Aplicar</span>
+    </button>`).join('');
+}
+
+function renderSysset(){
+  $('#sysList').innerHTML=SYSKEYS.map((k,i)=>`
+    <button class="kv" data-f="sysk-${i}" data-syskey="${i}">
+      <div class="k"><b>${esc(k.k)}</b><span>global · verificado</span></div>
+      <span class="v">${esc(k.v)}</span>
+    </button>`).join('');
+}
+
+function renderAll(){
+  renderHome(); renderApps(); renderRecipes(); renderTools();
+  renderSettings(); renderLog(); renderConsole(); renderFiles();
+  renderDebloat(); renderProfiles(); renderSysset();
+}
+
+/* ================= diálogos ================= */
+function openDialog({title,text,note,actions}){
+  const d=$('#dialog');
+  S.preDlg=S.focusId;
+  S.dlgActions=actions;
+  d.innerHTML=`<div class="dlgcard">
+    <h3>${title}</h3>
+    <p>${text}</p>
+    ${note?`<div class="dlgnote">${I('warn')}<span>${note}</span></div>`:''}
+    <div class="dlgacts">${actions.map((a,i)=>`
+      <div class="dbtn ${a.style||''} ${a.off?'off':''}" data-f="dlg-${i}" data-dlg="${i}">${esc(a.label)}</div>`).join('')}
+    </div></div>`;
+  d.classList.add('show');
+  const auto=Math.max(0,actions.findIndex(a=>a.auto&&!a.off));
+  setFocus($(`[data-f="dlg-${auto}"]`),false);
+}
+function closeDialog(restore=true){
+  const d=$('#dialog');
+  d.classList.remove('show'); d.innerHTML='';
+  S.dlgActions=[];
+  if(restore){
+    const el=S.preDlg&&$(`[data-f="${S.preDlg}"]`);
+    if(el&&el.getClientRects().length) setFocus(el,false);
+    else restoreFocus();
+  }
+}
+function runDlg(i){
+  const a=S.dlgActions[i];
+  if(!a||a.off) return;
+  closeDialog(false);
+  if(a.run) a.run();
+}
+let tt;
+function toast(m){
+  const t=$('#toast'); t.textContent=m; t.classList.add('show');
+  clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+/* ================= acciones ================= */
+function applyRecipe(id){
+  const r=RECIPES.find(x=>x.id===id); if(!r) return;
+  if(!S.permission){ openDialog({
+    title:'Requiere permiso ADB',
+    text:'Sin Shizuku o ADB local la app solo puede leer el televisor. No se aplicará ningún cambio.',
+    actions:[{label:'Entendido',style:'solid',auto:true}]
+  }); return; }
+  openDialog({
+    title:`Aplicar “${r.n}”`,
+    text:`${esc(r.d)}. Se cambiarán los ajustes del sistema y se leerán de vuelta para confirmar.`,
+    note: r.risk==='mod' ? 'Riesgo medio: algunos televisores pierden el ajuste al reiniciar. Queda en el historial con deshacer.' : '',
+    actions:[
+      {label:'Cancelar',auto:r.risk==='mod'},
+      {label:'Aplicar',style:'solid',auto:r.risk!=='mod',run:()=>{
+        S.applied.add(id);
+        S.history=S.history.filter(h=>h.recipe!==id);
+        S.history.unshift({recipe:id,ago:'ahora'});
+        renderRecipes(); renderHome(); renderChrome();
+        toast(`“${r.n}” aplicada · deshacer desde la fila o el historial`);
+        setTimeout(()=>setFocus($(`[data-f="rec-${id}"]`),false),0);
+      }}
+    ]
+  });
+}
+function undoRecipe(id){
+  const r=RECIPES.find(x=>x.id===id); if(!r) return;
+  openDialog({
+    title:`Deshacer “${r.n}”`,
+    text:'Se restauran los valores leídos antes de aplicar la receta. La operación también queda en el historial.',
+    actions:[
+      {label:'Cancelar'},
+      {label:'Deshacer',style:'solid',run:()=>{
+        S.applied.delete(id);
+        S.history=S.history.filter(h=>h.recipe!==id);
+        renderRecipes(); renderHome(); renderChrome();
+        toast(`“${r.n}” revertida`);
+        setTimeout(()=>setFocus($(`[data-f="rec-${id}"]`),false),0);
+      }}
+    ]
+  });
+}
+function appActions(id){
+  const a=APPS.find(x=>x.id===id); if(!a) return;
+  const actions=[
+    {label:'Compilar AOT',run:()=>toast(`“${a.n}” compilada en AOT`)},
+    {label:'Restringir segundo plano',run:()=>toast(`“${a.n}” restringida en segundo plano`)}
+  ];
+  if(a.home){
+    actions.push({label:'Desinstalar',style:'danger',off:true});
+  } else if(a.sys){
+    actions.push({label:'Desinstalar',style:'danger',off:true});
+  } else {
+    actions.push({label:'Desinstalar',style:'danger',run:()=>toast(`“${a.n}” desinstalada solo para este usuario`)});
+  }
+  const note=a.home
+    ? 'Es el launcher activo. AdbOptimizer bloquea desinstalarlo o deshabilitarlo para no dejar el televisor sin interfaz.'
+    : (a.sys ? 'Es una app de sistema: la desinstalación no está disponible desde la app.' : '');
+  openDialog({title:esc(a.n),text:`${esc(a.p)} · ${esc(a.s)}`,note,actions});
+}
+function openGuide(){
+  openDialog({
+    title:'Activar permiso en el televisor',
+    text:'AdbOptimizer usa Shizuku o ADB local. Sin ese permiso la app solo lee estado y métricas.',
+    note:'Ajustes → Seguridad → Depuración USB/red. Con Shizuku, autoriza la app desde el televisor y vuelve a abrir Optimizar.',
+    actions:[{label:'Cerrar',style:'solid',auto:true}]
+  });
+}
+function openTool(id){ go(id); }
+
+function debReview(){
+  const n=S.debloat.size;
+  openDialog({
+    title:`Deshabilitar ${n} ${n===1?'app':'apps'}`,
+    text:'Se deshabilitan para el usuario actual. Puedes volver a habilitarlas desde el mismo listado.',
+    note:'Apps del sistema: revisa que no sean dependencias del launcher. El launcher activo nunca aparece aquí.',
+    actions:[
+      {label:'Cancelar',auto:true},
+      {label:'Deshabilitar',style:'danger',run:()=>{
+        S.debloat.clear(); renderDebloat(); toast('Apps deshabilitadas · quedan en el historial');
+        setTimeout(()=>setFocus($('[data-f^="deb-"]'),false),0);
+      }}
+    ]
+  });
+}
+
+/* ================= activación ================= */
+function activate(el){
+  const d=el.dataset;
+  setFocus(el);
+  if(d.nav) return go(d.nav);
+  if(d.open) return openTool(d.open);
+  if(d.back) return back();
+  if(d.guide) return openGuide();
+  if(d.recipe){
+    const id=d.recipe;
+    return S.applied.has(id)?undoRecipe(id):applyRecipe(id);
+  }
+  if(d.history){
+    const h=S.history[+d.history]; if(h) return undoRecipe(h.recipe);
+  }
+  if(d.app) return appActions(d.app);
+  if(d.filter){ S.filter=d.filter; renderApps(); setTimeout(()=>setFocus($(`[data-f="flt-${S.filter}"]`),false),0); return; }
+  if(d.tog){
+    if(d.tog==='sysapps'){ S.sysApps=!S.sysApps; }
+    if(d.tog==='keep'){ S.keepAwake=!S.keepAwake; }
+    const fid=el.dataset.f;
+    renderSettings();
+    const again=$(`[data-f="${fid}"]`);
+    if(again) setFocus(again,false);
+    toast(d.tog==='keep'
+      ? (S.keepAwake?'La pantalla no se apagará':'La pantalla vuelve a su tiempo de espera')
+      : (S.sysApps?'Apps del sistema visibles en Apps':'Apps del sistema ocultas'));
+    return;
+  }
+  if(d.cycle){
+    if(d.cycle==='refresh'){ S.refresh=(S.refresh+1)%3; $('#sub-refresh').textContent=['Cada 15 segundos','Cada 30 segundos','Cada 60 segundos'][S.refresh]; }
+    if(d.cycle==='theme'){ S.theme=(S.theme+1)%3; $('#sub-theme').textContent=['Seguir el sistema','Oscuro','Claro'][S.theme]; }
+    toast('Preferencia guardada en este televisor');
+    return;
+  }
+  if(d.about){ openDialog({
+    title:'AdbOptimizer',
+    text:'Versión 2.4 · licencia Apache 2.0. Sin telemetría. El historial y las preferencias se guardan en el televisor.',
+    actions:[{label:'Cerrar',style:'solid',auto:true}]
+  }); return; }
+  if(d.play){ S.live=!S.live; renderLog(); setFocus($('[data-f="log-live"]'),false); toast(S.live?'Registro en vivo':'Registro en pausa'); return; }
+  if(d.log){
+    const l=LOGS[+d.log];
+    openDialog({title:`${l[1]} · ${l[2]}`,text:esc(l[3]),
+      actions:[{label:'Cerrar'},{label:'Copiar',style:'solid',run:()=>toast('Línea copiada al portapapeles')}]});
+    return;
+  }
+  if(d.preset){
+    const cmd=PRESETS[+d.preset];
+    S.term.push({cmd,out:CONOUT[cmd]||'(sin salida)'});
+    renderConsole(); setFocus($(`[data-f="preset-${d.preset}"]`),false);
+    toast('Comando ejecutado');
+    return;
+  }
+  if(d.file){
+    const name=$('.toolrow .t b',el).textContent;
+    const isDir=!!el.querySelector('.i-cyan')&&$('.toolrow .t span',el).textContent==='Carpeta';
+    if(isDir){ S.path=(S.path==='/'?'':'/sdcard')+'/'+name; renderFiles(); setFocus($('[data-f="file-0"]'),false); toast('Carpeta abierta: '+S.path); }
+    else toast('Archivo: '+name);
+    return;
+  }
+  if(d.deb){
+    if(S.debloat.has(d.deb)) S.debloat.delete(d.deb); else S.debloat.add(d.deb);
+    renderDebloat();
+    const el2=$(`[data-f="deb-${d.deb}"]`); if(el2) setFocus(el2,false);
+    return;
+  }
+  if(d.debReview){ if(!S.debloat.size) return; debReview(); return; }
+  if(d.profile){
+    const p=PROFILES[+d.profile];
+    openDialog({
+      title:`Aplicar “${p.n}”`,
+      text:`${esc(p.d)}. Se habilitan las del conjunto y se restringen las demás.`,
+      actions:[
+        {label:'Cancelar'},
+        {label:'Aplicar',style:'solid',auto:true,run:()=>toast(`Perfil “${p.n}” aplicado`)}
+      ]
+    });
+    return;
+  }
+  if(d.syskey){
+    const k=SYSKEYS[+d.syskey];
+    openDialog({
+      title:`Cambiar ${k.k}`,
+      text:`Valor actual: ${esc(k.v)}. El valor se leerá de vuelta después de escribirlo.`,
+      note:'Queda en el historial con deshacer. Un valor incorrecto puede afectar al sistema.',
+      actions:[
+        {label:'Cancelar'},
+        {label:'Cambiar',style:'solid',auto:true,run:()=>toast(`${k.k} actualizado y verificado`)}
+      ]
+    });
+    return;
+  }
+}
+
+/* ================= eventos ================= */
+$('#tv').addEventListener('click',e=>{
+  const el=e.target.closest('[data-f]');
+  if(el){ activate(el); return; }
+  const d=e.target.closest('[data-dlg]');
+  if(d){ runDlg(+d.dataset.dlg); return; }
+});
+$('#dialog').addEventListener('click',e=>{
+  const d=e.target.closest('[data-dlg]');
+  if(d) runDlg(+d.dataset.dlg);
+});
+$('#tv').addEventListener('pointerdown',e=>{
+  /* el foco visual se mueve antes de activar */
+  const el=e.target.closest('[data-f]');
+  if(el) setFocus(el);
+});
+
+function key(k){
+  if(S.dlgActions.length){
+    if(k==='left'||k==='up') return move('left');
+    if(k==='right'||k==='down') return move('right');
+    if(k==='ok'){ const f=$('#dialog [data-f].f'); if(f) runDlg(+f.dataset.dlg); return; }
+    if(k==='back') return closeDialog();
+    return;
+  }
+  if(k==='up'||k==='down'||k==='left'||k==='right') return move(k);
+  if(k==='ok'){ const f=$('#tv [data-f].f'); if(f) activate(f); return; }
+  if(k==='back') return back();
+  if(k==='home'){ go('home'); return; }
+}
+
+window.addEventListener('keydown',e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  const map={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',Enter:'ok',' ':'ok',Escape:'back',Backspace:'back'};
+  const k=map[e.key];
+  if(!k) return;
+  e.preventDefault();
+  key(k);
+});
+
+$$('.remote button').forEach(b=>{
+  b.addEventListener('pointerdown',e=>{ e.preventDefault(); key(b.dataset.key); });
+});
+
+$('#permSwitch').addEventListener('click',()=>{
+  S.permission=!S.permission;
+  $('#permSwitch').classList.toggle('on',S.permission);
+  renderHome(); renderRecipes(); renderChrome();
+  toast(S.permission?'Permiso ADB activo · escritura habilitada':'Modo solo lectura · cambios bloqueados');
+});
+$('#resetProto').addEventListener('click',()=>location.reload());
+$('#clock').textContent=new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+setInterval(()=>{ $('#clock').textContent=new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hourCycle:'h23'}); },30000);
+
+/* ================= arranque ================= */
+renderAll();
+(function boot(){
+  const params=new URLSearchParams(location.search);
+  if(params.get('perm')==='0'){
+    S.permission=false;
+    $('#permSwitch').classList.remove('on');
+    renderHome(); renderRecipes(); renderChrome();
+  }
+  const id=location.hash.replace(/^#/,'');
+  if(id&&$(`.scr[data-screen="${id}"]`)){
+    S.stack=RAIL.includes(id)?[id]:['tools',id];
+    show(id);
+    setTimeout(()=>focusFirst(id),80);
+  } else {
+    setFocus($('[data-f="nav-home"]'),false);
+    setTimeout(()=>focusFirst('home'),80);
+  }
+  const press=params.get('press');
+  if(press) setTimeout(()=>{ const el=$(`[data-f="${press}"]`); if(el) activate(el); },160);
+})();
+</script>
+</body>
+</html>

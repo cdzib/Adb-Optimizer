@@ -4,14 +4,21 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.os.SystemClock
+import com.optimizer.tools.data.console.ConsoleHistoryStore
+import com.optimizer.tools.data.console.ConsoleRepository
+import com.optimizer.tools.data.debloat.DebloatCatalog
+import com.optimizer.tools.data.debloat.DebloatRepository
 import com.optimizer.tools.data.dpc.ApkDownloader
 import com.optimizer.tools.data.dpc.DpcRepository
+import com.optimizer.tools.data.files.RemoteFileRepository
 import com.optimizer.tools.data.logging.LogcatAppLogger
 import com.optimizer.tools.data.logging.NoOpAppLogger
 import com.optimizer.tools.data.optimization.AssetCatalogSource
 import com.optimizer.tools.data.optimization.CatalogBundle
 import com.optimizer.tools.data.optimization.CatalogLoader
 import com.optimizer.tools.data.optimization.ChangeJournal
+import com.optimizer.tools.data.profiles.ProfileStore
+import com.optimizer.tools.data.profiles.ProfilesRepository
 import com.optimizer.tools.data.remote.RemoteAppRepository
 import com.optimizer.tools.data.remote.RemoteLauncherRepository
 import com.optimizer.tools.domain.apk.ApkDescriptor
@@ -19,9 +26,12 @@ import com.optimizer.tools.domain.apk.ApkInstallPlanner
 import com.optimizer.tools.domain.apk.InstallOptions
 import com.optimizer.tools.domain.logging.AppLogger
 import com.optimizer.tools.domain.model.KnownDevice
+import com.optimizer.tools.domain.model.ShizukuLocalStatus
 import com.optimizer.tools.domain.model.deduplicateKnownDevices
 import com.optimizer.tools.domain.port.ApkInstaller
 import com.optimizer.tools.domain.usecase.InstallHostAppsUseCase
+import com.optimizer.tools.feature.localadb.data.DadbLocalAdbRepository
+import com.optimizer.tools.feature.localadb.data.LocalAdbShell
 import dev.adboptimizer.core.adb.AdbConnectionFactory
 import dev.adboptimizer.core.adb.AdbDiscovery
 import dev.adboptimizer.core.adb.AdbKeys
@@ -38,6 +48,7 @@ import dev.adboptimizer.core.model.StepResult
 import dev.adboptimizer.core.model.StepStatus
 import dev.adboptimizer.core.optimization.RecipeEngine
 import dev.adboptimizer.core.shell.AdbShell
+import dev.adboptimizer.core.shell.ShellResult
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -123,10 +134,69 @@ class AppContainer(
 
     val shizukuLocalAccess: ShizukuLocalAccess by lazy { ShizukuLocalAccess(context) }
 
-    private val localShellDelegate = lazy { ShizukuAdbShell(context, shizukuLocalAccess) }
-    val localShell: ShizukuAdbShell by localShellDelegate
+    /** Sesión ADB del propio equipo por 127.0.0.1:5555 (feature ADB local). */
+    val localAdb: DadbLocalAdbRepository by lazy { DadbLocalAdbRepository(context) }
 
-    val localApps: LocalAppRepository by lazy { LocalAppRepository(context, shizukuLocalAccess, localShell) }
+    private val localAdbShell: LocalAdbShell by lazy { LocalAdbShell(localAdb) }
+
+    private val shizukuShellDelegate = lazy { ShizukuAdbShell(context, shizukuLocalAccess) }
+    private val shizukuShell: ShizukuAdbShell by shizukuShellDelegate
+
+    /**
+     * Shizuku primero; si no está disponible y la sesión ADB local está autorizada,
+     * las herramientas del propio equipo usan ese transporte.
+     */
+    private val localShellRouter: AdbShell by lazy {
+        object : AdbShell {
+            override suspend fun exec(
+                command: String,
+                timeoutMs: Long,
+            ): ShellResult =
+                if (localAdbShell.isConnected()) {
+                    runCatching { localAdbShell.exec(command, timeoutMs) }
+                        .getOrElse { error ->
+                            if (shizukuLocalAccess.status() == ShizukuLocalStatus.READY) {
+                                shizukuShell.exec(command, timeoutMs)
+                            } else {
+                                throw error
+                            }
+                        }
+                } else {
+                    shizukuShell.exec(command, timeoutMs)
+                }
+        }
+    }
+
+    val localShell: AdbShell get() = localShellRouter
+
+    fun localPrivilegeReady(): Boolean = shizukuLocalAccess.status() == ShizukuLocalStatus.READY || localAdb.isConnected()
+
+    val localApps: LocalAppRepository by lazy {
+        LocalAppRepository(context, ::localPrivilegeReady, localShell)
+    }
+
+    /** Shell privilegiado del equipo: sesión remota o, si no, Shizuku/ADB local. */
+    private fun privilegedShell(): AdbShell? =
+        shell
+            ?: localShell.takeIf { localPrivilegeReady() }
+
+    fun hasPrivilegedDevice(): Boolean = privilegedShell() != null
+
+    private fun profileShell(): AdbShell? = privilegedShell()
+
+    val profiles: ProfilesRepository by lazy {
+        ProfilesRepository(ProfileStore(File(context.filesDir, "profiles.json")), ::profileShell)
+    }
+
+    val debloat: DebloatRepository by lazy {
+        DebloatRepository(DebloatCatalog(File(context.filesDir, "uad-lists.json")), ::profileShell)
+    }
+
+    val files: RemoteFileRepository by lazy { RemoteFileRepository(::profileShell) }
+
+    val console: ConsoleRepository by lazy {
+        ConsoleRepository(::profileShell, ConsoleHistoryStore(File(context.filesDir, "console-history.json")))
+    }
 
     val localDevice: LocalDeviceRepository by lazy { LocalDeviceRepository(context) }
 
@@ -269,20 +339,20 @@ class AppContainer(
         get() = sessionStore.activeShell()?.let { DpcRepository(it) }
 
     val logcat: LogcatRepository?
-        get() = sessionStore.activeShell()?.let { LogcatRepository(it) }
+        get() = privilegedShell()?.let { LogcatRepository(it) }
 
     val settingsHistory: SettingsHistoryStore by lazy {
         FileSettingsHistoryStore(File(context.filesDir, "settings-history.json"))
     }
 
     val settingsDb: SettingsDbRepository?
-        get() = sessionStore.activeShell()?.let { SettingsDbRepository(it, settingsHistory) }
+        get() = privilegedShell()?.let { SettingsDbRepository(it, settingsHistory) }
 
     val appInspector: AppInspectorRepository?
-        get() = sessionStore.activeShell()?.let { AppInspectorRepository(it) }
+        get() = privilegedShell()?.let { AppInspectorRepository(it) }
 
     val doze: DozeRepository?
-        get() = sessionStore.activeShell()?.let { DozeRepository(it) }
+        get() = privilegedShell()?.let { DozeRepository(it) }
 
     val apkDownloader: ApkDownloader by lazy { ApkDownloader(context) }
 
@@ -502,7 +572,8 @@ class AppContainer(
 
     override fun close() {
         disconnect()
-        if (localShellDelegate.isInitialized()) localShell.close()
+        runCatching { localAdb.disconnect() }
+        if (shizukuShellDelegate.isInitialized()) shizukuShell.close()
     }
 
     private fun debugAdb(

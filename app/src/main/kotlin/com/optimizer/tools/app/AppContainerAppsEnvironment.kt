@@ -24,6 +24,12 @@ internal class AppContainerAppsEnvironment(
 
     override fun hasRemoteApps(): Boolean = container.remoteApps() != null
 
+    override fun privileged(target: AppTarget): Boolean =
+        when (target) {
+            AppTarget.REMOTE -> hasRemoteApps()
+            AppTarget.LOCAL -> container.localPrivilegeReady()
+        }
+
     override suspend fun localDevice(): DeviceInfo? = container.localDevice.readInfo()
 
     override suspend fun listApps(target: AppTarget): List<ManagedApp> =

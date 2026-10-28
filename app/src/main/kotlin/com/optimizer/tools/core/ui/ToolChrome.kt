@@ -23,13 +23,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,13 +37,14 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.optimizer.tools.R
+import com.optimizer.tools.app.tv.LocalTelevisionUi
+import com.optimizer.tools.app.tv.TvScreenHeader
 
 /**
- * Cabecera común de las pantallas de herramientas: titulo grande, subtitulo de contexto y
- * acciones a la derecha. El area tactil del boton de volver es de 48 dp.
+ * Cabecera comun de las pantallas de herramientas. Delega en el lenguaje visual de la app
+ * para que todas compartan titulo, subtitulo y acciones.
  */
 @Composable
 fun ToolTopBar(
@@ -57,36 +53,27 @@ fun ToolTopBar(
     subtitle: String? = null,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
-    Row(
-        Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        IconButton(onClick = onBack, modifier = Modifier.size(48.dp)) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.action_back),
-            )
-        }
-        Column(
-            Modifier.weight(1f).padding(start = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            Text(title, style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            if (subtitle != null) {
-                Text(
-                    subtitle,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
-        actions()
+    if (LocalTelevisionUi.current) {
+        // En TV se vuelve con el mando (Atrás) o cambiando de sección en la barra lateral.
+        TvScreenHeader(title = title, subtitle = subtitle, actions = actions)
+        return
     }
+    ScreenHeader(
+        title = title,
+        subtitle = subtitle,
+        modifier = Modifier.padding(horizontal = 8.dp),
+        leading = {
+            ScreenIconButton(
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.action_back),
+                onClick = onBack,
+            )
+        },
+        actions = actions,
+    )
 }
 
-/** Campo de busqueda de 56 dp con icono y borrado rapido. */
+/** Campo de busqueda compartido por las herramientas. */
 @Composable
 fun ToolSearchField(
     value: String,
@@ -94,31 +81,11 @@ fun ToolSearchField(
     placeholder: String,
     modifier: Modifier = Modifier,
 ) {
-    OutlinedTextField(
+    DesignSearchField(
         value = value,
         onValueChange = onValueChange,
-        singleLine = true,
-        placeholder = { Text(placeholder, style = MaterialTheme.typography.bodyMedium) },
-        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, modifier = Modifier.size(20.dp)) },
-        trailingIcon = {
-            if (value.isNotEmpty()) {
-                IconButton(onClick = { onValueChange("") }) {
-                    Icon(
-                        Icons.Filled.Close,
-                        contentDescription = stringResource(R.string.action_clear_search),
-                        modifier = Modifier.size(20.dp),
-                    )
-                }
-            }
-        },
-        shape = RoundedCornerShape(12.dp),
-        colors =
-            OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-            ),
-        modifier = modifier.fillMaxWidth(),
+        placeholder = placeholder,
+        modifier = modifier,
     )
 }
 

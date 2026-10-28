@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
@@ -12,6 +15,12 @@ val sharedCatalogDir: File? = rootProject.extra["sharedRootDir"] as File?
 
 val sharedCatalogPresent = sharedCatalogDir != null
 
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    FileInputStream(keystorePropertiesFile).use { keystoreProperties.load(it) }
+}
+
 android {
     namespace = "com.optimizer.tools"
     compileSdk = 36
@@ -25,8 +34,26 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            if (keystorePropertiesFile.exists()) {
+                val storeFilePath = keystoreProperties["storeFile"] as String
+                storeFile = rootProject.file(storeFilePath)
+                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+            }
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig =
+                if (keystorePropertiesFile.exists()) {
+                    signingConfigs.getByName("release")
+                } else {
+                    null
+                }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -65,6 +92,10 @@ dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:adb"))
     implementation(project(":core:optimization"))
+    implementation(libs.dadb) {
+        // dadb publica junit-platform-native en runtime; no debe viajar en el APK.
+        exclude(group = "org.graalvm.buildtools", module = "junit-platform-native")
+    }
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

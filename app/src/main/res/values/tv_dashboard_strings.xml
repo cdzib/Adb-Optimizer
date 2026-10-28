@@ -1,0 +1,13 @@
+<resources>
+    <string name="tv_dashboard_quick_actions">Acciones rápidas</string>
+    <string name="tv_dashboard_refreshing">Actualizando…</string>
+    <string name="tv_dashboard_recipes">Recetas para este equipo</string>
+    <string name="tv_dashboard_tools_subtitle">Registro, consola, archivos…</string>
+    <string name="tv_dashboard_profiles_subtitle">Conjuntos de apps</string>
+    <string name="tv_dashboard_mirror_subtitle">Ver y controlar la pantalla</string>
+    <string name="tv_dashboard_launchers_subtitle">Cambiar el inicio del televisor</string>
+    <string name="tv_dashboard_apps_subtitle">Administrar aplicaciones</string>
+    <string name="tv_dashboard_shizuku_subtitle">Permisos para modificar ajustes</string>
+    <string name="tv_dashboard_refresh_subtitle">Volver a leer los permisos</string>
+    <string name="tv_dashboard_refresh_title">Actualizar</string>
+</resources>

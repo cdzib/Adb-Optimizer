@@ -6,14 +6,13 @@ import com.optimizer.tools.data.SettingsChange
 import com.optimizer.tools.feature.settingsdb.NightMode
 import com.optimizer.tools.feature.settingsdb.QuickSettings
 import com.optimizer.tools.feature.settingsdb.SettingsDbEnvironment
-import dev.adboptimizer.core.model.DeviceInfo
 import java.io.IOException
 
 /** Adaptador de composición para el editor de ajustes. */
 internal class AppContainerSettingsDbEnvironment(
     private val container: AppContainer,
 ) : SettingsDbEnvironment {
-    override fun activeDevice(): DeviceInfo? = container.device
+    override fun hasDevice(): Boolean = container.hasPrivilegedDevice()
 
     override suspend fun list(namespace: String): List<SettingEntry> =
         container.settingsDb?.list(namespace) ?: throw IOException("No hay un dispositivo remoto conectado.")

@@ -34,7 +34,16 @@ data object TvLauncherRoute : AppDestination
 data object SettingsRoute : AppDestination
 
 @Serializable
+data object ToolsRoute : AppDestination
+
+@Serializable
 data object DpcRoute : AppDestination
+
+@Serializable
+data object PowerRoute : AppDestination
+
+@Serializable
+data object LocalAdbRoute : AppDestination
 
 @Serializable
 data object RemoteControlRoute : AppDestination
@@ -50,6 +59,18 @@ data object SettingsDbRoute : AppDestination
 
 @Serializable
 data object DozeRoute : AppDestination
+
+@Serializable
+data object ProfilesRoute : AppDestination
+
+@Serializable
+data object DebloatRoute : AppDestination
+
+@Serializable
+data object FilesRoute : AppDestination
+
+@Serializable
+data object ConsoleRoute : AppDestination
 
 @Serializable
 data class InspectorRoute(
@@ -87,15 +108,38 @@ fun Screen.toRoute(): AppDestination =
 fun AppDestination.toScreen(): Screen? =
     when (this) {
         HomeRoute -> Screen.HOME
+
         ConnectRoute -> Screen.CONNECT
+
         AddDeviceRoute -> Screen.ADD_DEVICE
+
         AppsRoute -> Screen.APPS
+
         HostAppPickerRoute -> Screen.HOST_APP_PICKER
+
         OptimizeRoute -> Screen.OPTIMIZE
+
         TvLauncherRoute -> Screen.TV_LAUNCHER
+
         SettingsRoute -> Screen.SETTINGS
+
         DpcRoute -> Screen.DPC
-        RemoteControlRoute, MirrorRoute, LogcatRoute, SettingsDbRoute, DozeRoute, is InspectorRoute, is DashboardDetailRoute -> null
+
+        RemoteControlRoute,
+        ToolsRoute,
+        PowerRoute,
+        LocalAdbRoute,
+        MirrorRoute,
+        LogcatRoute,
+        SettingsDbRoute,
+        DozeRoute,
+        ProfilesRoute,
+        DebloatRoute,
+        FilesRoute,
+        ConsoleRoute,
+        is InspectorRoute,
+        is DashboardDetailRoute,
+        -> null
     }
 
 /** Traduce el destino actual del back stack al estado de pantalla del host. */
@@ -116,6 +160,9 @@ fun NavDestination.toScreen(): Screen? =
 /** Destinos que deben animarse como una pantalla de detalle. */
 fun NavDestination.isPushDestination(): Boolean =
     hasRoute<DashboardDetailRoute>() ||
+        hasRoute<ToolsRoute>() ||
+        hasRoute<PowerRoute>() ||
+        hasRoute<LocalAdbRoute>() ||
         hasRoute<AddDeviceRoute>() ||
         hasRoute<HostAppPickerRoute>() ||
         hasRoute<TvLauncherRoute>() ||
@@ -123,4 +170,8 @@ fun NavDestination.isPushDestination(): Boolean =
         hasRoute<MirrorRoute>() ||
         hasRoute<LogcatRoute>() ||
         hasRoute<SettingsDbRoute>() ||
-        hasRoute<DozeRoute>()
+        hasRoute<DozeRoute>() ||
+        hasRoute<ProfilesRoute>() ||
+        hasRoute<DebloatRoute>() ||
+        hasRoute<FilesRoute>() ||
+        hasRoute<ConsoleRoute>()

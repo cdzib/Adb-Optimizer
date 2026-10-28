@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="files_title">Archivos</string>
+    <string name="files_up">Subir un nivel</string>
+    <string name="files_refresh">Volver a leer</string>
+    <string name="files_no_device_title">Sin destino</string>
+    <string name="files_no_device">Conecta un dispositivo por ADB o autoriza Shizuku para explorar sus archivos.</string>
+    <string name="files_search">Buscar en esta carpeta</string>
+    <string name="files_new_folder">Nueva carpeta</string>
+    <string name="files_empty">Esta carpeta está vacía.</string>
+    <string name="files_folder">Carpeta</string>
+    <string name="files_size">%1$d bytes</string>
+    <string name="files_actions">Acciones</string>
+    <string name="files_open">Abrir</string>
+    <string name="files_preview">Ver texto</string>
+    <string name="files_install_apk">Instalar APK</string>
+    <string name="files_rename">Renombrar</string>
+    <string name="files_delete">Borrar</string>
+    <string name="files_name">Nombre</string>
+    <string name="files_confirm">Aceptar</string>
+    <string name="files_delete_title">Borrar archivo</string>
+    <string name="files_delete_body">Se borrará «%1$s» del dispositivo. Esta acción no se puede deshacer.</string>
+    <string name="files_empty_file">El archivo está vacío.</string>
+    <string name="files_error">No se pudo completar la operación.</string>
+    <string name="files_error_no_device">No hay un dispositivo disponible para explorar archivos.</string>
+    <string name="files_error_list">No se pudo leer la carpeta.</string>
+    <string name="files_error_read">No se pudo leer el archivo.</string>
+    <string name="files_error_install">No se pudo instalar el APK.</string>
+    <string name="files_error_name">Escribe un nombre válido.</string>
+    <string name="files_message_folder_created">Carpeta creada.</string>
+    <string name="files_message_renamed">Nombre cambiado.</string>
+    <string name="files_message_deleted">«%1$s» borrado.</string>
+    <string name="files_message_installed">%1$s instalado.</string>
+    <string name="files_empty_body">Crea una carpeta o sube un archivo desde el equipo.</string>
+    <string name="files_protected_note">Las rutas protegidas del sistema no se pueden borrar: la app comprueba la ruta antes de tocar nada.</string>
+</resources>

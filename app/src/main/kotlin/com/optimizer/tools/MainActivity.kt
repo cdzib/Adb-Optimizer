@@ -10,21 +10,27 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.optimizer.tools.app.AppContainerAppsEnvironment
 import com.optimizer.tools.app.AppContainerConnectionEnvironment
+import com.optimizer.tools.app.AppContainerConsoleEnvironment
 import com.optimizer.tools.app.AppContainerDashboardEnvironment
+import com.optimizer.tools.app.AppContainerDebloatEnvironment
 import com.optimizer.tools.app.AppContainerDozeEnvironment
 import com.optimizer.tools.app.AppContainerDpcEnvironment
+import com.optimizer.tools.app.AppContainerFilesEnvironment
 import com.optimizer.tools.app.AppContainerInspectorEnvironment
 import com.optimizer.tools.app.AppContainerInstallEnvironment
+import com.optimizer.tools.app.AppContainerLocalAdbEnvironment
 import com.optimizer.tools.app.AppContainerLogcatEnvironment
 import com.optimizer.tools.app.AppContainerMainEnvironment
 import com.optimizer.tools.app.AppContainerMirrorEnvironment
 import com.optimizer.tools.app.AppContainerOptimizeEnvironment
+import com.optimizer.tools.app.AppContainerProfilesEnvironment
 import com.optimizer.tools.app.AppContainerRemoteControlEnvironment
 import com.optimizer.tools.app.AppContainerSettingsDbEnvironment
 import com.optimizer.tools.app.AppContainerSettingsEnvironment
@@ -32,19 +38,26 @@ import com.optimizer.tools.app.AppContainerShizukuEnvironment
 import com.optimizer.tools.app.AppContainerTvLauncherEnvironment
 import com.optimizer.tools.app.MainViewModel
 import com.optimizer.tools.app.OptimizerApp
+import com.optimizer.tools.app.tv.LocalTelevisionUi
+import com.optimizer.tools.app.tv.isTelevisionHost
 import com.optimizer.tools.core.ui.AdbOptimizerTheme
 import com.optimizer.tools.data.AppContainer
 import com.optimizer.tools.data.ShizukuLocalAccess
 import com.optimizer.tools.feature.apps.AppsViewModel
 import com.optimizer.tools.feature.connection.ConnectionViewModel
+import com.optimizer.tools.feature.console.ConsoleViewModel
 import com.optimizer.tools.feature.dashboard.DashboardViewModel
+import com.optimizer.tools.feature.debloat.DebloatViewModel
 import com.optimizer.tools.feature.doze.DozeViewModel
 import com.optimizer.tools.feature.dpc.DpcViewModel
+import com.optimizer.tools.feature.files.FilesViewModel
 import com.optimizer.tools.feature.inspector.InspectorViewModel
 import com.optimizer.tools.feature.install.InstallViewModel
+import com.optimizer.tools.feature.localadb.presentation.LocalAdbViewModel
 import com.optimizer.tools.feature.logcat.LogcatViewModel
 import com.optimizer.tools.feature.mirror.MirrorViewModel
 import com.optimizer.tools.feature.optimize.OptimizeViewModel
+import com.optimizer.tools.feature.profiles.ProfilesViewModel
 import com.optimizer.tools.feature.remote.RemoteControlViewModel
 import com.optimizer.tools.feature.settings.SettingsViewModel
 import com.optimizer.tools.feature.settingsdb.SettingsDbViewModel
@@ -112,6 +125,21 @@ class MainActivity : ComponentActivity() {
     private val dozeViewModel: DozeViewModel by viewModels {
         DozeViewModel.factory(AppContainerDozeEnvironment(container))
     }
+    private val profilesViewModel: ProfilesViewModel by viewModels {
+        ProfilesViewModel.factory(AppContainerProfilesEnvironment(container))
+    }
+    private val debloatViewModel: DebloatViewModel by viewModels {
+        DebloatViewModel.factory(AppContainerDebloatEnvironment(container))
+    }
+    private val filesViewModel: FilesViewModel by viewModels {
+        FilesViewModel.factory(AppContainerFilesEnvironment(container))
+    }
+    private val consoleViewModel: ConsoleViewModel by viewModels {
+        ConsoleViewModel.factory(AppContainerConsoleEnvironment(container))
+    }
+    private val localAdbViewModel: LocalAdbViewModel by viewModels {
+        LocalAdbViewModel.factory(AppContainerLocalAdbEnvironment(container))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -120,6 +148,7 @@ class MainActivity : ComponentActivity() {
         requestNotificationPermissionIfNeeded()
         setContent {
             val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
+            val localAdbReady by container.localAdb.connected.collectAsStateWithLifecycle()
 
             LaunchedEffect(settings.keepScreenOn) {
                 if (settings.keepScreenOn) {
@@ -130,25 +159,33 @@ class MainActivity : ComponentActivity() {
             }
 
             AdbOptimizerTheme(themeMode = settings.themeMode) {
-                OptimizerApp(
-                    viewModel = viewModel,
-                    settingsViewModel = settingsViewModel,
-                    connectionViewModel = connectionViewModel,
-                    dashboardViewModel = dashboardViewModel,
-                    appsViewModel = appsViewModel,
-                    optimizeViewModel = optimizeViewModel,
-                    installViewModel = installViewModel,
-                    tvLauncherViewModel = tvLauncherViewModel,
-                    shizukuViewModel = shizukuViewModel,
-                    dpcViewModel = dpcViewModel,
-                    remoteControlViewModel = remoteControlViewModel,
-                    mirrorViewModel = mirrorViewModel,
-                    logcatViewModel = logcatViewModel,
-                    settingsDbViewModel = settingsDbViewModel,
-                    inspectorViewModel = inspectorViewModel,
-                    dozeViewModel = dozeViewModel,
-                    dictionary = container.dictionary,
-                )
+                CompositionLocalProvider(LocalTelevisionUi provides isTelevisionHost(this@MainActivity)) {
+                    OptimizerApp(
+                        viewModel = viewModel,
+                        settingsViewModel = settingsViewModel,
+                        connectionViewModel = connectionViewModel,
+                        dashboardViewModel = dashboardViewModel,
+                        appsViewModel = appsViewModel,
+                        optimizeViewModel = optimizeViewModel,
+                        installViewModel = installViewModel,
+                        tvLauncherViewModel = tvLauncherViewModel,
+                        shizukuViewModel = shizukuViewModel,
+                        dpcViewModel = dpcViewModel,
+                        remoteControlViewModel = remoteControlViewModel,
+                        mirrorViewModel = mirrorViewModel,
+                        logcatViewModel = logcatViewModel,
+                        settingsDbViewModel = settingsDbViewModel,
+                        inspectorViewModel = inspectorViewModel,
+                        dozeViewModel = dozeViewModel,
+                        profilesViewModel = profilesViewModel,
+                        debloatViewModel = debloatViewModel,
+                        filesViewModel = filesViewModel,
+                        consoleViewModel = consoleViewModel,
+                        localAdbViewModel = localAdbViewModel,
+                        localAdbReady = localAdbReady,
+                        dictionary = container.dictionary,
+                    )
+                }
             }
         }
     }
@@ -159,6 +196,11 @@ class MainActivity : ComponentActivity() {
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
                 PackageManager.PERMISSION_GRANTED
         if (!granted) notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        localAdbViewModel.onAppResumed()
     }
 
     override fun onDestroy() {

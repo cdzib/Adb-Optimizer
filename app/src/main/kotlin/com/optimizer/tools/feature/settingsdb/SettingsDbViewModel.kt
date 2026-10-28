@@ -40,8 +40,8 @@ class SettingsDbViewModel(
     val state: StateFlow<SettingsDbState> = _state.asStateFlow()
 
     fun onEnter() {
-        _state.update { it.copy(connected = environment.activeDevice() != null) }
-        if (environment.activeDevice() != null) {
+        _state.update { it.copy(connected = environment.hasDevice()) }
+        if (environment.hasDevice()) {
             reload()
             refreshQuick()
             refreshHistory()

@@ -19,6 +19,9 @@ interface AppsEnvironment {
 
     fun hasRemoteApps(): Boolean
 
+    /** Hay con qué cambiar el estado de las apps en este destino (sesión ADB o Shizuku listo). */
+    fun privileged(target: AppTarget): Boolean
+
     suspend fun localDevice(): DeviceInfo?
 
     suspend fun listApps(target: AppTarget): List<ManagedApp>

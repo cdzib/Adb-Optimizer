@@ -2,11 +2,10 @@ package com.optimizer.tools.feature.settingsdb
 
 import com.optimizer.tools.data.SettingEntry
 import com.optimizer.tools.data.SettingsChange
-import dev.adboptimizer.core.model.DeviceInfo
 
 /** Puertos del editor de ajustes del sistema. */
 interface SettingsDbEnvironment {
-    fun activeDevice(): DeviceInfo?
+    fun hasDevice(): Boolean
 
     suspend fun list(namespace: String): List<SettingEntry>
 

@@ -60,14 +60,22 @@ com.optimizer.tools
 ├── domain/                      # Modelos, puertos y use cases compartidos
 ├── feature/
 │   ├── apps/
+│   ├── apps/
 │   ├── connection/
+│   ├── console/
 │   ├── dashboard/
-│   ├── dpc/
+│   ├── debloat/
+│   ├── doze/
+│   ├── files/
+│   ├── inspector/
 │   ├── install/
+│   ├── logcat/
 │   ├── mirror/
 │   ├── optimize/
+│   ├── profiles/
 │   ├── remote/
 │   ├── settings/
+│   ├── settingsdb/
 │   ├── shizuku/
 │   └── tvlauncher/
 └── shizuku/                     # Servicio AIDL local y acceso a Shizuku
@@ -82,6 +90,10 @@ com.optimizer.tools
 - `data` y `domain` son compartidos. Un repositorio específico de una feature puede
   moverse a `feature/<name>/data` cuando deje de ser compartido.
 - `app` compone la aplicación. No debe contener reglas de negocio ni pantallas completas.
+- Las funciones que solo cambian el estado de paquetes comparten `data/packages/PackageStateReader`
+  en lugar de construir comandos `pm` propios; hoy lo usan `profiles` y `debloat`.
+- La paridad con la app de referencia (qué se portó y qué falta) vive en
+  [paridad con ADB Application Manager Pro](specs/parity-adb-app-manager.md).
 
 ## 3. Reglas de dependencia
 

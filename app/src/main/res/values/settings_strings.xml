@@ -26,4 +26,8 @@
     <string name="settings_open_logcat">Registro del sistema</string>
     <string name="settings_open_settings_db">Ajustes del sistema</string>
     <string name="settings_open_doze">Doze y energía</string>
+    <string name="settings_open_profiles">Perfiles de apps</string>
+    <string name="settings_open_debloat">Debloater</string>
+    <string name="settings_open_files">Archivos</string>
+    <string name="settings_open_console">Consola</string>
 </resources>

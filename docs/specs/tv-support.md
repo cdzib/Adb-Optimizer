@@ -1,6 +1,8 @@
 # Soporte de televisiones (Android TV y Google TV)
 
-Estado: PROPUESTO (sin implementar)
+Estado: plan de capacidades. Presentación nativa TV iniciada tras aprobación del
+rediseño; las fases de detección remota y protección del launcher no se consideran
+implementadas por añadir la interfaz. Ver `mobile-tv-redesign-implementation.md`.
 
 ## Evidencia
 
@@ -38,7 +40,7 @@ Fuera:
 - TVs sin depuración USB/red disponible.
 - Encendido de un televisor apagado: ADB no puede; solo `KEYCODE_WAKEUP` si el equipo sigue
   en red.
-- Ejecutar esta app *en* la TV (ver Fase 3, opcional).
+- Ejecutar esta app *en* la TV se trata por separado en la Fase 3 y en el rediseño aprobado.
 
 ## Contrato (Fase 1)
 
@@ -78,9 +80,10 @@ Criterio de cierre: `:core:adb:test`, `:app:testDebugUnitTest`, `ktlintCheck`, `
 
 ### Fase 3 — La app dentro de la TV (alto, opcional)
 
-Requiere `LEANBACK_LAUNCHER` en el manifiesto, banner 320×180, navegación por foco en toda la
-UI (hoy es táctil), teclado en pantalla y revisión de `minSdk`. No se recomienda hasta tener
-demanda real: el caso natural es el teléfono como mando.
+El rediseño aprobado incorpora `LEANBACK_LAUNCHER`, banner y una presentación lateral
+adaptada al mando. La cobertura de foco de todas las herramientas y la validación física
+siguen siendo gates separados: esta presentación no implica completar las fases 1 y 2,
+ni disponer de permisos para modificar el televisor.
 
 ## Riesgos
 

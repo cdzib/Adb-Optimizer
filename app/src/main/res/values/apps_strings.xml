@@ -86,4 +86,11 @@
     <string name="apps_batch_summary_skipped">%1$s: %2$d OK, %3$d omitidas</string>
     <string name="apps_batch_summary_failures">%1$s: %2$d OK, %3$d fallidas</string>
     <string name="apps_batch_summary_both">%1$s: %2$d OK, %3$d omitidas, %4$d fallidas</string>
+    <string name="apps_read_only_title">Sin ADB: solo lectura</string>
+    <string name="apps_filter_all_count">Todas %1$d</string>
+    <string name="apps_filter_user_count">Usuario %1$d</string>
+    <string name="apps_filter_system_count">Sistema %1$d</string>
+    <string name="apps_read_only_body">Ves todas las apps del teléfono y puedes abrirlas, ver sus detalles y extraer su APK. Congelar, borrar datos, restringir o compilar necesitan una conexión ADB o Shizuku autorizado.</string>
+    <string name="apps_read_only_connect">Conectar por ADB</string>
+    <string name="apps_read_only_hint">Requiere ADB o Shizuku</string>
 </resources>

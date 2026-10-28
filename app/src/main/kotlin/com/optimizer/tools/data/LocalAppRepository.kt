@@ -11,7 +11,6 @@ import android.os.Environment
 import com.optimizer.tools.domain.apk.ApkDescriptor
 import com.optimizer.tools.domain.apk.LocalPackageCommands
 import com.optimizer.tools.domain.apk.PackageReadBack
-import com.optimizer.tools.domain.model.ShizukuLocalStatus
 import com.optimizer.tools.domain.port.HostAppsSource
 import dev.adboptimizer.core.model.AppAction
 import dev.adboptimizer.core.model.AppActionResult
@@ -31,7 +30,7 @@ import java.io.IOException
  */
 class LocalAppRepository(
     private val context: Context,
-    private val shizukuAccess: ShizukuLocalAccess,
+    private val localPrivilegeReady: () -> Boolean,
     private val shell: AdbShell,
 ) : HostAppsSource {
     private val pm: PackageManager get() = context.packageManager
@@ -115,7 +114,7 @@ class LocalAppRepository(
                                     "Esta acción no está disponible en el teléfono."
                                 },
                             )
-                    if (action == AppAction.UNINSTALL && shizukuAccess.status() != ShizukuLocalStatus.READY) {
+                    if (action == AppAction.UNINSTALL && !localPrivilegeReady()) {
                         return@withContext uninstallWithSystemUi(packageName)
                     }
                     runPrivileged(
