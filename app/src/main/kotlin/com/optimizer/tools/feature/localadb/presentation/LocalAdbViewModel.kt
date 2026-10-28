@@ -33,6 +33,7 @@ data class LocalAdbUiState(
     val entries: List<LocalAdbEntry> = emptyList(),
     val attempt: Int = 0,
     val developerOptionsEnabled: Boolean = false,
+    val log: List<String> = emptyList(),
 )
 
 class LocalAdbViewModel(
@@ -45,6 +46,9 @@ class LocalAdbViewModel(
     private var checkingConnection = false
 
     init {
+        viewModelScope.launch {
+            environment.logs.collect { lines -> _state.update { it.copy(log = lines) } }
+        }
         // Si ya se aceptó el diálogo RSA, reconecta al abrir la app sin volver a preguntar.
         if (environment.isAuthorized() && environment.isAdbEnabled()) {
             connect()
@@ -81,6 +85,11 @@ class LocalAdbViewModel(
     }
 
     fun refresh() {
+        environment.log(
+            "refresh: adb_enabled=${environment.isAdbEnabled()} " +
+                "opciones_desarrollador=${environment.isDeveloperOptionsEnabled()} " +
+                "autorizado=${environment.isAuthorized()}",
+        )
         if (!environment.isAdbEnabled()) {
             connectJob?.cancel()
             _state.update {
@@ -115,6 +124,7 @@ class LocalAdbViewModel(
                             attempt = attempt,
                         )
                     }
+                    environment.log("connect: intento $attempt de $MAX_ATTEMPTS")
                     val waiting =
                         launch {
                             delay(WAITING_DELAY_MS)
@@ -139,6 +149,7 @@ class LocalAdbViewModel(
                         throw cancelled
                     } catch (error: LocalAdbException) {
                         waiting.cancel()
+                        environment.log("connect: error ${error.kind} · ${error.message}")
                         when (error.kind) {
                             LocalAdbErrorKind.PORT_CLOSED -> {
                                 fail(error, LocalAdbPhase.ERROR)
@@ -199,6 +210,7 @@ class LocalAdbViewModel(
         if (command.isEmpty() || _state.value.running || _state.value.phase != LocalAdbPhase.CONNECTED) return
         viewModelScope.launch {
             _state.update { it.copy(running = true, errorKind = null, detail = null) }
+            environment.log("shell: $command")
             try {
                 val result = environment.run(command)
                 _state.update {
@@ -223,6 +235,7 @@ class LocalAdbViewModel(
                     )
                 }
             } catch (error: Exception) {
+                environment.log("shell: fallo · ${error.message}")
                 _state.update {
                     it.copy(
                         running = false,
@@ -262,6 +275,7 @@ class LocalAdbViewModel(
         )
 
     override fun onCleared() {
+        environment.log("viewmodel liberado")
         connectJob?.cancel()
         environment.disconnect()
         super.onCleared()

@@ -8,6 +8,8 @@ import com.optimizer.tools.feature.localadb.presentation.LocalAdbEnvironment
 import com.optimizer.tools.feature.localadb.presentation.LocalAdbViewModel
 import com.optimizer.tools.testutil.runViewModelTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.advanceUntilIdle
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -158,6 +160,13 @@ private class FakeLocalAdbEnvironment(
 ) : LocalAdbEnvironment {
     var connectCalls = 0
     var disconnected = false
+    private val logsFlow = MutableStateFlow<List<String>>(emptyList())
+
+    override val logs: StateFlow<List<String>> = logsFlow
+
+    override fun log(message: String) {
+        logsFlow.value = logsFlow.value + message
+    }
 
     override fun isAdbEnabled(): Boolean = enabled
 

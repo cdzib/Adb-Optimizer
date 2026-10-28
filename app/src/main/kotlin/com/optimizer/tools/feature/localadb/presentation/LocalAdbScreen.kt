@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayArrow
@@ -132,8 +133,59 @@ fun LocalAdbScreen(
                 )
             }
         }
+        if (state.log.isNotEmpty() && state.phase != LocalAdbPhase.CONNECTED) {
+            // El registro queda anclado al pie: el contenido explica el estado y el
+            // registro dice que se intento y donde fallo.
+            Spacer(Modifier.weight(1f))
+            LocalAdbLogPanel(state.log)
+            Spacer(Modifier.height(12.dp))
+        }
     }
 }
+
+/**
+ * Registro de la ultima conexion: que se probo, que respondio el puerto y donde fallo.
+ * Se oculta cuando la sesion ya esta establecida.
+ */
+@Composable
+private fun LocalAdbLogPanel(lines: List<String>) {
+    val scroll = rememberScrollState()
+    LaunchedEffect(lines.size) { scroll.scrollTo(Int.MAX_VALUE) }
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(
+            stringResource(R.string.localadb_log_title),
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Column(
+            Modifier.heightIn(max = 140.dp).verticalScroll(scroll),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            lines.takeLast(MAX_LOG_LINES_VISIBLE).forEach { line ->
+                SelectionContainer {
+                    Text(
+                        line,
+                        style =
+                            MaterialTheme.typography.bodySmall.copy(
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 11.sp,
+                            ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+}
+
+private const val MAX_LOG_LINES_VISIBLE = 20
 
 @Composable
 private fun StatusStrip(state: LocalAdbUiState) {

@@ -135,7 +135,7 @@ class AppContainer(
     val shizukuLocalAccess: ShizukuLocalAccess by lazy { ShizukuLocalAccess(context) }
 
     /** Sesión ADB del propio equipo por 127.0.0.1:5555 (feature ADB local). */
-    val localAdb: DadbLocalAdbRepository by lazy { DadbLocalAdbRepository(context) }
+    val localAdb: DadbLocalAdbRepository by lazy { DadbLocalAdbRepository(context, logger = logger) }
 
     private val localAdbShell: LocalAdbShell by lazy { LocalAdbShell(localAdb) }
 

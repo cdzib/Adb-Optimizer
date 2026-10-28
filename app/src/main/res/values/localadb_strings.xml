@@ -41,5 +41,6 @@
     <string name="localadb_exit_ok">exit 0</string>
     <string name="localadb_exit_error">exit %1$d</string>
     <string name="localadb_duration">%1$d ms</string>
+    <string name="localadb_log_title">Registro de conexión</string>
     <string name="localadb_tools_description">Conecta por 127.0.0.1 y ejecuta comandos shell</string>
 </resources>

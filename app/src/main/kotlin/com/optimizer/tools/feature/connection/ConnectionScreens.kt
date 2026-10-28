@@ -32,6 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AddLink
+import androidx.compose.material.icons.filled.Cable
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Tune
@@ -628,6 +629,9 @@ private fun MyDevicesContent(
 /**
  * Acceso a la sesión ADB de loopback. Es el camino para controlar este mismo equipo,
  * incluida una TV, sin depender del emparejamiento inalámbrico de Android 11+.
+ *
+ * La fila entera es la acción y termina en chevron: `PillButton` mide su contenido con
+ * `fillMaxWidth`, así que dentro de un Row se comía el ancho y dejaba el texto a cero.
  */
 @Composable
 private fun LocalAdbEntryCard(onOpenLocalAdb: () -> Unit) {
@@ -641,7 +645,7 @@ private fun LocalAdbEntryCard(onOpenLocalAdb: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        DesignIconBadge(Icons.Filled.Devices, DesignTone.Neutral)
+        DesignIconBadge(Icons.Filled.Cable, DesignTone.Neutral)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 stringResource(R.string.devices_local_adb),
@@ -655,10 +659,10 @@ private fun LocalAdbEntryCard(onOpenLocalAdb: () -> Unit) {
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        PillButton(
-            text = stringResource(R.string.devices_local_adb_action),
-            onClick = onOpenLocalAdb,
-            style = PillStyle.Tonal,
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

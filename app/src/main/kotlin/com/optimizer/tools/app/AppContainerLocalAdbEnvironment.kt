@@ -6,6 +6,7 @@ import com.optimizer.tools.feature.localadb.domain.ConnectAdb
 import com.optimizer.tools.feature.localadb.domain.RunShellCommand
 import com.optimizer.tools.feature.localadb.domain.ShellCommandResult
 import com.optimizer.tools.feature.localadb.presentation.LocalAdbEnvironment
+import kotlinx.coroutines.flow.StateFlow
 
 /** Composición de la feature ADB local: datos + casos de uso. */
 internal class AppContainerLocalAdbEnvironment(
@@ -15,6 +16,10 @@ internal class AppContainerLocalAdbEnvironment(
     private val checkAdbEnabled = CheckAdbEnabled(repository)
     private val connectAdb = ConnectAdb(repository)
     private val runShellCommand = RunShellCommand(repository)
+
+    override val logs: StateFlow<List<String>> = repository.logs
+
+    override fun log(message: String) = repository.appendLog(message)
 
     override fun isAdbEnabled(): Boolean = checkAdbEnabled()
 
