@@ -49,9 +49,6 @@ data object LocalAdbRoute : AppDestination
 data object RemoteControlRoute : AppDestination
 
 @Serializable
-data object MirrorRoute : AppDestination
-
-@Serializable
 data object LogcatRoute : AppDestination
 
 @Serializable
@@ -129,7 +126,6 @@ fun AppDestination.toScreen(): Screen? =
         ToolsRoute,
         PowerRoute,
         LocalAdbRoute,
-        MirrorRoute,
         LogcatRoute,
         SettingsDbRoute,
         DozeRoute,
@@ -167,7 +163,6 @@ fun NavDestination.isPushDestination(): Boolean =
         hasRoute<HostAppPickerRoute>() ||
         hasRoute<TvLauncherRoute>() ||
         hasRoute<RemoteControlRoute>() ||
-        hasRoute<MirrorRoute>() ||
         hasRoute<LogcatRoute>() ||
         hasRoute<SettingsDbRoute>() ||
         hasRoute<DozeRoute>() ||

@@ -62,7 +62,6 @@ internal fun TelevisionDevicesContent(
     onCancelConnect: (() -> Unit)? = null,
     onOpenLocalAdb: (() -> Unit)? = null,
     onOpenRemote: (() -> Unit)? = null,
-    onOpenMirror: (() -> Unit)? = null,
     onOpenTools: (() -> Unit)? = null,
 ) {
     var connectedActions by remember { mutableStateOf<DeviceInfo?>(null) }
@@ -120,7 +119,7 @@ internal fun TelevisionDevicesContent(
                 )
             }
 
-            if (device != null && (onOpenRemote != null || onOpenMirror != null || onOpenTools != null)) {
+            if (device != null && (onOpenRemote != null || onOpenTools != null)) {
                 item(key = "active-header", span = { GridItemSpan(3) }) {
                     TvSectionLabel(stringResource(R.string.devices_local_active))
                 }
@@ -131,16 +130,6 @@ internal fun TelevisionDevicesContent(
                             title = stringResource(R.string.devices_remote_control),
                             subtitle = device.displayName.ifBlank { device.id },
                             onClick = onOpenRemote,
-                        )
-                    }
-                }
-                if (onOpenMirror != null) {
-                    item(key = "active-mirror") {
-                        TvTile(
-                            icon = Icons.Filled.Tv,
-                            title = stringResource(R.string.devices_mirror),
-                            subtitle = stringResource(R.string.tv_dashboard_mirror_subtitle),
-                            onClick = onOpenMirror,
                         )
                     }
                 }
@@ -349,7 +338,6 @@ private fun TelevisionDevicesContentPreview() {
                 onForgetKnown = {},
                 onOpenLocalAdb = {},
                 onOpenRemote = {},
-                onOpenMirror = {},
                 onOpenTools = {},
             )
         }

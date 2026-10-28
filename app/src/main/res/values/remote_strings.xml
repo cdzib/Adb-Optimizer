@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="remote_title">Espejo del dispositivo</string>
+    <string name="remote_title">Control remoto</string>
     <string name="remote_no_device">Sin dispositivo conectado</string>
     <string name="remote_up">Arriba</string>
     <string name="remote_down">Abajo</string>

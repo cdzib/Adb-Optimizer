@@ -442,7 +442,6 @@ internal fun DevicesScreen(
     onForgetKnown: (KnownDevice) -> Unit,
     onCancelConnect: (() -> Unit)? = null,
     onOpenRemote: (() -> Unit)? = null,
-    onOpenMirror: (() -> Unit)? = null,
     onOpenTools: (() -> Unit)? = null,
     onOpenLocalAdb: (() -> Unit)? = null,
 ) {
@@ -459,7 +458,6 @@ internal fun DevicesScreen(
             onCancelConnect = onCancelConnect,
             onOpenLocalAdb = onOpenLocalAdb,
             onOpenRemote = onOpenRemote,
-            onOpenMirror = onOpenMirror,
             onOpenTools = onOpenTools,
         )
         return
@@ -476,7 +474,6 @@ internal fun DevicesScreen(
             onCancelConnect = onCancelConnect,
             onAddDevice = onAddDevice,
             onOpenRemote = onOpenRemote,
-            onOpenMirror = onOpenMirror,
             onOpenTools = onOpenTools,
             onOpenLocalAdb = onOpenLocalAdb,
             modifier = Modifier.fillMaxSize(),
@@ -505,7 +502,6 @@ private fun MyDevicesContent(
     modifier: Modifier = Modifier,
     onAddDevice: () -> Unit = {},
     onOpenRemote: (() -> Unit)? = null,
-    onOpenMirror: (() -> Unit)? = null,
     onOpenTools: (() -> Unit)? = null,
     onOpenLocalAdb: (() -> Unit)? = null,
 ) {
@@ -565,7 +561,6 @@ private fun MyDevicesContent(
             ActiveDeviceCard(
                 device = device,
                 onOpenRemote = onOpenRemote,
-                onOpenMirror = onOpenMirror,
                 onOpenTools = onOpenTools,
             )
             Spacer(Modifier.height(10.dp))
@@ -672,7 +667,6 @@ private fun LocalAdbEntryCard(onOpenLocalAdb: () -> Unit) {
 private fun ActiveDeviceCard(
     device: dev.adboptimizer.core.model.DeviceInfo,
     onOpenRemote: (() -> Unit)?,
-    onOpenMirror: (() -> Unit)?,
     onOpenTools: (() -> Unit)?,
 ) {
     Column(
@@ -715,25 +709,12 @@ private fun ActiveDeviceCard(
                 Modifier.size(8.dp).clip(RoundedCornerShape(50)).background(MaterialTheme.colorScheme.primary),
             )
         }
-        if (onOpenRemote != null || onOpenMirror != null) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (onOpenRemote != null) {
-                    PillButton(
-                        stringResource(R.string.devices_remote_control),
-                        onOpenRemote,
-                        style = PillStyle.Tonal,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                if (onOpenMirror != null) {
-                    PillButton(
-                        stringResource(R.string.devices_mirror),
-                        onOpenMirror,
-                        style = PillStyle.Outline,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
+        if (onOpenRemote != null) {
+            PillButton(
+                stringResource(R.string.devices_remote_control),
+                onOpenRemote,
+                style = PillStyle.Tonal,
+            )
         }
         if (onOpenTools != null) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

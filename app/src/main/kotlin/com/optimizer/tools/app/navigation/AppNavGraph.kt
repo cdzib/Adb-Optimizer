@@ -51,7 +51,6 @@ import com.optimizer.tools.feature.localadb.presentation.LocalAdbScreen
 import com.optimizer.tools.feature.localadb.presentation.LocalAdbViewModel
 import com.optimizer.tools.feature.logcat.LogcatScreen
 import com.optimizer.tools.feature.logcat.LogcatViewModel
-import com.optimizer.tools.feature.mirror.MirrorScreen
 import com.optimizer.tools.feature.mirror.MirrorViewModel
 import com.optimizer.tools.feature.optimize.OptimizeScreen
 import com.optimizer.tools.feature.optimize.OptimizeViewModel
@@ -244,7 +243,6 @@ internal fun AppNavGraph(
                         onForgetKnown = connectionViewModel::forgetKnown,
                         onCancelConnect = connectionViewModel::cancelConnect,
                         onOpenRemote = { navController.navigate(RemoteControlRoute) { launchSingleTop = true } },
-                        onOpenMirror = { navController.navigate(MirrorRoute) { launchSingleTop = true } },
                         onOpenTools = { navController.navigate(ToolsRoute) { launchSingleTop = true } },
                         onOpenLocalAdb = { navController.navigate(LocalAdbRoute) { launchSingleTop = true } },
                     )
@@ -547,23 +545,6 @@ internal fun AppNavGraph(
                     mirrorViewModel.setControlsEnabled(enabled)
                     remoteControlViewModel.setControlsEnabled(enabled)
                 },
-            )
-        }
-
-        composable<MirrorRoute> {
-            LaunchedEffect(Unit) { mirrorViewModel.start() }
-            DisposableEffect(Unit) {
-                onDispose { mirrorViewModel.stop() }
-            }
-            MirrorScreen(
-                state = mirrorState,
-                onBack = {
-                    mirrorViewModel.stop()
-                    if (!navController.popBackStack()) viewModel.goHome()
-                },
-                onSurface = mirrorViewModel::onSurfaceChanged,
-                onTouch = mirrorViewModel::sendTouch,
-                onKey = mirrorViewModel::pressKey,
             )
         }
 

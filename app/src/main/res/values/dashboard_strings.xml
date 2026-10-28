@@ -68,8 +68,8 @@
     <string name="dashboard_remote_empty_body">Ve a Destino para conectar un Android o TV y activar sus herramientas remotas.</string>
     <string name="dashboard_manage_apps">Administrar apps</string>
     <string name="dashboard_tv_launchers">Launchers de TV</string>
-    <string name="dashboard_mirror_title">Espejo del dispositivo</string>
-    <string name="dashboard_mirror_body">Visualiza y controla tu dispositivo</string>
+    <string name="dashboard_mirror_title">Control remoto</string>
+    <string name="dashboard_mirror_body">Controla tu dispositivo en pantalla completa</string>
     <string name="dashboard_device_local_label">EN ESTE TELÉFONO</string>
     <string name="dashboard_device_remote_label">DISPOSITIVO REMOTO</string>
     <string name="dashboard_shizuku_unauthorized">Shizuku sin autorizar</string>

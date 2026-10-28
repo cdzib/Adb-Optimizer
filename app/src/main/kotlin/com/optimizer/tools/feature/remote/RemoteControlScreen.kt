@@ -8,11 +8,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -28,8 +31,10 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -89,15 +94,21 @@ internal fun RemoteControlScreen(
         onDispose { onControlsEnabled(false) }
     }
     if (isLandscape) {
-        RemoteVideo(mirrorState, onSurface, onTouch, Modifier.fillMaxSize(), controlsEnabled = false)
+        FullscreenRemote(
+            state = mirrorState,
+            onBack = onBack,
+            onSurface = onSurface,
+            onTouch = onTouch,
+            controlsEnabled = false,
+        )
         return
     }
     if (isPhone) {
-        RemoteVideo(
-            mirrorState,
-            onSurface,
-            onTouch,
-            Modifier.fillMaxSize(),
+        FullscreenRemote(
+            state = mirrorState,
+            onBack = onBack,
+            onSurface = onSurface,
+            onTouch = onTouch,
             controlsEnabled = mirrorState.touchAllowed,
         )
         return
@@ -221,6 +232,44 @@ internal fun RemoteControlScreen(
                     RemoteIcon(Icons.AutoMirrored.Filled.VolumeUp)
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun FullscreenRemote(
+    state: RemoteVideoState,
+    onBack: () -> Unit,
+    onSurface: (android.view.Surface?) -> Unit,
+    onTouch: (Int, Float, Float) -> Unit,
+    controlsEnabled: Boolean,
+) {
+    Box(Modifier.fillMaxSize()) {
+        RemoteVideo(
+            state = state,
+            onSurface = onSurface,
+            onTouch = onTouch,
+            modifier = Modifier.fillMaxSize(),
+            controlsEnabled = controlsEnabled,
+        )
+        FilledIconButton(
+            onClick = onBack,
+            modifier =
+                Modifier
+                    .align(Alignment.TopStart)
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+                    .padding(12.dp),
+            shape = CircleShape,
+            colors =
+                IconButtonDefaults.filledIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f),
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                ),
+        ) {
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.action_back),
+            )
         }
     }
 }

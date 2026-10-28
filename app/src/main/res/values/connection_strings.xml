@@ -118,7 +118,6 @@
     <string name="devices_success_connected">Conectado con %1$s</string>
     <string name="devices_remote_chip">Remoto</string>
     <string name="devices_remote_control">Control remoto</string>
-    <string name="devices_mirror">Espejo</string>
     <string name="devices_tools_for_device">Herramientas de este equipo</string>
     <string name="devices_local_adb">Conexión ADB local</string>
     <string name="devices_local_adb_body">Conéctate a este equipo por 127.0.0.1:5555 y usa sus herramientas sin otro dispositivo.</string>
